@@ -67,6 +67,27 @@ describe('titres d’issues traduits au rendu', () => {
       }),
     ).toBe('src/a.js#f: suspicious accept (ECHO) on arg0.age')
   })
+  it('acceptation suspecte sans raison enregistrée : raison lue dans le titre ; champs absents', () => {
+    expect(
+      issueTitle('fr', {
+        target: 't',
+        errorName: null,
+        message: null,
+        kind: 'SUSPICIOUS_ACCEPT',
+        title: 'x (HINT_VIOLATION) y',
+      }),
+    ).toBe('t : acceptation suspecte (HINT_VIOLATION) sur ')
+    expect(
+      issueTitle('fr', {
+        target: 't',
+        errorName: null,
+        message: null,
+        kind: 'SUSPICIOUS_ACCEPT',
+        title: 'sans raison',
+      }),
+    ).toBe('t : acceptation suspecte () sur ')
+    expect(issueTitle('en', { target: 't', kind: 'ERROR', title: '' })).toBe('t:  — ')
+  })
   it('type inconnu : titre d’origine', () => {
     expect(issueTitle('en', { ...base, kind: 'OTHER', title: 'brut' })).toBe('brut')
   })

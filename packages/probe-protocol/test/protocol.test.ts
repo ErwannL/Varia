@@ -46,6 +46,9 @@ describe('parseProbeLog', () => {
     expect(isJsonValue(() => 1)).toBe(false)
     expect(isJsonValue({ a: [1, { b: undefined }] })).toBe(false)
     expect(isJsonValue([[[{ a: 'x' }]]])).toBe(true)
+    let deep: unknown = 1
+    for (let i = 0; i < 250; i++) deep = [deep]
+    expect(isJsonValue(deep)).toBe(false)
   })
   it('refuse une profondeur négative', () => {
     expect(parseProbeLog(line({ type: 'OBSERVE_CALL', depth: -1 })).invalidLines).toBe(1)

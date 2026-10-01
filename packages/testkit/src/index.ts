@@ -102,13 +102,16 @@ export const SEED_RESULTS: Record<string, Classification> = {
 }
 
 /** Crée une base Varia réaliste (un run complet de l'exemple, redigé) dans un dossier temporaire. */
-export function seedDatabase(dataDir = mkdtempSync(join(tmpdir(), 'varia-seed-'))): {
-  dataDir: string
-  dbPath: string
-} {
+export const SEED_RUN_2 = 'r_demo00000002'
+
+/** `second` : ajoute un run plus récent (une issue disparue, couverture collectée) pour la comparaison. */
+export function seedDatabase(
+  dataDir = mkdtempSync(join(tmpdir(), 'varia-seed-')),
+  o: { second?: boolean } = {},
+): { dataDir: string; dbPath: string } {
   const dbPath = join(dataDir, 'varia.db')
-  const o = openWriter(dbPath)
-  const w = new Writer(o.db)
+  const db = openWriter(dbPath)
+  const w = new Writer(db.db)
   w.upsertProject({ id: SEED_PROJECT, name: 'demo', root: '/p', framework: 'jest' })
   const caps = {
     observation: true,
@@ -222,7 +225,49 @@ export function seedDatabase(dataDir = mkdtempSync(join(tmpdir(), 'varia-seed-')
   const results = SEED_MUTATIONS.filter((x) => SEED_RESULTS[x.id] !== undefined).map(
     (mutation) => ({ mutation, classification: SEED_RESULTS[mutation.id] as Classification }),
   )
-  w.saveIssues(SEED_RUN, SEED_PROJECT, groupIssues(results, '/p'))
-  o.close()
+  const drafts = groupIssues(results, '/p')
+  w.saveIssues(SEED_RUN, SEED_PROJECT, drafts)
+  if (o.second === true) {
+    w.createRun({
+      id: SEED_RUN_2,
+      projectId: SEED_PROJECT,
+      state: 'COMPLETED',
+      mode: 'normal',
+      seed: 42,
+      gitCommit: 'def',
+      gitBranch: 'main',
+      variaVersion: '0.1.0',
+      configHash: 'cfg',
+      envHash: 'env',
+      planPath: null,
+      partial: false,
+      info: {
+        projectName: 'demo',
+        projectRoot: '/p',
+        adapter: 'jest',
+        capabilities: caps,
+        depth: 'direct',
+        comparedTo: SEED_RUN,
+        coverage: 'COLLECTED',
+      },
+    })
+    w.saveMutations(SEED_RUN_2, SEED_MUTATIONS)
+    w.saveCoverage(SEED_RUN_2, [
+      { file: 'src/users.js', lines: 91.5, statements: 90, functions: 100, branches: 75 },
+    ])
+    const kept = drafts.filter((d) => d.kind !== 'TIMEOUT')
+    w.saveIssues(
+      SEED_RUN_2,
+      SEED_PROJECT,
+      kept.map((d) => ({ ...d, state: 'UNCHANGED' })),
+    )
+    w.saveAbsentIssues(
+      SEED_RUN_2,
+      drafts
+        .filter((d) => d.kind === 'TIMEOUT')
+        .map((d) => ({ issueId: d.fingerprint, state: 'FIXED' })),
+    )
+  }
+  db.close()
   return { dataDir, dbPath }
 }

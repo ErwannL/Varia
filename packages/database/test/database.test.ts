@@ -123,6 +123,38 @@ describe('écrivaine et lectrice', () => {
     expect(r.resultIds('r1')).toEqual(new Set(['m1']))
     expect(r.result('r1', 'm1')?.error).toEqual({ name: 'TypeError' })
   })
+  it('issues absentes et acceptations en base', () => {
+    const { w, r } = seeded()
+    w.saveIssues('r1', 'p', [
+      {
+        fingerprint: 'i5',
+        kind: 'TIMEOUT',
+        severity: 'CRITICAL',
+        target: 't',
+        title: 'x',
+        errorName: null,
+        frame: null,
+        message: null,
+        mutationIds: ['m'],
+      },
+    ])
+    w.saveAbsentIssues('r1', [{ issueId: 'i5', state: 'FIXED' }])
+    expect(r.issues('r1')[0]).toMatchObject({ state: 'FIXED', count: 0, mutationIds: [] })
+    w.addAcceptance({
+      id: 'a1',
+      projectId: 'p',
+      function: 'f',
+      path: null,
+      strategy: null,
+      reason: 'r',
+      owner: null,
+      expires: null,
+    })
+    expect(r.acceptances('p').map((a) => a.id)).toEqual(['a1'])
+    expect(w.deleteAcceptance('a1')).toBe(true)
+    expect(w.deleteAcceptance('a1')).toBe(false)
+    expect(r.acceptances('p')).toEqual([])
+  })
   it('couverture', () => {
     const { w, r } = seeded()
     w.saveCoverage('r1', [

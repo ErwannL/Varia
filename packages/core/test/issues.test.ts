@@ -64,6 +64,18 @@ describe('issues (CDC §20)', () => {
     expect(k({ status: 'HANDLED', testStatus: 'failed' })).toBeUndefined()
     expect(k({ status: 'PASSED', testStatus: 'passed' })).toBeUndefined()
   })
+  it('acceptation suspecte sans raison, cadre hors projet, frame anonyme', () => {
+    const i = issueOf(
+      {
+        mutation: mutation(),
+        classification: { status: 'PASSED', subtype: 'SUSPICIOUS_ACCEPT', testStatus: null },
+      },
+      '/p',
+    )
+    expect([i?.errorName, i?.message]).toEqual([null, 'arg0'])
+    expect(firstProjectFrame('    at f (/autre/lib.js:3:1)', '/p')).toBe('f (/autre/lib.js:3)')
+    expect(firstProjectFrame('    at weird line', '/p')).toBeNull()
+  })
   it('gravité (CDC §19) et tri', () => {
     expect(
       [

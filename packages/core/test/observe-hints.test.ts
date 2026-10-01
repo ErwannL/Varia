@@ -169,6 +169,31 @@ describe('observation', () => {
   })
 })
 
+describe('résumé de couverture istanbul', () => {
+  it('pourcentages par fichier, « Unknown » compté 100, total ignoré', async () => {
+    const { parseCoverageSummary } = await import('../src/adapter.js')
+    const json = JSON.stringify({
+      total: { lines: { pct: 50 } },
+      '/p/src/b.js': {
+        lines: { pct: 80 },
+        statements: { pct: 81 },
+        functions: { pct: 'Unknown' },
+        branches: { pct: 50 },
+      },
+      '/p/src/a.js': {
+        lines: { pct: 100 },
+        statements: { pct: 100 },
+        functions: { pct: 100 },
+        branches: { pct: 100 },
+      },
+    })
+    expect(parseCoverageSummary(json, '/p', (f) => f.replace('/p/', ''))).toEqual([
+      { file: 'src/a.js', lines: 100, statements: 100, functions: 100, branches: 100 },
+      { file: 'src/b.js', lines: 80, statements: 81, functions: 100, branches: 50 },
+    ])
+  })
+})
+
 describe('intégrité avec git (CDC §5)', () => {
   it('fichiers modifiés, ajoutés, supprimés', () => {
     const d = mkdtempSync(join(tmpdir(), 'varia-git-'))

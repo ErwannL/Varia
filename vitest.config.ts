@@ -42,6 +42,7 @@ export default defineConfig({
       thresholds: {
         perFile: true,
         'packages/adapters/jest/**': { lines: 91, branches: 76, functions: 100, statements: 91 },
+        'packages/adapters/vitest/**': { lines: 93, branches: 76, functions: 100, statements: 93 },
         'packages/api/**': { lines: 93, branches: 84, functions: 75, statements: 93 },
         'packages/cli/**': { lines: 88, branches: 78, functions: 71, statements: 88 },
         'packages/config/**': { lines: 100, branches: 100, functions: 100, statements: 100 },
