@@ -14,13 +14,24 @@ const { app } = buildServer({
 
 beforeAll(() => {
   // Le dashboard parle à la VRAIE API (requêtes injectées, sans réseau).
-  vi.stubGlobal('fetch', async (url: string) => {
-    const r = await app.inject({ method: 'GET', url })
-    return new Response(r.body, {
-      status: r.statusCode,
-      headers: { 'content-type': String(r.headers['content-type'] ?? 'application/json') },
-    })
-  })
+  vi.stubGlobal(
+    'fetch',
+    async (
+      url: string,
+      init?: { method?: string; headers?: Record<string, string>; body?: string },
+    ) => {
+      const r = await app.inject({
+        method: (init?.method ?? 'GET') as 'GET',
+        url,
+        headers: { 'sec-fetch-site': 'same-origin', ...(init?.headers ?? {}) },
+        ...(init?.body !== undefined ? { payload: init.body } : {}),
+      })
+      return new Response(r.statusCode === 204 ? null : r.body, {
+        status: r.statusCode,
+        headers: { 'content-type': String(r.headers['content-type'] ?? 'application/json') },
+      })
+    },
+  )
 })
 afterAll(async () => {
   vi.unstubAllGlobals()
@@ -111,5 +122,63 @@ describe('pages du niveau 1 (CDC §26)', () => {
   it('erreur d’API affichée sans dialogue natif', async () => {
     await open('#/runs/zz', "Vue d'ensemble").catch(() => undefined)
     await waitFor(() => expect(screen.getByRole('alert').textContent).toMatch(/HTTP 404/))
+  })
+})
+
+describe('pages du niveau 2 (CDC §26)', () => {
+  it('historique : barre doublée d’un texte', async () => {
+    await open('#/history', 'Historique des runs')
+    expect(await screen.findByText(`${SEED_RUN} : 2 crashes, 1 timeouts, 3 issues`)).toBeTruthy()
+  })
+  it('comparaison : choix dans l’URL, même run refusé', async () => {
+    await open(`#/compare?a=${SEED_RUN}&b=${SEED_RUN}`, 'Comparer deux runs')
+    expect(screen.getByText('Choisissez deux runs différents.')).toBeTruthy()
+    const radios = await screen.findAllByRole('radio', { name: SEED_RUN })
+    expect(radios).toHaveLength(2)
+    expect(radios.every((r) => r.getAttribute('aria-checked') === 'true')).toBe(true)
+  })
+  it('acceptations : création puis suppression confirmée en ligne', async () => {
+    await open('#/acceptances', 'Acceptations')
+    await screen.findByText(/Aucune acceptation en base/)
+    fireEvent.change(screen.getByLabelText('Fonction (export ou module#export)'), {
+      target: { value: 'createUser' },
+    })
+    fireEvent.change(screen.getByLabelText('Raison'), { target: { value: 'domaine' } })
+    await act(async () => {
+      fireEvent.submit(
+        screen
+          .getByRole('button', { name: "Ajouter l'acceptation" })
+          .closest('form') as HTMLFormElement,
+      )
+    })
+    expect(await screen.findByText(/Acceptation enregistrée/)).toBeTruthy()
+    expect(await screen.findByText('domaine')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Supprimer' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Annuler' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Supprimer' }))
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Confirmer la suppression' }))
+    })
+    expect(await screen.findByText(/Aucune acceptation en base/)).toBeTruthy()
+  })
+  it('acceptation invalide : message, rien d’enregistré', async () => {
+    await open('#/acceptances', 'Acceptations')
+    await act(async () => {
+      fireEvent.submit(
+        screen
+          .getByRole('button', { name: "Ajouter l'acceptation" })
+          .closest('form') as HTMLFormElement,
+      )
+    })
+    expect(await screen.findByText('Fonction et raison sont obligatoires.')).toBeTruthy()
+  })
+  it('tests et call sites', async () => {
+    await open(`#/runs/${SEED_RUN}/tests`, 'Tests et call sites')
+    expect(await screen.findByText('src/users.js#createUser')).toBeTruthy()
+    expect(screen.getByText(/instable/)).toBeTruthy()
+  })
+  it('couverture : statut honnête', async () => {
+    await open(`#/runs/${SEED_RUN}/coverage`, 'Couverture')
+    expect(await screen.findByText(/Désactivée/)).toBeTruthy()
   })
 })

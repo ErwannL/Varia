@@ -221,6 +221,43 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
     const rep = buildReport(need(), req.params.id)
     return { notCovered: rep.notCovered, limitations: rep.limitations, coverage: rep.coverage }
   })
+  app.get<{ Querystring: { limit?: string } }>('/api/v1/history', async (req) => {
+    const r = need()
+    const { limit } = page(req.query)
+    return r.listRuns(limit).map((run) => {
+      const rep = buildReport(r, run.id)
+      return {
+        id: run.id,
+        createdAt: run.createdAt,
+        state: run.state,
+        partial: rep.run.partial,
+        counts: rep.counts,
+        issues: rep.issues.length,
+        critical: rep.issues.filter((i) => i.severity === 'CRITICAL').length,
+      }
+    })
+  })
+  app.get<{ Params: { id: string } }>('/api/v1/runs/:id/tests', async (req, reply) => {
+    const r = need()
+    if (r.getRun(req.params.id) === null) return reply.code(404).send({ error: 'RUN_NOT_FOUND' })
+    const sites = r.callSites(req.params.id)
+    return r.tests(req.params.id).map((t) => ({
+      testId: t.testId,
+      file: t.file,
+      name: t.name,
+      status: t.status,
+      flaky: t.flaky,
+      callSites: sites
+        .filter((c) => c.testId === t.testId)
+        .map((c) => ({
+          callSiteId: c.callSiteId,
+          target: `${c.module}#${c.export}`,
+          depth: c.depth,
+          sequence: c.sequence,
+          nonDeterministic: c.nonDeterministic,
+        })),
+    }))
+  })
   app.get<{ Params: { id: string } }>('/api/v1/runs/:id/coverage', async (req, reply) => {
     if (need().getRun(req.params.id) === null)
       return reply.code(404).send({ error: 'RUN_NOT_FOUND' })

@@ -10,6 +10,11 @@ import { NotCovered } from './pages/NotCovered.js'
 import { NotFound } from './pages/NotFound.js'
 import { Overview } from './pages/Overview.js'
 import { Runs } from './pages/Runs.js'
+import { Acceptances } from './pages/Acceptances.js'
+import { Compare } from './pages/Compare.js'
+import { Coverage } from './pages/Coverage.js'
+import { History } from './pages/History.js'
+import { Tests } from './pages/Tests.js'
 import { href, useRoute, type Route } from './router.js'
 
 export const DEFAULT_ORQEA_URL = 'https://orqea.dev'
@@ -20,12 +25,17 @@ function Nav({ route, latestRun }: { route: Route; latestRun: string | null }) {
   const links: [string, string, string[]][] = [
     ['overview', t('dash.nav.overview'), runId === null ? [] : ['runs', runId]],
     ['runs', t('dash.nav.runs'), ['runs']],
+    ['history', t('dash.nav.history'), ['history']],
+    ['compare', t('dash.nav.compare'), ['compare']],
+    ['acceptances', t('dash.nav.acceptances'), ['acceptances']],
     ...(runId === null
       ? []
       : ([
           ['issues', t('dash.nav.issues'), ['runs', runId, 'issues']],
           ['mutations', t('dash.nav.mutations'), ['runs', runId, 'mutations']],
           ['not-covered', t('dash.nav.notCovered'), ['runs', runId, 'not-covered']],
+          ['tests', t('dash.nav.tests'), ['runs', runId, 'tests']],
+          ['coverage', t('dash.nav.coverage'), ['runs', runId, 'coverage']],
         ] as [string, string, string[]][])),
   ]
   const current = href(route.path)
@@ -51,6 +61,12 @@ function Page({ route }: { route: Route }) {
   if (a === 'runs' && b !== undefined && c === 'mutations')
     return <Mutations runId={b} status={route.query.get('status')} />
   if (a === 'runs' && b !== undefined && c === 'not-covered') return <NotCovered runId={b} />
+  if (a === 'runs' && b !== undefined && c === 'tests') return <Tests runId={b} />
+  if (a === 'runs' && b !== undefined && c === 'coverage') return <Coverage runId={b} />
+  if (a === 'history' && b === undefined) return <History />
+  if (a === 'compare' && b === undefined)
+    return <Compare a={route.query.get('a')} b={route.query.get('b')} />
+  if (a === 'acceptances' && b === undefined) return <Acceptances />
   if (a === 'issues' && b !== undefined) return <IssueDetail id={b} runId={run} />
   if (a === 'mutations' && b !== undefined) return <MutationDetail id={b} runId={run} />
   return <NotFound />

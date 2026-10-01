@@ -202,3 +202,30 @@ describe('acceptations (seules écritures publiques, §25.1)', () => {
     ).toBe(404)
   })
 })
+
+describe('niveau 2 : historique et tests', () => {
+  it('/history résume chaque run', async () => {
+    const h = (await app.inject({ url: '/api/v1/history' })).json() as {
+      id: string
+      issues: number
+      critical: number
+      counts: { crashes: number }
+    }[]
+    expect(h[0]).toMatchObject({ id: SEED_RUN, issues: 3, critical: 1, counts: { crashes: 2 } })
+  })
+  it('/runs/:id/tests : tests et call sites', async () => {
+    const t = (await app.inject({ url: `/api/v1/runs/${SEED_RUN}/tests` })).json() as {
+      name: string
+      flaky: boolean
+      callSites: { target: string }[]
+    }[]
+    expect(t.find((x) => x.callSites.length > 0)?.callSites[0]?.target).toBe(
+      'src/users.js#createUser',
+    )
+    expect(t.some((x) => x.flaky)).toBe(true)
+    expect((await app.inject({ url: '/api/v1/runs/zz/tests' })).statusCode).toBe(404)
+    expect((await app.inject({ url: `/api/v1/runs/${SEED_RUN}/coverage` })).json()).toMatchObject({
+      baseline: { status: 'DISABLED' },
+    })
+  })
+})
