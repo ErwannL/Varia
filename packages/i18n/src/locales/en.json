@@ -44,7 +44,7 @@
   "cli.baseline.summary": "{calls} calls observed · {observed} targets observed · {never} never called · {unsupported} unsupported · {mutable} mutable inputs · {nonMutable} non-mutable",
   "cli.baseline.flaky": "Flaky test (excluded from fuzzing): {name} [{reasons}]",
   "cli.plan.summary": "{planned} mutations selected out of {possible} possible · seed {seed}",
-  "cli.plan.estimate": "Estimated duration: {minutes} min (≈ measured test-process cost × mutations)",
+  "cli.plan.estimate": "Estimated duration: {minutes} min (upper bound: mutations × test-process duration measured in baseline)",
   "cli.plan.warn": "Warning: the estimate exceeds the alert threshold. Reduce with --quick, --max-time, --max-mutations or targets.mode: declared.",
   "cli.plan.sampled": "Sampling: {planned} selected out of {possible} possible (announced and recorded).",
   "cli.plan.written": "Plan written: {path}",
@@ -195,5 +195,12 @@
   "err.INFRA_FAILURE": "infrastructure error",
   "err.CONFIG_FAILURE": "invalid configuration",
   "err.VARIA_INTERNAL_FAILURE": "Varia internal error",
-  "err.PROJECT_MUTATED": "the target project was modified during the run (PROJECT_MUTATED)"
+  "err.PROJECT_MUTATED": "the target project was modified during the run (PROJECT_MUTATED)",
+  "issue.kind.ERROR": "{target}: {error} — {message}",
+  "issue.kind.UNEXPECTED": "{target}: unexpected {error} — {message}",
+  "issue.kind.DEPENDENCY_ERROR": "{target}: dependency error {error} — {message}",
+  "issue.kind.TIMEOUT": "{target}: timeout",
+  "issue.kind.PROCESS_EXIT": "{target}: abnormal process exit",
+  "issue.kind.RESOURCE_LIMIT": "{target}: resource limit",
+  "issue.kind.SUSPICIOUS_ACCEPT": "{target}: suspicious accept ({reason})"
 }

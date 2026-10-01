@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { messages, orqeaUrl, resolveLocale, t } from '../src/index.js'
+import { issueTitle, messages, orqeaUrl, resolveLocale, t } from '../src/index.js'
 
 describe('signature (prompt §4.1)', () => {
   it.each([
@@ -44,5 +44,28 @@ describe('utilitaires', () => {
   })
   it('paramètre manquant laissé visible', () => {
     expect(t('fr', 'cli.banner')).toBe('Varia par Orqea · v{version}')
+  })
+})
+
+describe('titres d’issues traduits au rendu', () => {
+  const base = { target: 'src/a.js#f', errorName: 'TypeError', message: 'x is <str>' }
+  it('par type, en fr et en', () => {
+    expect(issueTitle('en', { ...base, kind: 'PROCESS_EXIT', title: 'stocké' })).toBe(
+      'src/a.js#f: abnormal process exit',
+    )
+    expect(issueTitle('fr', { ...base, kind: 'TIMEOUT', title: '' })).toBe('src/a.js#f : timeout')
+    expect(issueTitle('en', { ...base, kind: 'ERROR', title: '' })).toBe(
+      'src/a.js#f: TypeError — x is <str>',
+    )
+    expect(
+      issueTitle('en', {
+        ...base,
+        kind: 'SUSPICIOUS_ACCEPT',
+        title: 'f : acceptation suspecte (ECHO) sur arg0',
+      }),
+    ).toBe('src/a.js#f: suspicious accept (ECHO)')
+  })
+  it('type inconnu : titre d’origine', () => {
+    expect(issueTitle('en', { ...base, kind: 'OTHER', title: 'brut' })).toBe('brut')
   })
 })

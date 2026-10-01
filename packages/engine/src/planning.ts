@@ -47,9 +47,13 @@ export function eligibleCalls(ctx: EngineContext, runId: string): ObservedCall[]
     }))
 }
 
-/** Estimation (CDC §35) : mutations × coût mesuré d'un processus de test (baseline ÷ fichiers de test). */
-export function estimateMs(baselineMs: number, testFiles: number, mutations: number): number {
-  return Math.round(mutations * (baselineMs / Math.max(1, testFiles)))
+/**
+ * Estimation (CDC §35) : mutations × durée mesurée d'un processus de baseline (démarrage compris).
+ * Borne plutôt haute : une mutation n'exécute qu'un fichier de test. Mesuré : exemple 226 s estimés
+ * pour 223 s réels ; projet externe ≈ 2× surestimé (reports/j1.md).
+ */
+export function estimateMs(baselineMs: number, _testFiles: number, mutations: number): number {
+  return Math.round(mutations * baselineMs)
 }
 
 /** Génère, enregistre et persiste le plan d'un run issu d'une baseline (déterministe par graine). */

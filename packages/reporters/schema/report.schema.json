@@ -474,6 +474,16 @@
               }
             ]
           },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "frame": {
             "anyOf": [
               {
@@ -507,6 +517,7 @@
           "target",
           "title",
           "errorName",
+          "message",
           "frame",
           "count",
           "mutationIds",

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useApi } from '../api.js'
 import { Segmented } from '../components/Brand.js'
 import { Load, Pager, SeverityBadge, StatusBadge, Value } from '../components/Common.js'
+import { issueTitle } from '@varia/i18n'
 import { useI18n } from '../i18n.js'
 import { href } from '../router.js'
 import type { Issue, MutationRow, Page } from '../types.js'
@@ -9,7 +10,7 @@ import type { Issue, MutationRow, Page } from '../types.js'
 const SEVERITIES = ['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const
 
 export function Issues({ runId, severity }: { runId: string; severity: string | null }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [offset, setOffset] = useState(0)
   const sev = severity ?? 'ALL'
   const issues = useApi<Page<Issue>>(
@@ -43,7 +44,7 @@ export function Issues({ runId, severity }: { runId: string; severity: string | 
                   <li key={i.id} className="card">
                     <SeverityBadge severity={i.severity} />
                     <a className="card-title" href={href(['issues', i.id], { run: runId })}>
-                      {i.title}
+                      {issueTitle(locale, i)}
                     </a>
                     <span className="muted">{t('dash.issues.count', { count: i.count })}</span>
                   </li>
@@ -59,13 +60,13 @@ export function Issues({ runId, severity }: { runId: string; severity: string | 
 }
 
 interface IssueDetailData {
-  issue: Issue & { errorName: string | null; message: string | null }
+  issue: Issue
   occurrence: { state: string; count: number } | null
   mutations: MutationRow[]
 }
 
 export function IssueDetail({ id, runId }: { id: string; runId: string | null }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const data = useApi<IssueDetailData>(
     `/api/v1/issues/${encodeURIComponent(id)}${runId === null ? '' : `?run=${encodeURIComponent(runId)}`}`,
   )
@@ -73,7 +74,7 @@ export function IssueDetail({ id, runId }: { id: string; runId: string | null })
     <Load value={data}>
       {(d) => (
         <section aria-labelledby="issue-title">
-          <h1 id="issue-title">{d.issue.title}</h1>
+          <h1 id="issue-title">{issueTitle(locale, d.issue)}</h1>
           <dl className="facts">
             <dt>{t('dash.issue.target')}</dt>
             <dd>

@@ -44,7 +44,7 @@
   "cli.baseline.summary": "{calls} appels observés · {observed} targets observées · {never} jamais appelées · {unsupported} non supportées · {mutable} inputs mutables · {nonMutable} non mutables",
   "cli.baseline.flaky": "Test instable (exclu du fuzz) : {name} [{reasons}]",
   "cli.plan.summary": "{planned} mutations retenues sur {possible} possibles · graine {seed}",
-  "cli.plan.estimate": "Durée estimée : {minutes} min (≈ coût mesuré d'un processus de test × mutations)",
+  "cli.plan.estimate": "Durée estimée : {minutes} min (borne haute : mutations × durée d'un processus de test mesurée en baseline)",
   "cli.plan.warn": "Attention : l'estimation dépasse le seuil d'alerte. Réduire avec --quick, --max-time, --max-mutations ou targets.mode: declared.",
   "cli.plan.sampled": "Échantillonnage : {planned} retenues sur {possible} possibles (annoncé et enregistré).",
   "cli.plan.written": "Plan écrit : {path}",
@@ -195,5 +195,12 @@
   "err.INFRA_FAILURE": "erreur d'infrastructure",
   "err.CONFIG_FAILURE": "configuration invalide",
   "err.VARIA_INTERNAL_FAILURE": "erreur interne de Varia",
-  "err.PROJECT_MUTATED": "le projet cible a été modifié pendant le run (PROJECT_MUTATED)"
+  "err.PROJECT_MUTATED": "le projet cible a été modifié pendant le run (PROJECT_MUTATED)",
+  "issue.kind.ERROR": "{target} : {error} — {message}",
+  "issue.kind.UNEXPECTED": "{target} : erreur inattendue {error} — {message}",
+  "issue.kind.DEPENDENCY_ERROR": "{target} : erreur dans une dépendance {error} — {message}",
+  "issue.kind.TIMEOUT": "{target} : timeout",
+  "issue.kind.PROCESS_EXIT": "{target} : sortie anormale du processus",
+  "issue.kind.RESOURCE_LIMIT": "{target} : limite de ressources",
+  "issue.kind.SUSPICIOUS_ACCEPT": "{target} : acceptation suspecte ({reason})"
 }

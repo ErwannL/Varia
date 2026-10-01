@@ -25,3 +25,25 @@ export function orqeaUrl(env: Record<string, string | undefined>): string {
   const value = env['VARIA_ORQEA_URL']?.trim()
   return value !== undefined && value !== '' ? value : DEFAULT_ORQEA_URL
 }
+
+/** Titre d'issue traduit AU RENDU à partir de ses champs (jamais du texte stocké). */
+export function issueTitle(
+  locale: Locale,
+  i: {
+    kind: string
+    target: string
+    errorName?: string | null
+    message?: string | null
+    title: string
+  },
+): string {
+  const key = `issue.kind.${i.kind}` as MessageKey
+  if (!(key in messages[locale])) return i.title
+  const reason = /\((HINT_VIOLATION|ECHO)\)/.exec(i.title)?.[1] ?? ''
+  return t(locale, key, {
+    target: i.target,
+    error: i.errorName ?? '',
+    message: i.message ?? '',
+    reason,
+  })
+}

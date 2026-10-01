@@ -84,6 +84,7 @@ export const reportSchema = z
         target: z.string(),
         title: z.string(),
         errorName: z.string().nullable(),
+        message: z.string().nullable(),
         frame: z.string().nullable(),
         count: z.number().int(),
         mutationIds: z.array(z.string()),

@@ -38,6 +38,8 @@ export interface Issue {
   state: string
   target: string
   title: string
+  errorName: string | null
+  message: string | null
   frame: string | null
   count: number
   mutationIds: string[]

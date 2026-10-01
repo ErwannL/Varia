@@ -1,0 +1,31 @@
+{
+  "externalRequests": [],
+  "consoleErrors": [],
+  "checks": {
+    "title": "Varia by Orqea — dashboard",
+    "byline": "by Orqea",
+    "backToOrqea": {
+      "text": "← Back to Orqea",
+      "href": "http://orqea.localhost",
+      "target": "_top"
+    },
+    "poweredBy": {
+      "text": "Powered by Orqea",
+      "href": "http://orqea.localhost",
+      "target": "_top"
+    },
+    "author": {
+      "text": "Developed by Erwann Laplante",
+      "href": "https://github.com/ErwannL",
+      "target": "_blank",
+      "rel": "noreferrer noopener"
+    },
+    "smallTargets": [],
+    "logoOnHover": "/varia-animated.svg",
+    "iframe": {
+      "backToOrqeaPresent": false,
+      "poweredByPresent": true
+    },
+    "reducedMotion": true
+  }
+}

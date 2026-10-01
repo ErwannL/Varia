@@ -137,6 +137,7 @@ export function buildReport(reader: Reader, runId: string): Report {
         target: i.target,
         title: i.title,
         errorName: i.errorName,
+        message: i.message,
         frame: i.frame,
         count: i.count,
         mutationIds: i.mutationIds,

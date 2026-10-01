@@ -1,4 +1,5 @@
 import type { Report } from '@varia/reporters'
+import { issueTitle } from '@varia/i18n'
 import type { Printer } from './io.js'
 
 /** Résumé de fin de run (annexe C) : comptes bruts d'abord, issues, ce qui n'a PAS été testé. */
@@ -29,7 +30,7 @@ export function printSummary(p: Printer, r: Report, exitCode: number): void {
   for (const i of r.issues)
     p.say('cli.summary.issue', {
       severity: i.severity,
-      title: i.title,
+      title: issueTitle(p.locale, i),
       count: i.count,
       replay: i.replay,
     })
