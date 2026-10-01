@@ -16,3 +16,6 @@
   les anciennes versions de Jest (26, projet externe immutability-helper) ne résolvent pas
   `require('node:fs')` depuis un fichier de setup. Utiliser `require('fs')`. Idem pour les globaux récents : Jest 24 n'expose pas `performance`
   (importer `require('perf_hooks')`). Testé par `tests/runtime-compat.test.ts`.
+- **Vitest sans fichier de config** : Vitest remonte l'arborescence et peut charger la config d'un
+  dépôt PARENT (constaté avec `destr` cloné sous `examples/external/`). Le lanceur passe `config: false`
+  quand le projet n'a pas de config. Le setup est passé en option CLI (`setupFiles`).

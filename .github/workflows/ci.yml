@@ -35,4 +35,5 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm run external:fetch
-      - run: npm run acceptance:external
+      - run: npm run acceptance:external -- immutability-helper
+      - run: npm run acceptance:external -- destr

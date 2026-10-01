@@ -1,15 +1,16 @@
 // Acceptation J1-3 (CDC §45) sur le projet externe : baseline verte, plan, exécution plafonnée par budget
 // avec échantillonnage annoncé, arbre du projet inchangé, rapport JSON valide contre son schéma.
 // Prérequis : `node scripts/fetch-external.mjs` puis `npm run build`.
-// Usage : node scripts/acceptance-external.mjs [dossier-de-données]
+// Usage : node scripts/acceptance-external.mjs [nom-du-projet] [dossier-de-données]
 import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
-const project = resolve('examples/external/immutability-helper')
-const config = resolve('examples/external-config/immutability-helper.varia.yml')
-const data = process.argv[2] ?? mkdtempSync(join(tmpdir(), 'varia-ext-'))
+const name = process.argv[2] ?? 'immutability-helper'
+const project = resolve('examples/external', name)
+const config = resolve('examples/external-config', `${name}.varia.yml`)
+const data = process.argv[3] ?? mkdtempSync(join(tmpdir(), 'varia-ext-'))
 const status = () =>
   execFileSync('git', ['status', '--porcelain=v1', '--ignored'], { cwd: project, encoding: 'utf8' })
 const before = status()

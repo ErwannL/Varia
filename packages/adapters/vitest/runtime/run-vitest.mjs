@@ -24,7 +24,8 @@ const vitest = await startVitest(
   params.files,
   {
     root: params.root,
-    ...(params.configFile ? { config: params.configFile } : {}),
+    // Sans config dans le projet : `false`, sinon Vitest remonterait jusqu'à une config PARENTE.
+    config: params.configFile ? params.configFile : false,
     run: true,
     watch: false,
     reporters: [['json', {}]],
@@ -41,11 +42,11 @@ const vitest = await startVitest(
         }
       : { enabled: false },
     passWithNoTests: true,
+    setupFiles: [params.setupFile],
   },
   {
     plugins: [variaPlugin({ root: params.root, include: params.include, exclude: params.exclude })],
     cacheDir: params.cacheDir,
-    test: { setupFiles: [params.setupFile] },
   },
 )
 await vitest?.close()

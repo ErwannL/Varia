@@ -145,3 +145,13 @@ Format : date — contexte — options — choix — raison.
   projet. Le setup (dans `tmp/`) importe la même instance de Vitest que les tests, puis `probe.install()`.
 - Limite connue : une dépendance circulaire ESM qui appelle un export pendant l'évaluation du module
   (avant la fin de celui-ci) rencontrerait la zone morte temporelle des liaisons ajoutées.
+
+## D-021 — 2026-10-01 — Second projet externe (Vitest) et robustesse face aux données hostiles
+
+- `unjs/destr` @ `541b6f9aeada9fc30de9c5a7e086dbfc1c6fcdc7` (MIT, ESM, Vitest, 22 tests) : installation
+  par `npm install` (le projet utilise pnpm, pas de `package-lock.json`) — **non strictement
+  reproductible**, limite consignée.
+- Il a révélé que la validation Zod des journaux de la sonde plantait sur des valeurs observées hostiles
+  (`{"constructor": null}`) : les valeurs sont désormais vérifiées par un parcours défensif
+  (`isJsonValue`), testé.
+- Vitest sans fichier de config remontait jusqu'à la config du dépôt parent : `config: false`.

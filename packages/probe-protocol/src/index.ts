@@ -19,16 +19,22 @@ export const MESSAGE_TYPES = [
 ] as const
 export type MessageType = (typeof MESSAGE_TYPES)[number]
 
-const json: z.ZodType<Json> = z.lazy(() =>
-  z.union([
-    z.null(),
-    z.boolean(),
-    z.number(),
-    z.string(),
-    z.array(json),
-    z.record(z.string(), json),
-  ]),
-)
+/**
+ * Une valeur observée est une DONNÉE HOSTILE (clés `constructor`, `__proto__`, …) : elle est vérifiée par
+ * un parcours défensif, jamais par une validation qui lirait ses propriétés héritées.
+ */
+export function isJsonValue(v: unknown, depth = 0): v is Json {
+  if (depth > 200) return false
+  if (v === null || typeof v === 'string' || typeof v === 'boolean') return true
+  if (typeof v === 'number') return Number.isFinite(v)
+  if (Array.isArray(v)) return v.every((x) => isJsonValue(x, depth + 1))
+  if (typeof v !== 'object') return false
+  return Object.keys(v).every((k) =>
+    isJsonValue(Object.getOwnPropertyDescriptor(v, k)?.value, depth + 1),
+  )
+}
+
+const json = z.custom<Json>((v) => isJsonValue(v))
 
 export const serializedErrorSchema = z.object({
   name: z.string(),

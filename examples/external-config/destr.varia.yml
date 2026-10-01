@@ -1,0 +1,10 @@
+# Configuration Varia du projet externe destr (Vitest, ESM), gardée HORS du projet cloné.
+version: 1
+project: { name: destr }
+test: { framework: vitest }
+targets: { mode: auto, include: ['src/**'] }
+mutations:
+  mode: quick
+  seed: 11
+  limits: { total_mutations: 120 }
+execution: { timeout_ms: 20000 }
