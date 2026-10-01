@@ -23,5 +23,9 @@ git('fetch', '-q', '--depth', '1', 'origin', EXTERNAL.commit)
 git('-c', 'advice.detachedHead=false', 'checkout', '-q', '--force', EXTERNAL.commit)
 const head = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim()
 if (head !== EXTERNAL.commit) throw new Error(`commit inattendu : ${head}`)
-execFileSync('npm', ['ci', '--no-audit', '--no-fund', '--ignore-scripts'], { cwd: dir, stdio: 'inherit', shell: process.platform === 'win32' })
+execFileSync('npm', ['ci', '--no-audit', '--no-fund', '--ignore-scripts'], {
+  cwd: dir,
+  stdio: 'inherit',
+  shell: process.platform === 'win32',
+})
 console.log(`${EXTERNAL.name} prêt à ${head} dans ${dir}`)

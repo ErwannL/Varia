@@ -10,15 +10,34 @@ import { join, resolve } from 'node:path'
 const project = resolve('examples/external/immutability-helper')
 const config = resolve('examples/external-config/immutability-helper.varia.yml')
 const data = process.argv[2] ?? mkdtempSync(join(tmpdir(), 'varia-ext-'))
-const status = () => execFileSync('git', ['status', '--porcelain=v1', '--ignored'], { cwd: project, encoding: 'utf8' })
+const status = () =>
+  execFileSync('git', ['status', '--porcelain=v1', '--ignored'], { cwd: project, encoding: 'utf8' })
 const before = status()
 const t0 = Date.now()
-const run = spawnSync(process.execPath, [resolve('bin/varia'), '--data-dir', data, '--config', config, 'test'], { cwd: project, encoding: 'utf8' })
+const run = spawnSync(
+  process.execPath,
+  [resolve('bin/varia'), '--data-dir', data, '--config', config, 'test'],
+  { cwd: project, encoding: 'utf8' },
+)
 const seconds = ((Date.now() - t0) / 1000).toFixed(1)
 process.stderr.write(run.stderr)
 process.stdout.write(run.stdout)
 const reportFile = join(data, 'external-report.json')
-execFileSync(process.execPath, [resolve('bin/varia'), '--data-dir', data, '--config', config, '-q', 'report', '--out', reportFile], { cwd: project })
+execFileSync(
+  process.execPath,
+  [
+    resolve('bin/varia'),
+    '--data-dir',
+    data,
+    '--config',
+    config,
+    '-q',
+    'report',
+    '--out',
+    reportFile,
+  ],
+  { cwd: project },
+)
 const report = JSON.parse(readFileSync(reportFile, 'utf8'))
 const { reportSchema } = await import(resolve('packages/reporters/dist/index.js'))
 const valid = reportSchema.safeParse(report).success
@@ -35,5 +54,10 @@ const summary = {
   report: reportFile,
 }
 console.log(JSON.stringify(summary, null, 2))
-const ok = valid && before === after && report.baseline.failing.length === 0 && report.plan !== null && report.counts.pending === 0
+const ok =
+  valid &&
+  before === after &&
+  report.baseline.failing.length === 0 &&
+  report.plan !== null &&
+  report.counts.pending === 0
 process.exit(ok ? 0 : 1)

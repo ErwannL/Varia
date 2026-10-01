@@ -31,7 +31,8 @@
     "build": "tsc -b packages/cli/tsconfig.json packages/api/tsconfig.json && npm run build -w @varia/dashboard",
     "external:fetch": "node scripts/fetch-external.mjs",
     "acceptance:external": "node scripts/acceptance-external.mjs",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "check:fast": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm run brand:check"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
