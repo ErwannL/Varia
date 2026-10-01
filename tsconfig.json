@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": { "noEmit": true, "allowJs": false },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "spike/**/*.ts",
+    "tests/**/*.ts",
+    "vitest.config.ts"
+  ]
+}

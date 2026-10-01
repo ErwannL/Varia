@@ -1,0 +1,8 @@
+docs/SPEC.md
+node_modules
+dist
+coverage
+examples/external
+package-lock.json
+brand/generated
+*.svg

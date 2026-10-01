@@ -1,0 +1,37 @@
+{
+  "name": "varia",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Varia — test de résilience par perturbation de données",
+  "author": "Erwann Laplante (https://github.com/ErwannL)",
+  "homepage": "https://orqea.dev",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "check:skips": "node scripts/check-skipped-tests.mjs",
+    "check:lines": "node scripts/check-file-lines.mjs",
+    "check:readmes": "node scripts/check-readmes.mjs",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "@types/node": "20.19.43",
+    "@vitest/coverage-v8": "3.2.7",
+    "eslint": "9.39.5",
+    "prettier": "3.3.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.71.0",
+    "vitest": "3.2.7"
+  }
+}

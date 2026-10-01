@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+examples/external/
+.varia-tmp/
+*.log
+.DS_Store
