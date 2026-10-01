@@ -302,6 +302,14 @@ export class Writer {
     })
   }
 
+  cacheResult(key: string, result: ResultRecord): void {
+    this.db
+      .insert(t.resultCache)
+      .values({ key, result: J(result), createdAt: now() })
+      .onConflictDoNothing()
+      .run()
+  }
+
   addAcceptance(a: {
     id: string
     projectId: string
@@ -511,6 +519,11 @@ export class Reader {
       .where(eq(t.issueOccurrences.issueId, id))
       .all()
       .map((r) => ({ ...r, mutationIds: JSON.parse(r.mutationIds) as string[] }))
+  }
+
+  cachedResult(key: string): ResultRecord | null {
+    const r = this.db.select().from(t.resultCache).where(eq(t.resultCache.key, key)).get()
+    return r ? (JSON.parse(r.result) as ResultRecord) : null
   }
 
   acceptances(projectId: string) {

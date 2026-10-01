@@ -563,6 +563,37 @@
         }
       ]
     },
+    "cache": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "hits": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "misses": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "contentHash": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "hits",
+            "misses",
+            "contentHash"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "incremental": {
       "anyOf": [
         {
@@ -892,6 +923,7 @@
     "issues",
     "resolvedIssues",
     "comparedTo",
+    "cache",
     "incremental",
     "acceptances",
     "mutations",

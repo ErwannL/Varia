@@ -96,6 +96,9 @@ export const reportSchema = z
       z.object({ id: z.string(), state: z.string(), target: z.string(), title: z.string() }),
     ),
     comparedTo: z.string().nullable(),
+    cache: z
+      .object({ hits: z.number().int(), misses: z.number().int(), contentHash: z.string() })
+      .nullable(),
     incremental: z
       .object({ base: z.string(), changedFiles: z.array(z.string()).nullable(), scope: z.string() })
       .nullable(),

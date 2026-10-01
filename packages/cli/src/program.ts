@@ -198,8 +198,9 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
     process.once('SIGINT', onSig)
     return { signal: ac.signal, dispose: () => process.removeListener('SIGINT', onSig) }
   }
-  const fuzzOpts = (o: { maxTime?: string }, signal: AbortSignal) => ({
+  const fuzzOpts = (o: { maxTime?: string; cache?: boolean }, signal: AbortSignal) => ({
     signal,
+    ...(o.cache === false ? { noCache: true } : {}),
     ...(o.maxTime !== undefined ? { maxTimeMs: Number(o.maxTime) * 1000 } : {}),
   })
 
@@ -291,6 +292,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
         seed?: string
         maxMutations?: string
         changed?: string | boolean
+        cache?: boolean
         out?: string
         quick?: boolean
         full?: boolean
@@ -320,6 +322,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
   program
     .command('fuzz')
     .description(t(locale(), 'cli.cmd.fuzz'))
+    .option('--no-cache')
     .option('--resume <runId>')
     .option('--plan <file>')
     .option('--max-time <seconds>')
@@ -358,6 +361,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
   program
     .command('test')
     .description(t(locale(), 'cli.cmd.test'))
+    .option('--no-cache')
     .option('--changed [base]')
     .option('--seed <n>')
     .option('--max-mutations <n>')
@@ -370,6 +374,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
         seed?: string
         maxMutations?: string
         changed?: string | boolean
+        cache?: boolean
         maxTime?: string
         quick?: boolean
         full?: boolean
@@ -483,6 +488,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
   program
     .command('ci')
     .description(t(locale(), 'cli.cmd.ci'))
+    .option('--no-cache')
     .option('--changed [base]')
     .option('--json-out <file>')
     .option('--junit <file>')
@@ -503,6 +509,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
         seed?: string
         maxMutations?: string
         changed?: string | boolean
+        cache?: boolean
         quick?: boolean
         full?: boolean
       }) =>
@@ -515,7 +522,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
               ? { changed: typeof o.changed === 'string' ? o.changed : 'HEAD' }
               : {}),
           })
-          await runFuzz(ctx, b.runId)
+          await runFuzz(ctx, b.runId, o.cache === false ? { noCache: true } : {})
           const report = writeOutputs(ctx, b.runId, {
             ...(o.jsonOut !== undefined ? { json: o.jsonOut } : {}),
             ...(o.junit !== undefined ? { junit: o.junit } : {}),

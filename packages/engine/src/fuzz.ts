@@ -11,6 +11,7 @@ import {
 import { mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { prepareContext } from './baseline.js'
+import { cacheKey, projectContentHash } from './cache.js'
 import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
 import { snapshotProject, assertUnchanged } from './integrity.js'
@@ -18,6 +19,8 @@ import { readPlan } from './planning.js'
 
 export interface FuzzOptions {
   maxTimeMs?: number
+  /** `--no-cache` : ignore le cache même si `cache.enabled`. */
+  noCache?: boolean
   /** Signal d'arrêt (Ctrl+C) : le run est marqué partiel, rien n'est perdu. */
   signal?: AbortSignal
 }
@@ -188,6 +191,10 @@ export async function runFuzz(
   let executed = 0
   let cut = false
   const todo = plan.mutations.filter((m) => !done.has(m.id))
+  const useCache = ctx.config.parsed.cache.enabled && o.noCache !== true
+  const contentHash = useCache ? projectContentHash(ctx) : ''
+  let cacheHits = 0
+  let cacheMisses = 0
   try {
     for (const [index, m] of todo.entries()) {
       if (
@@ -197,10 +204,21 @@ export async function runFuzz(
         cut = true
         break
       }
+      if (useCache) {
+        const hit = ctx.reader.cachedResult(cacheKey(ctx, run.envHash, contentHash, m))
+        if (hit !== null) {
+          ctx.writer.saveResult(runId, { ...hit, mutationId: m.id })
+          ctx.writer.event(runId, 'CACHE_HIT', { mutationId: m.id })
+          cacheHits++
+          executed++
+          continue
+        }
+        cacheMisses++
+      }
       ctx.writer.event(runId, 'MUTATION_STARTED', { mutationId: m.id, invocation })
       const r = await executeMutation(ctx, m, run.planPath, tmpDir)
       const c = r.classification
-      ctx.writer.saveResult(runId, {
+      const record = {
         mutationId: m.id,
         status: c.status,
         subtype: c.subtype ?? null,
@@ -213,7 +231,9 @@ export async function runFuzz(
         timedOut: r.timedOut,
         error: c.error ?? null,
         echoPath: c.echoPath ?? null,
-      })
+      }
+      ctx.writer.saveResult(runId, record)
+      if (useCache) ctx.writer.cacheResult(cacheKey(ctx, run.envHash, contentHash, m), record)
       ctx.writer.event(runId, 'MUTATION_COMPLETED', { mutationId: m.id, status: c.status })
       executed++
       ctx.emit({
@@ -236,6 +256,13 @@ export async function runFuzz(
     state: o.signal?.aborted === true ? 'ABORTED' : 'COMPLETED',
     partial,
   })
+  if (useCache)
+    ctx.writer.updateRun(runId, {
+      info: {
+        ...(ctx.reader.getRun(runId)?.info ?? {}),
+        cache: { hits: cacheHits, misses: cacheMisses, contentHash },
+      },
+    })
   ctx.writer.event(runId, 'RUN_COMPLETED', { executed, pending, partial })
   assertUnchanged(before, snapshotProject(ctx.root, integrity))
   return {

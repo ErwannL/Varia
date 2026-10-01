@@ -171,7 +171,14 @@ export const acceptances = sqliteTable('acceptances', {
   createdAt: text('created_at').notNull(),
 })
 
+export const resultCache = sqliteTable('result_cache', {
+  key: text('key').primaryKey(),
+  result: text('result').notNull(),
+  createdAt: text('created_at').notNull(),
+})
+
 export const ALL_TABLES = {
+  resultCache,
   acceptances,
   projects,
   runs,

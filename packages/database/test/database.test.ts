@@ -43,7 +43,7 @@ function seeded() {
 describe('migrations', () => {
   it('appliquées une fois, idempotentes', () => {
     const sqlite = new Database(':memory:')
-    expect(migrate(sqlite)).toEqual(['0001', '0002'])
+    expect(migrate(sqlite)).toEqual(['0001', '0002', '0003'])
     expect(migrate(sqlite)).toEqual([])
   })
   it('montée de version d’une base existante (0001 → 0002), données conservées', () => {
@@ -54,7 +54,7 @@ describe('migrations', () => {
     sqlite
       .prepare("INSERT INTO projects (id, name, root, framework) VALUES ('p', 'n', '/r', 'jest')")
       .run()
-    expect(migrate(sqlite)).toEqual(['0002'])
+    expect(migrate(sqlite)).toEqual(['0002', '0003'])
     expect(sqlite.prepare('SELECT name FROM projects').get()).toEqual({ name: 'n' })
   })
   it('le schéma Drizzle correspond exactement aux tables migrées', () => {
@@ -122,6 +122,26 @@ describe('écrivaine et lectrice', () => {
     expect(r.results('r1').map((x) => x.status)).toEqual(['CRASH'])
     expect(r.resultIds('r1')).toEqual(new Set(['m1']))
     expect(r.result('r1', 'm1')?.error).toEqual({ name: 'TypeError' })
+  })
+  it('cache de résultats', () => {
+    const { w, r } = seeded()
+    const res = {
+      mutationId: 'm1',
+      status: 'CRASH',
+      subtype: null,
+      reason: null,
+      outcome: 'throw',
+      testStatus: 'failed',
+      durationMs: 1,
+      exitCode: 1,
+      signal: null,
+      timedOut: false,
+      error: null,
+      echoPath: null,
+    }
+    expect(r.cachedResult('k')).toBeNull()
+    w.cacheResult('k', res)
+    expect(r.cachedResult('k')).toEqual(res)
   })
   it('clearPlan retire mutations, résultats et issues du run', () => {
     const { w, r } = seeded()
