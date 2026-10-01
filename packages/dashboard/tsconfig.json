@@ -6,9 +6,13 @@
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "declaration": false,
-    "paths": { "@varia/i18n": ["../i18n/src/index.ts"] }
+    "paths": {
+      "@varia/*": ["../*/src/index.ts"]
+    },
+    "allowJs": true,
+    "checkJs": false
   },
   "include": ["src", "test", "vite.config.ts"]
 }
