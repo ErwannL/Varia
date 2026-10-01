@@ -6,3 +6,4 @@ examples/external
 package-lock.json
 brand/generated
 *.svg
+packages/config/schema
