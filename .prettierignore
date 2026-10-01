@@ -8,3 +8,4 @@ brand/generated
 *.svg
 packages/config/schema
 packages/reporters/schema
+reports/assets/*.json

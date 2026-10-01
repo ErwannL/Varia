@@ -7,7 +7,7 @@ const fs = require('fs')
 const path = require('path')
 const { AsyncLocalStorage } = require('async_hooks')
 // Jest 24 n'expose pas le global `performance` dans l'environnement de test.
-const { performance } = require('perf_hooks')
+const { performance: perf } = require('perf_hooks')
 const S = require('./serialize.cjs')
 
 const PROTOCOL_VERSION = 1
@@ -249,9 +249,9 @@ function wrapFunction(st, fn, moduleId, exportName) {
       mutated,
       ...(sequence < MAX_LOGGED_CALLS ? { args: serialized } : { argsOmitted: true }),
     })
-    const started = performance.now()
+    const started = perf.now()
     const outcome = (/** @type {string} */ type, /** @type {Record<string, unknown>} */ extra) =>
-      emit(st, type, { callId, callSiteId, durationMs: performance.now() - started, ...extra })
+      emit(st, type, { callId, callSiteId, durationMs: perf.now() - started, ...extra })
     const ser = (/** @type {unknown} */ v) => S.serialize(v, { ...opts, secrets: [] }, 'return')
     let result
     try {

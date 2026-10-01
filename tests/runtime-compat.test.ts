@@ -25,9 +25,12 @@ describe('compatibilité du code de runtime', () => {
           'TextEncoder',
           'AbortController',
         ]) {
-          const used = new RegExp(`(?<![.\\w])${g}\\b`).test(src.replace(/\/\/.*$/gm, ''))
-          const imported = new RegExp(`const \\{ ${g} \\} = require`).test(src)
-          expect(used && !imported, `${g} utilisé sans import`).toBe(false)
+          // Code sans commentaires ni lignes d'import : un global récent ne doit pas y apparaître.
+          const code = src.replace(/\/\/.*$/gm, '').replace(/^.*= require\(.*$/gm, '')
+          expect(
+            new RegExp(`(?<![.\\w])${g}\\b(?!\\s*:)`).test(code),
+            `${g} utilisé sans import`,
+          ).toBe(false)
         }
       })
     }
