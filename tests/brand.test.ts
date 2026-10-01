@@ -109,7 +109,10 @@ describe('signature hors application (prompt §4.2)', () => {
     expect(readFileSync('README.md', 'utf8').startsWith(header)).toBe(true)
   })
   it('author et homepage dans package.json', () => {
-    const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { author: string; homepage: string }
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as {
+      author: string
+      homepage: string
+    }
     expect(pkg.author).toBe('Erwann Laplante (https://github.com/ErwannL)')
     expect(pkg.homepage).toBe('https://orqea.dev')
   })
