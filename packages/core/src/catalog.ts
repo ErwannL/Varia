@@ -77,13 +77,18 @@ const measure = (json: Json): number | null =>
 export interface CatalogOptions {
   skip?: string[]
   hints?: Hint[]
+  /** `targets.depth: all` : les appels transitifs sont aussi catalogués (CDC §10.11). */
+  includeTransitive?: boolean
+  /** Filtre de targets (`module#export` ou `export`) : modes `declared` / `hybrid`. */
+  allow?: (module: string, exportName: string) => boolean
 }
 
 /** Catalogue d'inputs (CDC §12) des appels directs (depth 0) observés, avec bornes et formats. */
 export function buildCatalog(calls: ObservedCall[], o: CatalogOptions = {}): InputDescriptor[] {
   const out: InputDescriptor[] = []
   for (const call of calls) {
-    if (call.depth !== 0 || call.args === null) continue
+    if ((call.depth !== 0 && o.includeTransitive !== true) || call.args === null) continue
+    if (o.allow !== undefined && !o.allow(call.module, call.export)) continue
     const visit = (json: Json, path: string[], inObject: boolean) => {
       const pathStr = pathString(path)
       const key = `${call.export}#${pathStr}`

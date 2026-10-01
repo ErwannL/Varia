@@ -1,0 +1,748 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "varia": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "const": "varia"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "version"
+      ],
+      "additionalProperties": false
+    },
+    "project": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "root": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "root"
+      ],
+      "additionalProperties": false
+    },
+    "run": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "partial": {
+          "type": "boolean"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "state",
+        "partial",
+        "mode",
+        "seed",
+        "createdAt",
+        "updatedAt"
+      ],
+      "additionalProperties": false
+    },
+    "reproducibility": {
+      "type": "object",
+      "properties": {
+        "seed": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "configHash": {
+          "type": "string"
+        },
+        "envHash": {
+          "type": "string"
+        },
+        "variaVersion": {
+          "type": "string"
+        },
+        "gitCommit": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "gitBranch": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "seed",
+        "configHash",
+        "envHash",
+        "variaVersion",
+        "gitCommit",
+        "gitBranch"
+      ],
+      "additionalProperties": false
+    },
+    "config": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "baseline": {
+      "type": "object",
+      "properties": {
+        "tests": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "failing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "flaky": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "testId": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "testId",
+              "name",
+              "reasons"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "calls": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "tests",
+        "passed",
+        "failing",
+        "flaky",
+        "calls"
+      ],
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "adapter": {
+          "type": "string"
+        },
+        "declared": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        }
+      },
+      "required": [
+        "adapter",
+        "declared"
+      ],
+      "additionalProperties": false
+    },
+    "plan": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "possible": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "planned": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "sampled": {
+              "type": "boolean"
+            },
+            "estimateMs": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "possible",
+            "planned",
+            "sampled",
+            "estimateMs"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "mutations": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "handled": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "expected": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "suspicious": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "unexpected": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "crashes": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "timeouts": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "skipped": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "infra": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "pending": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "mutations",
+        "handled",
+        "expected",
+        "passed",
+        "suspicious",
+        "unexpected",
+        "crashes",
+        "timeouts",
+        "skipped",
+        "infra",
+        "pending"
+      ],
+      "additionalProperties": false
+    },
+    "resilienceRate": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "coverage": {
+      "type": "object",
+      "properties": {
+        "targets": {
+          "type": "object",
+          "properties": {
+            "discovered": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "observed": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "mutated": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "neverCalled": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "transitiveOnly": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "unsupported": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "discovered",
+            "observed",
+            "mutated",
+            "neverCalled",
+            "transitiveOnly",
+            "unsupported"
+          ],
+          "additionalProperties": false
+        },
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "mutable": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "mutated": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
+            "nonMutable": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "mutable",
+            "mutated",
+            "nonMutable"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "targets",
+        "inputs"
+      ],
+      "additionalProperties": false
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "MEDIUM",
+              "LOW",
+              "INFO"
+            ]
+          },
+          "state": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "errorName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "frame": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "count": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "mutationIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "replay": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "severity",
+          "state",
+          "target",
+          "title",
+          "errorName",
+          "frame",
+          "count",
+          "mutationIds",
+          "replay"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "mutations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "test": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "strategy": {
+            "type": "string"
+          },
+          "original": {},
+          "value": {},
+          "deleted": {
+            "type": "boolean"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "subtype": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "echoPath": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name",
+                  "message"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "durationMs": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "target",
+          "test",
+          "path",
+          "strategy",
+          "original",
+          "value",
+          "deleted",
+          "status",
+          "subtype",
+          "reason",
+          "echoPath",
+          "error",
+          "durationMs"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "notCovered": {
+      "type": "object",
+      "properties": {
+        "neverCalled": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "transitiveOnly": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unsupported": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "nonMutableInputs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "target": {
+                "type": "string"
+              },
+              "path": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "target",
+              "path",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "flakyTests": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "skippedMutations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "pendingMutations": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "neverCalled",
+        "transitiveOnly",
+        "unsupported",
+        "nonMutableInputs",
+        "flakyTests",
+        "skippedMutations",
+        "pendingMutations"
+      ],
+      "additionalProperties": false
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "varia",
+    "project",
+    "run",
+    "reproducibility",
+    "config",
+    "baseline",
+    "capabilities",
+    "plan",
+    "counts",
+    "resilienceRate",
+    "coverage",
+    "issues",
+    "mutations",
+    "notCovered",
+    "limitations"
+  ],
+  "additionalProperties": false
+}

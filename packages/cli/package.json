@@ -1,0 +1,24 @@
+{
+  "name": "@varia/cli",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@varia/adapter-jest": "0.1.0",
+    "@varia/config": "0.1.0",
+    "@varia/core": "0.1.0",
+    "@varia/engine": "0.1.0",
+    "@varia/i18n": "0.1.0",
+    "@varia/reporters": "0.1.0",
+    "commander": "12.1.0",
+    "@varia/api": "0.1.0"
+  }
+}

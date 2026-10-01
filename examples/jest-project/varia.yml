@@ -2,7 +2,16 @@ version: 1
 project: { name: jest-project }
 test: { command: npx jest, framework: jest }
 targets: { mode: auto, include: ['src/**'] }
-mutations: { mode: normal, seed: 42 }
+inputs:
+  # repeat(label, count) : seules les mutations de `count` mènent au TIMEOUT (C.0).
+  skip: ['repeat#arg0']
+  # Valeur déclarée (DECISIONS D-006) : provoque process.exit(1) (J0-9).
+  values: { 'exitOn#arg0': ['boom'] }
+mutations:
+  mode: normal
+  seed: 42
+  # C.0 : au plus 3 mutations sur repeat (chacune coûte un timeout).
+  per_target: { 'src/values.js#repeat': 3 }
 execution: { timeout_ms: 3000 }
 oracle:
   handled_errors: [{ name: ValidationError }]

@@ -59,7 +59,7 @@ export const probeEventSchema = z.object({
   mutated: z.boolean().optional(),
   applied: z.boolean().optional(),
   reason: z.string().optional(),
-  mutationId: z.string().optional(),
+  mutationId: z.string().nullable().optional(),
   expectedFingerprint: z.string().optional(),
   value: json.optional(),
   async: z.boolean().optional(),

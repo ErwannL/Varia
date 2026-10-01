@@ -31,6 +31,7 @@ const WRAPPED = Symbol.for('varia.wrapped')
  * @property {AsyncLocalStorage<{ depth: number }>} als
  * @property {PlanMutation | null} mutation
  * @property {Set<string>} redactFields
+ * @property {RegExp[]} redactPatterns
  * @property {string[]} skipPaths
  * @property {string} hmacKey
  * @property {{ testId: string, file: string, name: string } | null} currentTest
@@ -68,6 +69,7 @@ function init() {
     als: new AsyncLocalStorage(),
     mutation,
     redactFields: new Set((redact.fields ?? []).map((/** @type {string} */ f) => f.toLowerCase())),
+    redactPatterns: (redact.patterns ?? []).map((/** @type {string} */ p) => new RegExp(p, 'i')),
     skipPaths: redact.skipPaths ?? [],
     hmacKey: String(redact.hmacKey ?? 'varia'),
     currentTest: null,
@@ -194,7 +196,13 @@ function wrapFunction(st, fn, moduleId, exportName) {
         .filter((p) => p.startsWith(`${exportName}#`))
         .map((p) => p.slice(exportName.length + 1)),
     )
-    const opts = { redactFields: st.redactFields, redactPaths, hmacKey: st.hmacKey, secrets }
+    const opts = {
+      redactFields: st.redactFields,
+      redactPatterns: st.redactPatterns,
+      redactPaths,
+      hmacKey: st.hmacKey,
+      secrets,
+    }
     const serialized = S.serializeArgs(args, opts)
     const argsFingerprint = S.fingerprint(serialized)
     let callArgs = args

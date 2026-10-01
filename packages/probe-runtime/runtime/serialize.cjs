@@ -10,6 +10,7 @@ const nodeCrypto = require('node:crypto')
 /**
  * @typedef {object} SerializeOptions
  * @property {Set<string>} [redactFields] noms de champs (en minuscules) à masquer
+ * @property {RegExp[]} [redactPatterns] motifs (sur le nom de champ) à masquer
  * @property {Set<string>} [redactPaths] chemins complets à masquer (ex. "arg0.password")
  * @property {string} [hmacKey] clé HMAC des empreintes de valeurs masquées
  * @property {number} [maxDepth]
@@ -189,7 +190,11 @@ function ser(value, opts, path, depth, seen) {
     for (const key of Object.keys(record).slice(0, maxItems)) {
       const childPath = `${path}.${key}`
       const raw = record[key]
-      if (opts.redactFields?.has(key.toLowerCase()) || opts.redactPaths?.has(childPath)) {
+      if (
+        opts.redactFields?.has(key.toLowerCase()) ||
+        opts.redactPaths?.has(childPath) ||
+        opts.redactPatterns?.some((re) => re.test(key))
+      ) {
         fields[key] = redacted(raw, opts)
       } else {
         fields[key] = ser(raw, opts, childPath, depth + 1, seen)

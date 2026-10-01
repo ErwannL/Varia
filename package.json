@@ -8,14 +8,14 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=20.10"
   },
   "workspaces": [
     "packages/*",
     "packages/adapters/*"
   ],
   "scripts": {
-    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p packages/dashboard/tsconfig.json --noEmit",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -27,7 +27,8 @@
     "brand": "node scripts/brand.mjs",
     "brand:check": "node scripts/brand.mjs --check",
     "examples:install": "node scripts/install-examples.mjs",
-    "mutation-check": "node scripts/mutation-check.mjs"
+    "mutation-check": "node scripts/mutation-check.mjs",
+    "build": "tsc -b packages/cli/tsconfig.json packages/api/tsconfig.json && npm run build -w @varia/dashboard"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

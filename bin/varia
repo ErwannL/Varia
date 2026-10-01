@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+// Binaire Varia : nécessite `npm run build` (sorties compilées dans packages/*/dist).
+import '../packages/cli/dist/main.js'

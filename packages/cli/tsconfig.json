@@ -1,0 +1,32 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true
+  },
+  "include": ["src"],
+  "references": [
+    {
+      "path": "../adapters/jest"
+    },
+    {
+      "path": "../config"
+    },
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../engine"
+    },
+    {
+      "path": "../i18n"
+    },
+    {
+      "path": "../reporters"
+    },
+    {
+      "path": "../api"
+    }
+  ]
+}

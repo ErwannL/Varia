@@ -31,7 +31,7 @@ export interface PrepareContext {
   runId: string
   include: string[]
   exclude: string[]
-  redact: { fields: string[]; skipPaths: string[]; hmacKey: string }
+  redact: { fields: string[]; patterns: string[]; skipPaths: string[]; hmacKey: string }
   nodeOptions?: string
 }
 

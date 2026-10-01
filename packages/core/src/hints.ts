@@ -5,9 +5,9 @@ export type FormatName = 'email' | 'uuid' | 'url' | 'iso-date' | 'ipv4'
 export interface Hint {
   /** `export#chemin`, ex. `createUser#arg0.age`. */
   path: string
-  range?: [number, number]
-  format?: FormatName
-  length?: [number, number]
+  range?: [number, number] | undefined
+  format?: FormatName | undefined
+  length?: [number, number] | undefined
 }
 
 export const FORMAT_PATTERNS: Record<FormatName, RegExp> = {

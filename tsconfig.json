@@ -20,5 +20,6 @@
     "spike/runtime/*.cjs",
     "tests/**/*.ts",
     "vitest.config.ts"
-  ]
+  ],
+  "exclude": ["packages/dashboard/**"]
 }
