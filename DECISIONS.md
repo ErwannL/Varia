@@ -124,3 +124,24 @@ Format : date — contexte — options — choix — raison.
 - `database.test.ts` attendait la liste exacte `['0001']` ; l'ajout de la migration `0002_acceptances`
   (J2) rend cette attente fausse par construction. Le test liste désormais `['0001', '0002']` et un test
   de **montée de version** (base 0001 avec données → 0002, données conservées) est ajouté.
+
+## D-019 — 2026-10-01 — Titre traduit des acceptations suspectes
+
+- Le titre traduit perdait le chemin muté (« sur arg0.age »). Les issues `SUSPICIOUS_ACCEPT` portent
+  désormais la raison (`errorName`) et le chemin (`message`) ; le test de `issueTitle`, qui figeait
+  l'ancien format sans chemin, est mis à jour en conséquence (comportement volontairement changé).
+- Les limites affichées dépendent des capacités de l'adapter (pas d'« ESM non supporté » sous Vitest).
+
+## D-020 — 2026-10-01 — Mécanisme d'injection Vitest (J2)
+
+- Contexte : §10.0 prévoit un « plugin Vite temporaire » ; un transform qui ajoute un pied de module ne
+  peut pas remplacer des liaisons ESM.
+- Choix : plugin `enforce: 'pre'` qui **réécrit les déclarations `export`** (analyse syntaxique
+  TypeScript, `magic-string`, source map) pour réexporter des enveloppes ; appels internes au module
+  inchangés (limite §10.0-1 identique à Jest). Non enveloppés : `export let/var`, classes (signalées
+  `UNSUPPORTED`), défauts anonymes, ré-exports `from` (le module source est enveloppé lui-même).
+- Vitest est lancé par son **API Node** (`startVitest`) depuis `runtime/run-vitest.mjs`, avec la copie de
+  Vitest **du projet** : plugin, cache Vite et fichier de setup sont injectés sans aucun fichier dans le
+  projet. Le setup (dans `tmp/`) importe la même instance de Vitest que les tests, puis `probe.install()`.
+- Limite connue : une dépendance circulaire ESM qui appelle un export pendant l'évaluation du module
+  (avant la fin de celui-ci) rencontrerait la zone morte temporelle des liaisons ajoutées.

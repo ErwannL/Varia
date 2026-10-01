@@ -1,4 +1,6 @@
 import { JestAdapter } from '@varia/adapter-jest'
+import { VitestAdapter } from '@varia/adapter-vitest'
+import type { TestAdapter } from '@varia/core'
 import {
   CONFIG_FILES,
   findConfigFile,
@@ -34,10 +36,33 @@ import {
 import { diffIssues } from '@varia/core'
 import { Command, CommanderError, Option } from 'commander'
 import { randomBytes } from 'node:crypto'
-import { copyFileSync, existsSync, rmSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { printer, type Io, type Printer } from './io.js'
 import { printSummary, resilienceExit } from './summary.js'
+
+/** Choix de l'adapter (le moteur n'en connaît aucun) : `test.framework`, sinon détection par dépendances. */
+export function adapterFor(root: string, configFile?: string): TestAdapter {
+  let framework: string | undefined
+  try {
+    framework = loadConfig(root, configFile !== undefined ? { file: configFile } : {}).parsed.test
+      .framework
+  } catch {
+    framework = undefined
+  }
+  if (framework === undefined) {
+    const pkgFile = join(root, 'package.json')
+    const pkg = existsSync(pkgFile)
+      ? (JSON.parse(readFileSync(pkgFile, 'utf8')) as {
+          dependencies?: object
+          devDependencies?: object
+        })
+      : {}
+    const deps = { ...pkg.dependencies, ...pkg.devDependencies }
+    framework = 'vitest' in deps && !('jest' in deps) ? 'vitest' : 'jest'
+  }
+  return framework === 'vitest' ? new VitestAdapter() : new JestAdapter()
+}
 
 export interface CliEnv {
   env: NodeJS.ProcessEnv
@@ -118,7 +143,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
     const o = program.opts<GlobalOpts>()
     return new EngineContext({
       root: root(),
-      adapter: new JestAdapter(),
+      adapter: adapterFor(root(), o.config !== undefined ? resolve(cli.cwd, o.config) : undefined),
       ...(o.dataDir !== undefined ? { dataDir: resolve(cli.cwd, o.dataDir) } : {}),
       ...(o.config !== undefined ? { configFile: resolve(cli.cwd, o.config) } : {}),
       ...(mode !== undefined ? { mode } : {}),

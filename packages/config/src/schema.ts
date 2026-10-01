@@ -77,13 +77,14 @@ export const configSchema = z
     test: z
       .object({
         command: z.string().optional(),
-        framework: z.enum(['jest']).default('jest'),
+        /** Absent : détecté (Vitest si le projet n'a que Vitest, sinon Jest). */
+        framework: z.enum(['jest', 'vitest']).optional(),
         cwd: z.string().default('.'),
         env: z.record(z.string(), z.string()).default({}),
         node_options: z.string().optional(),
       })
       .strict()
-      .default({ framework: 'jest', cwd: '.', env: {} }),
+      .default({ cwd: '.', env: {} }),
     baseline: z
       .object({ stability_runs: z.number().int().min(1).max(10).optional() })
       .strict()

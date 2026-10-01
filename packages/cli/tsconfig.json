@@ -28,6 +28,9 @@
     },
     {
       "path": "../api"
+    },
+    {
+      "path": "../adapters/vitest"
     }
   ]
 }

@@ -61,9 +61,11 @@ describe('titres d’issues traduits au rendu', () => {
       issueTitle('en', {
         ...base,
         kind: 'SUSPICIOUS_ACCEPT',
-        title: 'f : acceptation suspecte (ECHO) sur arg0',
+        errorName: 'ECHO',
+        message: 'arg0.age',
+        title: '',
       }),
-    ).toBe('src/a.js#f: suspicious accept (ECHO)')
+    ).toBe('src/a.js#f: suspicious accept (ECHO) on arg0.age')
   })
   it('type inconnu : titre d’origine', () => {
     expect(issueTitle('en', { ...base, kind: 'OTHER', title: 'brut' })).toBe('brut')

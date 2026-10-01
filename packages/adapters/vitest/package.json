@@ -1,5 +1,5 @@
 {
-  "name": "@varia/cli",
+  "name": "@varia/adapter-vitest",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,14 +12,10 @@
     }
   },
   "dependencies": {
-    "@varia/adapter-jest": "0.1.0",
-    "@varia/config": "0.1.0",
     "@varia/core": "0.1.0",
-    "@varia/engine": "0.1.0",
-    "@varia/i18n": "0.1.0",
-    "@varia/reporters": "0.1.0",
-    "commander": "12.1.0",
-    "@varia/api": "0.1.0",
-    "@varia/adapter-vitest": "0.1.0"
+    "@varia/probe-protocol": "0.1.0",
+    "@varia/probe-runtime": "0.1.0",
+    "magic-string": "0.30.21",
+    "typescript": "5.9.3"
   }
 }

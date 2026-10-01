@@ -1,5 +1,5 @@
 import type { Report } from '@varia/reporters'
-import { issueTitle } from '@varia/i18n'
+import { issueTitle, t, type MessageKey } from '@varia/i18n'
 import type { Printer } from './io.js'
 
 /** Résumé de fin de run (annexe C) : comptes bruts d'abord, issues, ce qui n'a PAS été testé. */
@@ -41,7 +41,9 @@ export function printSummary(p: Printer, r: Report, exitCode: number): void {
     nonMutable: nc.nonMutableInputs.length,
     flaky: nc.flakyTests.length,
   })
-  p.say('cli.summary.limits')
+  p.say('cli.summary.limits', {
+    limits: r.limitations.map((l) => t(p.locale, `dash.limitation.${l}` as MessageKey)).join(' ; '),
+  })
   p.say('cli.summary.run', { runId: r.run.id })
   p.say('cli.summary.exit', { code: exitCode })
 }

@@ -99,6 +99,8 @@ export function issueOf(r: ResultForIssues, root: string): Omit<IssueDraft, 'mut
       'SUSPICIOUS_ACCEPT',
       [c.reason ?? '', r.mutation.pathStr],
       `${target} : acceptation suspecte (${c.reason ?? ''}) sur ${r.mutation.pathStr}`,
+      // Raison et chemin conservés en champs pour traduire le titre au rendu.
+      { errorName: c.reason ?? null, message: r.mutation.pathStr },
     )
   }
   if ((c.status === 'CRASH' || c.status === 'UNEXPECTED_FAILURE') && c.error) {

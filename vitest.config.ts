@@ -8,6 +8,10 @@ export default defineConfig({
         find: /^@varia\/adapter-jest$/,
         replacement: resolve('packages/adapters/jest/src/index.ts'),
       },
+      {
+        find: /^@varia\/adapter-vitest$/,
+        replacement: resolve('packages/adapters/vitest/src/index.ts'),
+      },
       { find: /^@varia\/([\w-]+)$/, replacement: resolve('packages/$1/src/index.ts') },
     ],
   },
@@ -16,6 +20,7 @@ export default defineConfig({
     include: [
       'packages/dashboard/test/**/*.test.tsx',
       'packages/*/test/**/*.test.ts',
+      'packages/adapters/*/test/**/*.test.ts',
       'tests/**/*.test.ts',
     ],
     testTimeout: 120_000,

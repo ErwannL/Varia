@@ -39,11 +39,15 @@ export function issueTitle(
 ): string {
   const key = `issue.kind.${i.kind}` as MessageKey
   if (!(key in messages[locale])) return i.title
-  const reason = /\((HINT_VIOLATION|ECHO)\)/.exec(i.title)?.[1] ?? ''
+  const reason =
+    i.kind === 'SUSPICIOUS_ACCEPT' && i.errorName
+      ? i.errorName
+      : (/\((HINT_VIOLATION|ECHO)\)/.exec(i.title)?.[1] ?? '')
   return t(locale, key, {
     target: i.target,
     error: i.errorName ?? '',
     message: i.message ?? '',
     reason,
+    path: i.message ?? '',
   })
 }

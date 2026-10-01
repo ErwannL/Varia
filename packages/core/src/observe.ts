@@ -58,7 +58,12 @@ export function observationOf(run: AdapterRun): Observation {
         ...(e.error !== undefined ? { error: e.error } : {}),
       })
     } else if (e.type === 'DISCOVER' && e.module !== undefined) {
-      discovered[e.module] = { wrapped: e.wrapped ?? [], unsupported: e.unsupported ?? [] }
+      // Fusion : un module CommonJS s'annonce en une fois, un module ESM export par export.
+      const d = discovered[e.module] ?? { wrapped: [], unsupported: [] }
+      discovered[e.module] = {
+        wrapped: [...new Set([...d.wrapped, ...(e.wrapped ?? [])])],
+        unsupported: [...new Set([...d.unsupported, ...(e.unsupported ?? [])])],
+      }
     } else if (e.type === 'MUTATE_CALL') mutateEvents.push(e)
   }
   const calls: ObservedCall[] = []

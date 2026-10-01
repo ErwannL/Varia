@@ -42,6 +42,7 @@ const WRAPPED = Symbol.for('varia.wrapped')
  * @property {number} callCounter
  * @property {Set<string>} announced
  * @property {(m: unknown, id: string) => unknown} wrapExports
+ * @property {(f: unknown, id: string, name: string) => unknown} wrapExport
  */
 
 /** @param {string | undefined} file @returns {any} */
@@ -80,6 +81,7 @@ function init() {
     callCounter: 0,
     announced: new Set(),
     wrapExports,
+    wrapExport,
   }
   return state
 }
@@ -360,34 +362,63 @@ function wrapExports(exportsValue, moduleId) {
   return result
 }
 
+/**
+ * Enveloppe UN export (modules ESM réécrits par le plugin Vitest) ; annonce l'export découvert.
+ * @param {unknown} fn @param {string} moduleId @param {string} exportName @returns {unknown}
+ */
+function wrapExport(fn, moduleId, exportName) {
+  const st = /** @type {ProbeState} */ (/** @type {any} */ (globalThis).__varia)
+  if (typeof fn !== 'function' || WRAPPED in fn) return fn
+  if (isClass(fn)) {
+    emit(st, 'DISCOVER', { module: moduleId, wrapped: [], unsupported: [exportName] })
+    return fn
+  }
+  emit(st, 'DISCOVER', { module: moduleId, wrapped: [exportName], unsupported: [] })
+  return wrapFunction(st, fn, moduleId, exportName)
+}
+
 const g = /** @type {any} */ (globalThis)
 if (!g.__varia) g.__varia = init()
 const state = /** @type {ProbeState | null} */ (g.__varia)
 
-if (state) {
-  emit(state, 'HELLO', {
-    mode: state.mode,
-    pid: process.pid,
-    mutationId: state.mutation?.id ?? null,
-  })
-  g.beforeEach(() => {
-    const st = /** @type {ProbeState} */ (g.__varia)
-    const es = g.expect.getState()
+/**
+ * @typedef {object} TestHooks
+ * @property {(fn: () => void) => void} beforeEach
+ * @property {(fn: () => void) => void} afterEach
+ * @property {() => { testPath?: string, currentTestName?: string }} getState
+ * @property {(s: { currentTestName?: string }) => string} [nameOf] nom complet du test (Vitest : « a > b » → « a b »)
+ */
+
+/** Branche la sonde sur les crochets du runner (Jest : globaux ; Vitest : API importée). Une fois par fichier de test. */
+function install(/** @type {TestHooks} */ hooks) {
+  const st = /** @type {ProbeState | null} */ (g.__varia)
+  if (!st) return
+  emit(st, 'HELLO', { mode: st.mode, pid: process.pid, mutationId: st.mutation?.id ?? null })
+  hooks.beforeEach(() => {
+    const cur = /** @type {ProbeState} */ (g.__varia)
+    const es = hooks.getState()
     const file = path
-      .relative(st.projectRoot, String(es.testPath ?? ''))
+      .relative(cur.projectRoot, String(es.testPath ?? ''))
       .split(path.sep)
       .join('/')
-    const name = String(es.currentTestName ?? '')
+    const name = hooks.nameOf ? hooks.nameOf(es) : String(es.currentTestName ?? '')
     const key = `${file}\u0000${name}`
-    const dup = st.nameCounts.get(key) ?? 0
-    st.nameCounts.set(key, dup + 1)
-    st.currentTest = { testId: S.testIdOf(file, name, dup), file, name }
-    st.sequences = new Map()
-    emit(st, 'TEST_START', { file, name })
+    const dup = cur.nameCounts.get(key) ?? 0
+    cur.nameCounts.set(key, dup + 1)
+    cur.currentTest = { testId: S.testIdOf(file, name, dup), file, name }
+    cur.sequences = new Map()
+    emit(cur, 'TEST_START', { file, name })
   })
-  g.afterEach(() => {
-    const st = /** @type {ProbeState} */ (g.__varia)
-    emit(st, 'TEST_END', {})
-    st.currentTest = null
+  hooks.afterEach(() => {
+    const cur = /** @type {ProbeState} */ (g.__varia)
+    emit(cur, 'TEST_END', {})
+    cur.currentTest = null
   })
 }
+
+// Jest : la sonde est un `setupFilesAfterEnv`, réévalué pour chaque fichier de test, avec des globaux.
+if (state && typeof g.beforeEach === 'function' && typeof g.expect?.getState === 'function') {
+  install({ beforeEach: g.beforeEach, afterEach: g.afterEach, getState: () => g.expect.getState() })
+}
+
+module.exports = { install }

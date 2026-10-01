@@ -5,7 +5,8 @@
     "allowJs": true,
     "paths": {
       "@varia/adapter-jest": ["./packages/adapters/jest/src/index.ts"],
-      "@varia/*": ["./packages/*/src/index.ts"]
+      "@varia/*": ["./packages/*/src/index.ts"],
+      "@varia/adapter-vitest": ["./packages/adapters/vitest/src/index.ts"]
     },
     "checkJs": true
   },
@@ -17,7 +18,8 @@
     "packages/adapters/*/test/**/*.ts",
     "packages/adapters/*/runtime/*.cjs",
     "tests/**/*.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "packages/adapters/*/runtime/*.mjs"
   ],
   "exclude": ["packages/dashboard/**"]
 }

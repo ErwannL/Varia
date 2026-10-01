@@ -22,7 +22,6 @@
     },
     "test": {
       "default": {
-        "framework": "jest",
         "cwd": ".",
         "env": {}
       },
@@ -32,10 +31,10 @@
           "type": "string"
         },
         "framework": {
-          "default": "jest",
           "type": "string",
           "enum": [
-            "jest"
+            "jest",
+            "vitest"
           ]
         },
         "cwd": {

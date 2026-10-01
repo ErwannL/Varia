@@ -22,12 +22,15 @@ export function summarizeValue(v: unknown): unknown {
 }
 
 /** Limites toujours rappelées (CDC §10.0, §34, §47) : Varia dit ce qu'il n'a pas pu observer. */
-export function limitationsOf(depth: string): string[] {
+export function limitationsOf(
+  depth: string,
+  capabilities?: Partial<AdapterCapabilities>,
+): string[] {
   return [
     'INTERNAL_CALLS_NOT_OBSERVED',
     'NON_EXPORTED_FUNCTIONS_NOT_TARGETED',
     'MOCKED_TARGETS_NOT_OBSERVED',
-    'NATIVE_ESM_UNSUPPORTED',
+    ...(capabilities?.esm === true ? [] : ['NATIVE_ESM_UNSUPPORTED']),
     'CLASS_METHODS_NOT_TARGETED',
     ...(depth === 'direct' ? ['TRANSITIVE_CALLS_NOT_MUTATED'] : []),
     'NO_DATABASE_OR_FILESYSTEM_RESET',
@@ -199,6 +202,6 @@ export function buildReport(reader: Reader, runId: string): Report {
         .map((r) => ({ id: r.mutationId, reason: r.reason ?? '' })),
       pendingMutations: counts.pending,
     },
-    limitations: limitationsOf(o.depth),
+    limitations: limitationsOf(o.depth, o.capabilities),
   }
 }

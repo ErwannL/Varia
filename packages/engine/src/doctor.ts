@@ -5,7 +5,7 @@ import {
   serializePlan,
   buildCatalog,
 } from '@varia/core'
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { newRunId, prepareContext } from './baseline.js'
 import type { EngineContext } from './context.js'
@@ -73,7 +73,11 @@ export async function doctor(ctx: EngineContext): Promise<DoctorReport> {
     if (obs.calls.length > 0) verified.observation = 'VERIFIED'
     if (obs.calls.some((c) => c.outcome.async)) verified.asyncTargets = 'VERIFIED'
     if (obs.calls.some((c) => c.depth > 0)) base.reasons.push('TRANSITIVE_CALLS_OBSERVED')
-    if (verified.observation === 'VERIFIED') verified.cjs = 'VERIFIED'
+    if (verified.observation === 'VERIFIED') {
+      const esm = isEsmProject(ctx.root)
+      if (esm && declared.esm) verified.esm = 'VERIFIED'
+      if (!esm && declared.cjs) verified.cjs = 'VERIFIED'
+    }
     verified.isolatedProcess = 'VERIFIED'
     const passing = new Set(obs.tests.filter((t) => t.status === 'passed').map((t) => t.testId))
     const catalog = buildCatalog(obs.calls.filter((c) => passing.has(c.testId))).filter(
@@ -115,4 +119,12 @@ export async function doctor(ctx: EngineContext): Promise<DoctorReport> {
   } finally {
     rmSync(tmpDir, { recursive: true, force: true })
   }
+}
+
+/** Projet déclaré ESM (`"type": "module"`). */
+export function isEsmProject(root: string): boolean {
+  const p = join(root, 'package.json')
+  return (
+    existsSync(p) && (JSON.parse(readFileSync(p, 'utf8')) as { type?: string }).type === 'module'
+  )
 }
