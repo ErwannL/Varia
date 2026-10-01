@@ -4,8 +4,8 @@
 // applique le timeout LUI-MÊME (même si l'orchestrateur meurt) et tue tout l'arbre à l'échéance.
 // Usage : node supervisor.cjs <timeoutMs> <statusFile> -- <commande> [args…]
 
-const { spawn, spawnSync } = require('node:child_process')
-const fs = require('node:fs')
+const { spawn, spawnSync } = require('child_process')
+const fs = require('fs')
 
 const [timeoutArg, statusFile, sep, command, ...args] = process.argv.slice(2)
 if (sep !== '--' || !command || !statusFile) {

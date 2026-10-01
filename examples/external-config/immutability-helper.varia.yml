@@ -1,0 +1,10 @@
+# Configuration Varia du projet externe (CDC A.7), gardée HORS du projet cloné (varia --config).
+version: 1
+project: { name: immutability-helper }
+targets: { mode: auto, include: ["index.ts"] }
+mutations:
+  mode: quick
+  seed: 7
+  # Budget : l'échantillonnage est annoncé et enregistré (CDC §14.4).
+  limits: { total_mutations: 120 }
+execution: { timeout_ms: 15000 }

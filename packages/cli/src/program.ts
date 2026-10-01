@@ -45,6 +45,7 @@ interface GlobalOpts {
   quiet?: boolean
   json?: boolean
   project?: string
+  config?: string
 }
 
 const MINIMAL_CONFIG =
@@ -87,6 +88,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
     .option('-q, --quiet')
     .option('--json')
     .option('-C, --project <dir>')
+    .option('-c, --config <file>')
     .version(VARIA_VERSION, '-v, --version')
   const locale = (): Locale => {
     const o = program.opts<GlobalOpts>()
@@ -107,6 +109,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
       root: root(),
       adapter: new JestAdapter(),
       ...(o.dataDir !== undefined ? { dataDir: resolve(cli.cwd, o.dataDir) } : {}),
+      ...(o.config !== undefined ? { configFile: resolve(cli.cwd, o.config) } : {}),
       ...(mode !== undefined ? { mode } : {}),
       onProgress: progress(p),
     })
@@ -185,7 +188,11 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
     .option('--check')
     .option('--print')
     .action((o: { check?: boolean; print?: boolean }) => {
-      const cfg = loadConfig(root())
+      const g = program.opts<GlobalOpts>()
+      const cfg = loadConfig(
+        root(),
+        g.config !== undefined ? { file: resolve(cli.cwd, g.config) } : {},
+      )
       if (o.print === true) io.out(printableConfig(cfg).trimEnd())
       else p.say('cli.config.ok', { file: cfg.file ?? t(p.locale, 'cli.config.default') })
     })

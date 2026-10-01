@@ -4,7 +4,7 @@
 // Partagé entre la sonde (dans le contexte vm de Jest) et l'orchestrateur : aucune dépendance au
 // royaume (pas d'instanceof : on lit Object.prototype.toString).
 
-const nodeCrypto = require('node:crypto')
+const nodeCrypto = require('crypto')
 
 /** @typedef {import('../../probe-protocol/src/index.js').Json} JsonValue */
 /**

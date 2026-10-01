@@ -4,8 +4,8 @@
 // puis ajoute en fin de module l'appel `__varia.wrapExports` pour les fichiers `targets.include`.
 // L'ajout se fait APRÈS la dernière ligne : les numéros de ligne et la source map restent valides.
 
-const nodeCrypto = require('node:crypto')
-const path = require('node:path')
+const nodeCrypto = require('crypto')
+const path = require('path')
 
 /**
  * @typedef {object} VariaTransformConfig

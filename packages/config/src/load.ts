@@ -100,13 +100,20 @@ export function resolveConfig(
   }
 }
 
-/** Charge `varia.yml|yaml|json` du projet (absent : configuration par défaut). */
+/**
+ * Charge `varia.yml|yaml|json` du projet (absent : configuration par défaut). `overrides.file` désigne
+ * un fichier de configuration HORS du projet (`varia --config`), pour ne pas modifier le projet cible.
+ */
 export function loadConfig(
   root: string,
-  overrides: { mode?: 'quick' | 'normal' | 'full' } = {},
+  overrides: { mode?: 'quick' | 'normal' | 'full'; file?: string } = {},
 ): ResolvedConfig {
-  const file = findConfigFile(root)
-  if (file === null) return resolveConfig({ version: 1 }, root, null, overrides)
+  if (overrides.file !== undefined && !existsSync(overrides.file)) {
+    throw new ConfigError(`fichier de configuration introuvable : ${overrides.file}`)
+  }
+  const mode = overrides.mode !== undefined ? { mode: overrides.mode } : {}
+  const file = overrides.file ?? findConfigFile(root)
+  if (file === null) return resolveConfig({ version: 1 }, root, null, mode)
   const text = readFileSync(file, 'utf8')
   let raw: unknown
   try {
@@ -114,7 +121,7 @@ export function loadConfig(
   } catch (e) {
     throw new ConfigError(`${basename(file)} illisible : ${(e as Error).message}`)
   }
-  return resolveConfig(raw, root, file, overrides)
+  return resolveConfig(raw, root, file, mode)
 }
 
 /** Configuration résolue affichable : valeurs d'environnement sensibles masquées (CDC §4.2). */

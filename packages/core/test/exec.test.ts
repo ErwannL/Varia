@@ -92,6 +92,8 @@ describe('chemins et motifs', () => {
     expect(userDataDir({ XDG_DATA_HOME: '/x' }, 'linux', '/h')).toBe('/x')
     expect(userDataDir({}, 'linux', '/h')).toBe(join('/h', '.local', 'share'))
     expect(projectDataDir('/p/app', '/d')).toMatch(/projects[/\\]app-[0-9a-f]{12}$/)
+    expect(projectDataDir('/p/app')).toContain(join('varia', 'projects', 'app-'))
+    expect(userDataDir({}, 'win32', '/h')).toBe(join('/h', 'AppData', 'Local'))
   })
   it('glob', () => {
     const re = (g: string) => new RegExp(globToRegExpSource(g))

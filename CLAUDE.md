@@ -51,4 +51,5 @@ npm test             # vitest
 ## Notes durables
 
 - `docs/notes/fichiers-longs.md` — exemptions de la limite de 1000 lignes (lockfiles, SPEC).
+- `docs/notes/couverture.md` — seuils de couverture par fichier (jamais abaissés), fichiers non mesurables.
 - `docs/notes/sonde-jest.md` — pièges de la sonde sous Jest (instanceof, resetModules, preset, cache, ESM, mocks).

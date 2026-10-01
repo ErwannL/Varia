@@ -1,0 +1,2981 @@
+{
+  "schemaVersion": 1,
+  "varia": {
+    "name": "varia",
+    "version": "0.1.0"
+  },
+  "project": {
+    "id": "p_e230f16f566e",
+    "name": "immutability-helper",
+    "root": "/home/user/Varia/examples/external/immutability-helper"
+  },
+  "run": {
+    "id": "r_c73288110137",
+    "state": "COMPLETED",
+    "partial": false,
+    "mode": "quick",
+    "seed": 7,
+    "createdAt": "2026-10-01T18:28:00.187Z",
+    "updatedAt": "2026-10-01T18:30:14.234Z"
+  },
+  "reproducibility": {
+    "seed": 7,
+    "configHash": "ccfd5c0e38de6225ad485015cd47dc89971150dbce546be13e047ca422eefc72",
+    "envHash": "4f7075fb1ce6364f9577636fc733b67bb1d6311158bf20c21a696428cd48384e",
+    "variaVersion": "0.1.0",
+    "gitCommit": "3dc903960b8411da84704052d511c20648c45ead",
+    "gitBranch": "HEAD"
+  },
+  "config": "version: 1\nproject:\n  name: immutability-helper\ntest:\n  framework: jest\n  cwd: .\n  env: {}\nbaseline: {}\ntargets:\n  mode: auto\n  include:\n    - index.ts\n  exclude: []\n  depth: direct\n  declared: []\n  remove: []\ninputs:\n  hints: []\n  skip: []\n  values: {}\nmutations:\n  mode: quick\n  seed: 7\n  combine: false\n  per_target: {}\n  limits:\n    total_mutations: 120\n    string_length: 10000\n    array_length: 1000\n    object_depth: 20\n    memory_mb: 512\nexecution:\n  timeout_ms: 15000\n  parallelism: 1\n  isolation: process\n  warn_after_ms: 1800000\n  max_output_bytes: 8388608\n  reset:\n    environment: true\n    mocks: true\n    database: none\n    filesystem: none\noracle:\n  handled_errors: []\n  crash_errors:\n    - TypeError\n    - ReferenceError\n    - RangeError\n  suspicious_accept: report\nredaction:\n  fields:\n    - password\n    - token\n    - apiKey\n    - authorization\n    - cookie\n    - secret\n    - privateKey\n  patterns: []\n  store_raw_values: false\nstorage:\n  location: user\n  retention_runs: 50\nintegrity:\n  watch_ignored: false\n  ignore_for_integrity: []\ncache:\n  enabled: false\nci:\n  fail_on:\n    - CRASH\n    - TIMEOUT\n  fail_on_regression: true\n  include_transitive: false\nacceptances: []\n",
+  "baseline": {
+    "tests": 82,
+    "passed": 82,
+    "failing": [],
+    "flaky": [],
+    "calls": 121
+  },
+  "capabilities": {
+    "adapter": "jest",
+    "declared": {
+      "observation": true,
+      "argumentMutation": true,
+      "perTestSelection": true,
+      "asyncTargets": true,
+      "esm": false,
+      "cjs": true,
+      "mocks": false,
+      "testParameters": true,
+      "coverage": false,
+      "isolatedProcess": true,
+      "parallelSafe": false
+    }
+  },
+  "plan": {
+    "possible": 4517,
+    "planned": 120,
+    "sampled": true,
+    "estimateMs": 299255
+  },
+  "counts": {
+    "mutations": 120,
+    "handled": 0,
+    "expected": 0,
+    "passed": 58,
+    "suspicious": 8,
+    "unexpected": 46,
+    "crashes": 15,
+    "timeouts": 0,
+    "skipped": 1,
+    "infra": 0,
+    "pending": 0
+  },
+  "resilienceRate": 0.42016806722689076,
+  "coverage": {
+    "targets": {
+      "discovered": 6,
+      "observed": 2,
+      "mutated": 1,
+      "neverCalled": 4,
+      "transitiveOnly": 0,
+      "unsupported": 0
+    },
+    "inputs": {
+      "mutable": 647,
+      "mutated": 106,
+      "nonMutable": 11
+    }
+  },
+  "issues": [
+    {
+      "id": "i_03f4db50c1782eea",
+      "kind": "ERROR",
+      "severity": "HIGH",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : TypeError — Cannot read properties of null (reading <str>)",
+      "errorName": "TypeError",
+      "frame": "<anonymous> (index.ts:120)",
+      "count": 4,
+      "mutationIds": [
+        "m_40d307b21177",
+        "m_4fc46f7d5d9d",
+        "m_578565dd4aa4",
+        "m_d7c366c3f824"
+      ],
+      "replay": "varia replay m_40d307b21177"
+    },
+    {
+      "id": "i_075d6169608dd462",
+      "kind": "ERROR",
+      "severity": "HIGH",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : TypeError — Cannot read properties of undefined (reading <str>)",
+      "errorName": "TypeError",
+      "frame": "<anonymous> (index.ts:120)",
+      "count": 4,
+      "mutationIds": [
+        "m_14fa55eed3b2",
+        "m_416ab456842d",
+        "m_b4d499a48983",
+        "m_d5c4ab1b9c6b"
+      ],
+      "replay": "varia replay m_14fa55eed3b2"
+    },
+    {
+      "id": "i_8ed777e5ee2009ca",
+      "kind": "ERROR",
+      "severity": "HIGH",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : TypeError — Cannot use <str> operator to search for <str> in null",
+      "errorName": "TypeError",
+      "frame": "stringifiable (index.ts:6)",
+      "count": 5,
+      "mutationIds": [
+        "m_01ca83309bc0",
+        "m_765988399b4e",
+        "m_76893c471a80",
+        "m_e5237e06bd50",
+        "m_f84db3219e37"
+      ],
+      "replay": "varia replay m_01ca83309bc0"
+    },
+    {
+      "id": "i_fddeb440af22cb14",
+      "kind": "ERROR",
+      "severity": "HIGH",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : TypeError — Cannot create property <str> on string <str>",
+      "errorName": "TypeError",
+      "frame": "<anonymous> (index.ts:135)",
+      "count": 2,
+      "mutationIds": [
+        "m_d6bac9e48abd",
+        "m_dc6d0afc4de5"
+      ],
+      "replay": "varia replay m_d6bac9e48abd"
+    },
+    {
+      "id": "i_0ef9a19a380d13b4",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): $merge expects a spec of type <str>; got",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_832af34789ab"
+      ],
+      "replay": "varia replay m_832af34789ab"
+    },
+    {
+      "id": "i_276b0b0d56999dfa",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Number",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 2,
+      "mutationIds": [
+        "m_8a91d028acb6",
+        "m_967db047f84d"
+      ],
+      "replay": "varia replay m_8a91d028acb6"
+    },
+    {
+      "id": "i_578a20aeb1d5c9f8",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply.",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 18,
+      "mutationIds": [
+        "m_03801d2ada2f",
+        "m_15f6ee3c26bc",
+        "m_31215a4f719e",
+        "m_3812b4abee41",
+        "m_46d67543b1a7",
+        "m_528469a3dbb5",
+        "m_7637be9ac907",
+        "m_7fabb06312e8",
+        "m_9fbb6e34a2ba",
+        "m_a32f66c75bee",
+        "m_a3b839a9a13f",
+        "m_bd11a24e6a37",
+        "m_ca3b1b6b2353",
+        "m_d19dd31a2e62",
+        "m_e2f1aa751e3f",
+        "m_e85cb9157297",
+        "m_f1796eafd6a7",
+        "m_f52c533165f5"
+      ],
+      "replay": "varia replay m_03801d2ada2f"
+    },
+    {
+      "id": "i_596a95fc748f1462",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): $remove expects a target of type Set or Map; got String",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_93eff444dab7"
+      ],
+      "replay": "varia replay m_93eff444dab7"
+    },
+    {
+      "id": "i_6aeb320e65ea565b",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): expected target of $unshift to be an array; got <num>.",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_e6121ac10845"
+      ],
+      "replay": "varia replay m_e6121ac10845"
+    },
+    {
+      "id": "i_7219fd134607cefc",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): expected spec of $splice to be an array of arrays; got <num>. Did you forget to wrap your parameters in an array?",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_20a34fec222a"
+      ],
+      "replay": "varia replay m_20a34fec222a"
+    },
+    {
+      "id": "i_879d3357ac91089e",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): expected spec of $add to be an array; got [object Object]. Did you forget to wrap your parameter in an array?",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_9db23d57e5c7"
+      ],
+      "replay": "varia replay m_9db23d57e5c7"
+    },
+    {
+      "id": "i_8e276dcfe2f83071",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — Expected $splice target to be an array; got",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_78cd61b9b6b6"
+      ],
+      "replay": "varia replay m_78cd61b9b6b6"
+    },
+    {
+      "id": "i_91d72898c75e5c58",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Null",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_2ab16c569708"
+      ],
+      "replay": "varia replay m_2ab16c569708"
+    },
+    {
+      "id": "i_9cdbcb7ca1910fa3",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): $add expects a target of type Set or Map; got String",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_3011c283e68c"
+      ],
+      "replay": "varia replay m_3011c283e68c"
+    },
+    {
+      "id": "i_9d1f0932dc7d5c7c",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): $merge expects a target of type <str>; got undefined",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_3c08939da4a6"
+      ],
+      "replay": "varia replay m_3c08939da4a6"
+    },
+    {
+      "id": "i_9fe37fc651656d7d",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): expected spec of $toggle to be an array; got . Did you forget to wrap your parameter in an array?",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_1e52cac26e1e"
+      ],
+      "replay": "varia replay m_1e52cac26e1e"
+    },
+    {
+      "id": "i_aaf84c2c11f0941c",
+      "kind": "SUSPICIOUS_ACCEPT",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : acceptation suspecte (ECHO) sur arg1.a.b.$set",
+      "errorName": null,
+      "frame": null,
+      "count": 3,
+      "mutationIds": [
+        "m_10b309918a89",
+        "m_aebed6c89578",
+        "m_b5c898cdbfc1"
+      ],
+      "replay": "varia replay m_10b309918a89"
+    },
+    {
+      "id": "i_b8f8eb09507ca1fe",
+      "kind": "SUSPICIOUS_ACCEPT",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : acceptation suspecte (ECHO) sur arg0.a",
+      "errorName": null,
+      "frame": null,
+      "count": 2,
+      "mutationIds": [
+        "m_31421599dbd2",
+        "m_6eef5fa969c3"
+      ],
+      "replay": "varia replay m_31421599dbd2"
+    },
+    {
+      "id": "i_c0a02e6a88e9c08c",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): $merge expects a target of type <str>; got",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_abfe51118de9"
+      ],
+      "replay": "varia replay m_abfe51118de9"
+    },
+    {
+      "id": "i_c1832a9dd9831e23",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): expected spec of $splice to be an array of arrays; got [object Object]. Did you forget to wrap your parameters in an array?",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_e1a6a00f6026"
+      ],
+      "replay": "varia replay m_e1a6a00f6026"
+    },
+    {
+      "id": "i_c323237d929bf332",
+      "kind": "SUSPICIOUS_ACCEPT",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : acceptation suspecte (ECHO) sur arg1.hasOwnProperty.$set",
+      "errorName": null,
+      "frame": null,
+      "count": 1,
+      "mutationIds": [
+        "m_74d1df349a0f"
+      ],
+      "replay": "varia replay m_74d1df349a0f"
+    },
+    {
+      "id": "i_c420bb80cdc14710",
+      "kind": "SUSPICIOUS_ACCEPT",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : acceptation suspecte (ECHO) sur arg0.c.g[0]",
+      "errorName": null,
+      "frame": null,
+      "count": 1,
+      "mutationIds": [
+        "m_90508e2a73e9"
+      ],
+      "replay": "varia replay m_90508e2a73e9"
+    },
+    {
+      "id": "i_d0ca5b9d28636d98",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): expected spec of $apply to be a function; got <num>.",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_dcd8104e021f"
+      ],
+      "replay": "varia replay m_dcd8104e021f"
+    },
+    {
+      "id": "i_d708d16f78f30a09",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Object",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_c3b0b2e8a309"
+      ],
+      "replay": "varia replay m_c3b0b2e8a309"
+    },
+    {
+      "id": "i_dc7a79f8495f9839",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): expected spec of $toggle to be an array; got [object Object]. Did you forget to wrap your parameter in an array?",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_7843ab404a9c"
+      ],
+      "replay": "varia replay m_7843ab404a9c"
+    },
+    {
+      "id": "i_e7013723cfa37a49",
+      "kind": "SUSPICIOUS_ACCEPT",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : acceptation suspecte (ECHO) sur arg0.c.d.e",
+      "errorName": null,
+      "frame": null,
+      "count": 1,
+      "mutationIds": [
+        "m_8a7b9f3c1e58"
+      ],
+      "replay": "varia replay m_8a7b9f3c1e58"
+    },
+    {
+      "id": "i_f490b844cd2789a3",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): expected target of $push to be an array; got .",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 1,
+      "mutationIds": [
+        "m_e7040d9758ac"
+      ],
+      "replay": "varia replay m_e7040d9758ac"
+    },
+    {
+      "id": "i_f6768f31dd542d05",
+      "kind": "UNEXPECTED",
+      "severity": "MEDIUM",
+      "state": "NEW",
+      "target": "index.ts#default",
+      "title": "index.ts#default : Error — update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value.",
+      "errorName": "Error",
+      "frame": "invariant (index.ts:18)",
+      "count": 10,
+      "mutationIds": [
+        "m_0116fdb13603",
+        "m_087ae227ffdf",
+        "m_0b758dc12e00",
+        "m_2cac53adf125",
+        "m_6a0fd599b815",
+        "m_6cc85b5a51bc",
+        "m_87bc358144b2",
+        "m_c9593c736436",
+        "m_dbf723da833f",
+        "m_f361281e7487"
+      ],
+      "replay": "varia replay m_0116fdb13603"
+    }
+  ],
+  "mutations": [
+    {
+      "id": "m_00e357948792",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $add preserves original object if trying to add a duplicate Map item",
+      "path": "arg1.$add[0][1]",
+      "strategy": "type",
+      "original": 2,
+      "value": "2",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 2544.649218
+    },
+    {
+      "id": "m_0116fdb13603",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg1",
+      "strategy": "type",
+      "original": {
+        "a": {
+          "$merge": {
+            "b": {
+              "c": true
+            }
+          }
+        }
+      },
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 1068.4046509999998
+    },
+    {
+      "id": "m_01ca83309bc0",
+      "target": "index.ts#default",
+      "test": "new Context() supports Maps and keeps reference equality when possible",
+      "path": "arg1.a.$merge",
+      "strategy": "null",
+      "original": {},
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot use 'in' operator to search for 'toString' in null"
+      },
+      "durationMs": 1036.8192549999994
+    },
+    {
+      "id": "m_03801d2ada2f",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $add works on Set",
+      "path": "arg1",
+      "strategy": "null",
+      "original": {
+        "$add": [
+          5,
+          6
+        ]
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 951.2423320000007
+    },
+    {
+      "id": "m_044a4b2111f1",
+      "target": "index.ts#default",
+      "test": "immutability-helper module should accept object spec to modify arrays",
+      "path": "arg0.value[0].a",
+      "strategy": "empty",
+      "original": 0,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1085.374690999999
+    },
+    {
+      "id": "m_07ccaf93c3ff",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg1.a.$merge.b.c",
+      "strategy": "empty",
+      "original": true,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1218.6633899999997
+    },
+    {
+      "id": "m_087ae227ffdf",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg1.c",
+      "strategy": "type",
+      "original": {
+        "d": {
+          "e": {
+            "$set": 1
+          }
+        }
+      },
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 1099.451500000001
+    },
+    {
+      "id": "m_0b4b1cf0e796",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unset does not remove keys from the inherited properties",
+      "path": "arg0",
+      "strategy": "empty",
+      "original": {
+        "$t": "object",
+        "ctor": "Parent",
+        "v": {}
+      },
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1285.314601
+    },
+    {
+      "id": "m_0b758dc12e00",
+      "target": "index.ts#default",
+      "test": "new Context() supports Maps",
+      "path": "arg1",
+      "strategy": "type",
+      "original": {
+        "mapKey": {
+          "$set": "updatedMapValue"
+        }
+      },
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 1101.660973
+    },
+    {
+      "id": "m_0cab22becf73",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $set sets",
+      "path": "arg0.a",
+      "strategy": "null",
+      "original": "b",
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1042.9839199999988
+    },
+    {
+      "id": "m_10b309918a89",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg1.a.b.$set",
+      "strategy": "type",
+      "original": 2,
+      "value": "2",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": "SUSPICIOUS_ACCEPT",
+      "reason": "ECHO",
+      "echoPath": "return.a.b",
+      "error": null,
+      "durationMs": 967.6894470000007
+    },
+    {
+      "id": "m_124b033a902a",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.a.b",
+      "strategy": "empty",
+      "original": 1,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1023.6466070000024
+    },
+    {
+      "id": "m_14a64d10bab1",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $apply applies",
+      "path": "arg0.v",
+      "strategy": "type",
+      "original": 2,
+      "value": "2",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 972.2809930000003
+    },
+    {
+      "id": "m_14bfcf8826fc",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $add works on Set",
+      "path": "arg1.$add[1]",
+      "strategy": "empty",
+      "original": 6,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1086.0443860000014
+    },
+    {
+      "id": "m_14fa55eed3b2",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.c",
+      "strategy": "type",
+      "original": {
+        "d": {
+          "e": 1
+        }
+      },
+      "value": [],
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'e')"
+      },
+      "durationMs": 1155.664710000001
+    },
+    {
+      "id": "m_15f6ee3c26bc",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg1.a",
+      "strategy": "empty",
+      "original": {
+        "$merge": {
+          "b": {
+            "c": true
+          }
+        }
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1063.249380000001
+    },
+    {
+      "id": "m_1aad55647408",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $push pushes",
+      "path": "arg1.$push[0]",
+      "strategy": "empty",
+      "original": 7,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1065.3952199999985
+    },
+    {
+      "id": "m_1e52cac26e1e",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $toggle only takes an array as spec",
+      "path": "arg1.$toggle",
+      "strategy": "empty",
+      "original": "a",
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): expected spec of $toggle to be an array; got . Did you forget to wrap your parameter in an array?"
+      },
+      "durationMs": 1054.5356429999993
+    },
+    {
+      "id": "m_20a34fec222a",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice only splices an array of arrays",
+      "path": "arg1.$splice",
+      "strategy": "type",
+      "original": 1,
+      "value": "1",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): expected spec of $splice to be an array of arrays; got 1. Did you forget to wrap your parameters in an array?"
+      },
+      "durationMs": 1100.735299
+    },
+    {
+      "id": "m_2ab16c569708",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $remove works on Set",
+      "path": "arg0",
+      "strategy": "null",
+      "original": {
+        "$t": "set",
+        "values": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $remove expects a target of type Set or Map; got Null"
+      },
+      "durationMs": 1033.0586779999976
+    },
+    {
+      "id": "m_2cac53adf125",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $set works on Map (E2E)",
+      "path": "arg1.foo",
+      "strategy": "type",
+      "original": {
+        "$set": "OFO"
+      },
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 1193.5192529999986
+    },
+    {
+      "id": "m_3011c283e68c",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $add works on Set",
+      "path": "arg0",
+      "strategy": "empty",
+      "original": {
+        "$t": "set",
+        "values": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $add expects a target of type Set or Map; got String"
+      },
+      "durationMs": 1037.2295040000026
+    },
+    {
+      "id": "m_31215a4f719e",
+      "target": "index.ts#default",
+      "test": "new Context() works with symbols in the source object",
+      "path": "arg1.c",
+      "strategy": "empty",
+      "original": {
+        "$set": 3
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1138.631443000002
+    },
+    {
+      "id": "m_31421599dbd2",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.a",
+      "strategy": "type",
+      "original": {
+        "b": 1
+      },
+      "value": [],
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": "SUSPICIOUS_ACCEPT",
+      "reason": "ECHO",
+      "echoPath": "return.a",
+      "error": null,
+      "durationMs": 1070.5117849999988
+    },
+    {
+      "id": "m_331dda748cc1",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $set sets",
+      "path": "arg0",
+      "strategy": "null",
+      "original": {
+        "a": "b"
+      },
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 955.9877889999989
+    },
+    {
+      "id": "m_37163a8f2686",
+      "target": "index.ts#default",
+      "test": "new Context() works with symbols in the $merge command",
+      "path": "arg0.a",
+      "strategy": "empty",
+      "original": 1,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1035.8773250000013
+    },
+    {
+      "id": "m_3812b4abee41",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unset keeps reference equality when possible",
+      "path": "arg1",
+      "strategy": "null",
+      "original": {
+        "$unset": [
+          "a"
+        ]
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1083.1842859999997
+    },
+    {
+      "id": "m_3a53603aa8e7",
+      "target": "index.ts#default",
+      "test": "immutability-helper module should accept object spec to modify arrays",
+      "path": "arg0.value[0].a",
+      "strategy": "null",
+      "original": 0,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 993.0099469999986
+    },
+    {
+      "id": "m_3ac98782a8ad",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unshift does not mutate the original object",
+      "path": "arg1.$unshift[0]",
+      "strategy": "null",
+      "original": 7,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 967.2579839999962
+    },
+    {
+      "id": "m_3c08939da4a6",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg0",
+      "strategy": "type",
+      "original": {
+        "a": {
+          "b": {
+            "c": true
+          }
+        }
+      },
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $merge expects a target of type 'object'; got undefined"
+      },
+      "durationMs": 1130.4063300000053
+    },
+    {
+      "id": "m_40d307b21177",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.c.d",
+      "strategy": "null",
+      "original": {
+        "e": 1
+      },
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of null (reading 'e')"
+      },
+      "durationMs": 1045.9246779999958
+    },
+    {
+      "id": "m_416ab456842d",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0",
+      "strategy": "empty",
+      "original": {
+        "a": {
+          "b": 1
+        },
+        "c": {
+          "d": {
+            "e": 1
+          }
+        }
+      },
+      "value": "",
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'b')"
+      },
+      "durationMs": 1111.4492049999972
+    },
+    {
+      "id": "m_46d67543b1a7",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $add works on Set",
+      "path": "arg1",
+      "strategy": "empty",
+      "original": {
+        "$add": [
+          5,
+          6
+        ]
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1206.0491430000038
+    },
+    {
+      "id": "m_4fc46f7d5d9d",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0",
+      "strategy": "null",
+      "original": {
+        "a": {
+          "b": 1
+        },
+        "c": {
+          "d": {
+            "e": 1
+          }
+        }
+      },
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of null (reading 'c')"
+      },
+      "durationMs": 1101.810685999997
+    },
+    {
+      "id": "m_528469a3dbb5",
+      "target": "index.ts#default",
+      "test": "immutability-helper module should require a plain object spec containing command(s)",
+      "path": "arg1.a",
+      "strategy": "empty",
+      "original": "c",
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1077.1831569999995
+    },
+    {
+      "id": "m_578565dd4aa4",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.c",
+      "strategy": "null",
+      "original": {
+        "d": {
+          "e": 1
+        }
+      },
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of null (reading 'd')"
+      },
+      "durationMs": 1098.4396200000047
+    },
+    {
+      "id": "m_593421aba6e3",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg0.a.b.c",
+      "strategy": "empty",
+      "original": true,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1206.5964060000042
+    },
+    {
+      "id": "m_5b8a3f856161",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg0.a.b.c",
+      "strategy": "type",
+      "original": true,
+      "value": 0,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1084.5841379999983
+    },
+    {
+      "id": "m_5cceb5dd177e",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice splices",
+      "path": "arg0[1]",
+      "strategy": "empty",
+      "original": 8,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1025.7006540000002
+    },
+    {
+      "id": "m_642dd6099355",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice splices",
+      "path": "arg1.$splice[0][3]",
+      "strategy": "null",
+      "original": 7,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1057.9176519999965
+    },
+    {
+      "id": "m_6901722980c6",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.c.d.e",
+      "strategy": "type",
+      "original": 1,
+      "value": "1",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1092.2247510000016
+    },
+    {
+      "id": "m_6a0fd599b815",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $apply only applies a function",
+      "path": "arg1",
+      "strategy": "type",
+      "original": {
+        "$apply": 123
+      },
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 995.8229700000011
+    },
+    {
+      "id": "m_6cc85b5a51bc",
+      "target": "index.ts#default",
+      "test": "new Context() works with symbols in the $merge command",
+      "path": "arg1",
+      "strategy": "type",
+      "original": {},
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 1047.2869910000009
+    },
+    {
+      "id": "m_6eef5fa969c3",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.a",
+      "strategy": "type",
+      "original": {
+        "b": 1
+      },
+      "value": [],
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": "SUSPICIOUS_ACCEPT",
+      "reason": "ECHO",
+      "echoPath": "return.a",
+      "error": null,
+      "durationMs": 1000.7466949999944
+    },
+    {
+      "id": "m_6fc754247303",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg1.a.$merge.b.c",
+      "strategy": "null",
+      "original": true,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1109.6630440000008
+    },
+    {
+      "id": "m_74d1df349a0f",
+      "target": "index.ts#default",
+      "test": "immutability-helper module should perform safe hasOwnProperty check",
+      "path": "arg1.hasOwnProperty.$set",
+      "strategy": "type",
+      "original": "a",
+      "value": 123,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": "SUSPICIOUS_ACCEPT",
+      "reason": "ECHO",
+      "echoPath": "return.hasOwnProperty",
+      "error": null,
+      "durationMs": 1188.4719239999977
+    },
+    {
+      "id": "m_7637be9ac907",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unshift does not mutate the original object",
+      "path": "arg1",
+      "strategy": "null",
+      "original": {
+        "$unshift": [
+          7
+        ]
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1149.438820999996
+    },
+    {
+      "id": "m_765988399b4e",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice only splices an array of arrays",
+      "path": "arg0",
+      "strategy": "null",
+      "original": [],
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot use 'in' operator to search for 'toString' in null"
+      },
+      "durationMs": 981.9057549999998
+    },
+    {
+      "id": "m_76893c471a80",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unshift only unshifts an array",
+      "path": "arg1.$unshift",
+      "strategy": "null",
+      "original": 7,
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot use 'in' operator to search for 'toString' in null"
+      },
+      "durationMs": 1023.8658050000013
+    },
+    {
+      "id": "m_7843ab404a9c",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $toggle keeps reference equality when possible",
+      "path": "arg1.$toggle",
+      "strategy": "type",
+      "original": [],
+      "value": {},
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): expected spec of $toggle to be an array; got [object Object]. Did you forget to wrap your parameter in an array?"
+      },
+      "durationMs": 1121.1443379999982
+    },
+    {
+      "id": "m_78cd61b9b6b6",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice only splices an array of arrays",
+      "path": "arg0",
+      "strategy": "empty",
+      "original": [],
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "Expected $splice target to be an array; got "
+      },
+      "durationMs": 1149.3716050000003
+    },
+    {
+      "id": "m_7fabb06312e8",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unshift only unshifts unto an array",
+      "path": "arg1",
+      "strategy": "empty",
+      "original": {
+        "$unshift": 7
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1129.8553849999953
+    },
+    {
+      "id": "m_832af34789ab",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update works",
+      "path": "arg1.c.i.$merge",
+      "strategy": "empty",
+      "original": {
+        "n": "o"
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $merge expects a spec of type 'object'; got "
+      },
+      "durationMs": 1069.3413370000053
+    },
+    {
+      "id": "m_86b0dc2ed59b",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge merges",
+      "path": "arg0.a",
+      "strategy": "empty",
+      "original": "b",
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1170.1691120000032
+    },
+    {
+      "id": "m_87949f069ee3",
+      "target": "index.ts#default",
+      "test": "immutability-helper module should perform safe hasOwnProperty check",
+      "path": "arg1.hasOwnProperty.$set",
+      "strategy": "empty",
+      "original": "a",
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 998.7916179999957
+    },
+    {
+      "id": "m_87bc358144b2",
+      "target": "index.ts#default",
+      "test": "new Context() works with symbols in the source object",
+      "path": "arg1",
+      "strategy": "type",
+      "original": {
+        "c": {
+          "$set": 3
+        }
+      },
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 980.7893550000008
+    },
+    {
+      "id": "m_8876a8972e91",
+      "target": "index.ts#default",
+      "test": "immutability-helper module direct apply does not mutate the original object",
+      "path": "arg0.v",
+      "strategy": "null",
+      "original": 2,
+      "value": null,
+      "deleted": false,
+      "status": "SKIPPED",
+      "subtype": null,
+      "reason": "NOT_REACHED",
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1067.8827880000026
+    },
+    {
+      "id": "m_89d8ba2ce4a2",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $remove works on Map",
+      "path": "arg1.$remove[0]",
+      "strategy": "null",
+      "original": 1,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1001.6044919999986
+    },
+    {
+      "id": "m_8a7b9f3c1e58",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.c.d.e",
+      "strategy": "type",
+      "original": 1,
+      "value": "1",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": "SUSPICIOUS_ACCEPT",
+      "reason": "ECHO",
+      "echoPath": "return.c.d.e",
+      "error": null,
+      "durationMs": 1028.051105999999
+    },
+    {
+      "id": "m_8a91d028acb6",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $remove throws on a non Map or Set",
+      "path": "arg1.$remove[0]",
+      "strategy": "empty",
+      "original": 1,
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $remove expects a target of type Set or Map; got Number"
+      },
+      "durationMs": 1060.781421000007
+    },
+    {
+      "id": "m_8ae985f7c339",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unset keeps reference equality when possible",
+      "path": "arg1.$unset[0]",
+      "strategy": "null",
+      "original": "a",
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1112.0502089999936
+    },
+    {
+      "id": "m_8b6d4d69f38c",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.a.b",
+      "strategy": "null",
+      "original": 1,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 980.2361399999936
+    },
+    {
+      "id": "m_8cba44a6b4e3",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.c.d.e",
+      "strategy": "empty",
+      "original": 1,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1044.4261670000124
+    },
+    {
+      "id": "m_90508e2a73e9",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update works",
+      "path": "arg0.c.g[0]",
+      "strategy": "type",
+      "original": 2,
+      "value": "2",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": "SUSPICIOUS_ACCEPT",
+      "reason": "ECHO",
+      "echoPath": "return.c.g[1]",
+      "error": null,
+      "durationMs": 972.9564509999909
+    },
+    {
+      "id": "m_93eff444dab7",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $remove works on Set",
+      "path": "arg0",
+      "strategy": "empty",
+      "original": {
+        "$t": "set",
+        "values": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $remove expects a target of type Set or Map; got String"
+      },
+      "durationMs": 1058.8569290000014
+    },
+    {
+      "id": "m_96794cb2215d",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $apply keeps reference equality when possible",
+      "path": "arg0.a",
+      "strategy": "type",
+      "original": {
+        "b": {}
+      },
+      "value": [],
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1057.1156239999982
+    },
+    {
+      "id": "m_967db047f84d",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $remove throws on a non Map or Set",
+      "path": "arg1.$remove[0]",
+      "strategy": "type",
+      "original": 1,
+      "value": "1",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $remove expects a target of type Set or Map; got Number"
+      },
+      "durationMs": 964.4273819999944
+    },
+    {
+      "id": "m_9db23d57e5c7",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $add preserves original object if trying to add a duplicate Map item",
+      "path": "arg1.$add",
+      "strategy": "type",
+      "original": [
+        [
+          1,
+          2
+        ]
+      ],
+      "value": {},
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): expected spec of $add to be an array; got [object Object]. Did you forget to wrap your parameter in an array?"
+      },
+      "durationMs": 1106.1077589999913
+    },
+    {
+      "id": "m_9fbb6e34a2ba",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg1.a.b",
+      "strategy": "null",
+      "original": {
+        "$set": 1
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1068.5339620000013
+    },
+    {
+      "id": "m_a00852cb9a52",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.a.b",
+      "strategy": "empty",
+      "original": 1,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1036.4033459999919
+    },
+    {
+      "id": "m_a32f66c75bee",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg1.a",
+      "strategy": "empty",
+      "original": {
+        "b": {
+          "$set": 1
+        }
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1139.3725530000083
+    },
+    {
+      "id": "m_a3b839a9a13f",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg1.a.b",
+      "strategy": "null",
+      "original": {
+        "$merge": {
+          "c": true
+        }
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1037.5663550000027
+    },
+    {
+      "id": "m_a4919dc7f844",
+      "target": "index.ts#default",
+      "test": "new Context() can handle nibling directives",
+      "path": "arg0.a[2]",
+      "strategy": "empty",
+      "original": 3,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1154.9262029999954
+    },
+    {
+      "id": "m_abfe51118de9",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg0.a",
+      "strategy": "empty",
+      "original": {
+        "b": {
+          "c": true
+        }
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $merge expects a target of type 'object'; got "
+      },
+      "durationMs": 1431.1419800000003
+    },
+    {
+      "id": "m_ac172502a31c",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $toggle toggles false to true and true to false",
+      "path": "arg0.b",
+      "strategy": "empty",
+      "original": true,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1122.9845999999961
+    },
+    {
+      "id": "m_aebed6c89578",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg1.a.b.$set",
+      "strategy": "type",
+      "original": 1,
+      "value": "1",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": "SUSPICIOUS_ACCEPT",
+      "reason": "ECHO",
+      "echoPath": "return.a.b",
+      "error": null,
+      "durationMs": 1049.4234270000015
+    },
+    {
+      "id": "m_af123183afe0",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unset removes multiple keys from the object",
+      "path": "arg0.a",
+      "strategy": "empty",
+      "original": "b",
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1126.3460909999994
+    },
+    {
+      "id": "m_b3160f50ef16",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg1.a.$merge.b",
+      "strategy": "null",
+      "original": {
+        "c": true
+      },
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1075.8431449999916
+    },
+    {
+      "id": "m_b4d499a48983",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0",
+      "strategy": "type",
+      "original": {
+        "a": {
+          "b": 1
+        },
+        "c": {
+          "d": {
+            "e": 1
+          }
+        }
+      },
+      "value": [],
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'd')"
+      },
+      "durationMs": 1265.8932979999954
+    },
+    {
+      "id": "m_b5c898cdbfc1",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg1.a.b.$set",
+      "strategy": "type",
+      "original": 1,
+      "value": "1",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": "SUSPICIOUS_ACCEPT",
+      "reason": "ECHO",
+      "echoPath": "return.a.b",
+      "error": null,
+      "durationMs": 1207.2149470000004
+    },
+    {
+      "id": "m_bd11a24e6a37",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update works",
+      "path": "arg1.c.g",
+      "strategy": "null",
+      "original": {
+        "$unshift": [
+          6
+        ]
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1028.6673550000123
+    },
+    {
+      "id": "m_bd6d271e8f2a",
+      "target": "index.ts#default",
+      "test": "immutability-helper module direct apply keeps reference equality when possible",
+      "path": "arg0.a.b",
+      "strategy": "empty",
+      "original": {},
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1021.1384120000002
+    },
+    {
+      "id": "m_c3b0b2e8a309",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $remove works on Set",
+      "path": "arg0",
+      "strategy": "empty",
+      "original": {
+        "$t": "set",
+        "values": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      "value": {},
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): $remove expects a target of type Set or Map; got Object"
+      },
+      "durationMs": 1164.2935050000087
+    },
+    {
+      "id": "m_c3bf6a96502c",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $remove works on Map",
+      "path": "arg1.$remove[0]",
+      "strategy": "empty",
+      "original": 1,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1053.0645540000114
+    },
+    {
+      "id": "m_c69b8b3a473b",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice splices",
+      "path": "arg0[2]",
+      "strategy": "type",
+      "original": 9,
+      "value": "9",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1114.9214729999949
+    },
+    {
+      "id": "m_c90ffdc05ad3",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice splices",
+      "path": "arg0[2]",
+      "strategy": "empty",
+      "original": 9,
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1103.6264749999973
+    },
+    {
+      "id": "m_c9593c736436",
+      "target": "index.ts#default",
+      "test": "immutability-helper module should reject arrays except as values of specific commands",
+      "path": "arg0",
+      "strategy": "empty",
+      "original": {
+        "a": "b"
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 1002.2553590000025
+    },
+    {
+      "id": "m_ca3b1b6b2353",
+      "target": "index.ts#default",
+      "test": "new Context() supports Maps and keeps reference equality when possible",
+      "path": "arg1.a",
+      "strategy": "empty",
+      "original": {
+        "$merge": {
+          "c": 2
+        }
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1225.5383230000007
+    },
+    {
+      "id": "m_cc9b37a38072",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unshift keeps reference equality when possible",
+      "path": "arg1",
+      "strategy": "type",
+      "original": {
+        "$unshift": []
+      },
+      "value": [],
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1196.8615890000074
+    },
+    {
+      "id": "m_cdde73b54f5c",
+      "target": "index.ts#default",
+      "test": "immutability-helper module should accept array spec to modify arrays",
+      "path": "arg0.value[0].a",
+      "strategy": "null",
+      "original": 0,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1123.9668289999972
+    },
+    {
+      "id": "m_ce9d9c1bc83c",
+      "target": "index.ts#default",
+      "test": "new Context() supports Maps",
+      "path": "arg1.mapKey.$set",
+      "strategy": "empty",
+      "original": "updatedMapValue",
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1128.2188200000091
+    },
+    {
+      "id": "m_cf8a52b098aa",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $set does not mutate the original object",
+      "path": "arg1.$set.a",
+      "strategy": "null",
+      "original": "c",
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1131.9085119999945
+    },
+    {
+      "id": "m_d0fc426e69b5",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $toggle toggles false to true and true to false",
+      "path": "arg1.$toggle[1]",
+      "strategy": "null",
+      "original": "b",
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1062.23266899999
+    },
+    {
+      "id": "m_d19dd31a2e62",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice only splices an array of arrays",
+      "path": "arg1",
+      "strategy": "null",
+      "original": {
+        "$splice": 1
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1147.9472800000076
+    },
+    {
+      "id": "m_d2d1a122d355",
+      "target": "index.ts#default",
+      "test": "new Context() supports Maps and keeps reference equality when possible",
+      "path": "arg1.a.$merge",
+      "strategy": "type",
+      "original": {
+        "c": 2
+      },
+      "value": [],
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1018.3889740000013
+    },
+    {
+      "id": "m_d3192234b628",
+      "target": "index.ts#default",
+      "test": "new Context() supports nested objects inside Maps",
+      "path": "arg1.mapKey.apple.$set[1]",
+      "strategy": "null",
+      "original": "red",
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1041.0353299999988
+    },
+    {
+      "id": "m_d5c4ab1b9c6b",
+      "target": "index.ts#default",
+      "test": "new Context() does not lose non integer keys of an array",
+      "path": "arg0.items",
+      "strategy": "type",
+      "original": [
+        {
+          "name": "Superman",
+          "strength": 1000
+        },
+        {
+          "name": "Jim",
+          "strength": 2
+        }
+      ],
+      "value": {},
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'strength')"
+      },
+      "durationMs": 1319.2999239999917
+    },
+    {
+      "id": "m_d6bac9e48abd",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.c.d",
+      "strategy": "empty",
+      "original": {
+        "e": 1
+      },
+      "value": "",
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'e' on string ''"
+      },
+      "durationMs": 1059.8763499999914
+    },
+    {
+      "id": "m_d75c44a0dc7c",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unset removes the key from the object",
+      "path": "arg0.a",
+      "strategy": "type",
+      "original": "b",
+      "value": 123,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 982.3427010000014
+    },
+    {
+      "id": "m_d78c838c25d3",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unset removes multiple keys from the object",
+      "path": "arg1.$unset[1]",
+      "strategy": "empty",
+      "original": "e",
+      "value": "",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1163.04032
+    },
+    {
+      "id": "m_d7c366c3f824",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.c",
+      "strategy": "null",
+      "original": {
+        "d": {
+          "e": 1
+        }
+      },
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot read properties of null (reading 'd')"
+      },
+      "durationMs": 1244.139061000009
+    },
+    {
+      "id": "m_dbf723da833f",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $add works on Set",
+      "path": "arg1",
+      "strategy": "type",
+      "original": {
+        "$add": [
+          5,
+          6
+        ]
+      },
+      "value": [],
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 1075.7646130000066
+    },
+    {
+      "id": "m_dc6d0afc4de5",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg0.a",
+      "strategy": "empty",
+      "original": {
+        "b": 1
+      },
+      "value": "",
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot create property 'b' on string ''"
+      },
+      "durationMs": 1050.9119499999942
+    },
+    {
+      "id": "m_dcd8104e021f",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $apply only applies a function",
+      "path": "arg0",
+      "strategy": "type",
+      "original": 2,
+      "value": "2",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): expected spec of $apply to be a function; got 123."
+      },
+      "durationMs": 977.1636710000021
+    },
+    {
+      "id": "m_de45044bbc56",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $toggle keeps reference equality when possible",
+      "path": "arg0.a",
+      "strategy": "type",
+      "original": false,
+      "value": 0,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 954.5766869999934
+    },
+    {
+      "id": "m_e1a6a00f6026",
+      "target": "index.ts#default",
+      "test": "new Context() can handle nibling directives",
+      "path": "arg1.a.$splice",
+      "strategy": "type",
+      "original": [
+        [
+          0,
+          2
+        ]
+      ],
+      "value": {},
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): expected spec of $splice to be an array of arrays; got [object Object]. Did you forget to wrap your parameters in an array?"
+      },
+      "durationMs": 1035.9501170000003
+    },
+    {
+      "id": "m_e2f1aa751e3f",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $add throws on a non Map or Set",
+      "path": "arg1",
+      "strategy": "null",
+      "original": {
+        "$add": [
+          1
+        ]
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1014.683023000005
+    },
+    {
+      "id": "m_e5237e06bd50",
+      "target": "index.ts#default",
+      "test": "new Context() can handle nibling directives",
+      "path": "arg1.$merge",
+      "strategy": "null",
+      "original": {
+        "b": "you"
+      },
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot use 'in' operator to search for 'toString' in null"
+      },
+      "durationMs": 1017.8017450000043
+    },
+    {
+      "id": "m_e6121ac10845",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $unshift only unshifts unto an array",
+      "path": "arg0",
+      "strategy": "type",
+      "original": 1,
+      "value": "1",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): expected target of $unshift to be an array; got 1."
+      },
+      "durationMs": 1069.367922999998
+    },
+    {
+      "id": "m_e7040d9758ac",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $push keeps reference equality when possible",
+      "path": "arg0",
+      "strategy": "empty",
+      "original": [
+        "x"
+      ],
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): expected target of $push to be an array; got ."
+      },
+      "durationMs": 1045.2659619999904
+    },
+    {
+      "id": "m_e74d2141b112",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice keeps reference equality when possible",
+      "path": "arg1",
+      "strategy": "type",
+      "original": {
+        "$splice": [
+          []
+        ]
+      },
+      "value": [],
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1071.2213979999942
+    },
+    {
+      "id": "m_e85cb9157297",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg1.c.d",
+      "strategy": "empty",
+      "original": {
+        "e": {
+          "$set": 1
+        }
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1048.8623380000063
+    },
+    {
+      "id": "m_ed724b3184f8",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg0.a.b",
+      "strategy": "type",
+      "original": {
+        "c": true
+      },
+      "value": [],
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 963.0776800000021
+    },
+    {
+      "id": "m_f1796eafd6a7",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $merge keeps reference equality when possible",
+      "path": "arg1",
+      "strategy": "empty",
+      "original": {
+        "a": {
+          "$merge": {
+            "b": {
+              "c": true
+            },
+            "c": false
+          }
+        }
+      },
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 982.605464999986
+    },
+    {
+      "id": "m_f361281e7487",
+      "target": "index.ts#default",
+      "test": "immutability-helper module should reject arrays except as values of specific commands",
+      "path": "arg0.a",
+      "strategy": "empty",
+      "original": "b",
+      "value": "",
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value."
+      },
+      "durationMs": 1083.1000809999969
+    },
+    {
+      "id": "m_f48a8f0eb0f5",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $toggle toggles false to true and true to false",
+      "path": "arg0.b",
+      "strategy": "null",
+      "original": true,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 988.1535509999958
+    },
+    {
+      "id": "m_f52c533165f5",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update keeps reference equality when possible",
+      "path": "arg1.c.d",
+      "strategy": "null",
+      "original": {
+        "e": {
+          "$set": 1
+        }
+      },
+      "value": null,
+      "deleted": false,
+      "status": "UNEXPECTED_FAILURE",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "Error",
+        "message": "update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply."
+      },
+      "durationMs": 1079.5107099999877
+    },
+    {
+      "id": "m_f63e14f5839b",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice splices",
+      "path": "arg0[1]",
+      "strategy": "type",
+      "original": 4,
+      "value": "4",
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 982.676609999995
+    },
+    {
+      "id": "m_f84db3219e37",
+      "target": "index.ts#default",
+      "test": "immutability-helper module $splice keeps reference equality when possible",
+      "path": "arg0",
+      "strategy": "null",
+      "original": [
+        "x"
+      ],
+      "value": null,
+      "deleted": false,
+      "status": "CRASH",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": {
+        "name": "TypeError",
+        "message": "Cannot use 'in' operator to search for 'toString' in null"
+      },
+      "durationMs": 1038.8741530000116
+    },
+    {
+      "id": "m_fd63afb89bd5",
+      "target": "index.ts#default",
+      "test": "immutability-helper module deep update works",
+      "path": "arg1.c.f.$push[0]",
+      "strategy": "null",
+      "original": 5,
+      "value": null,
+      "deleted": false,
+      "status": "PASSED",
+      "subtype": null,
+      "reason": null,
+      "echoPath": null,
+      "error": null,
+      "durationMs": 1094.8106350000016
+    }
+  ],
+  "notCovered": {
+    "neverCalled": [
+      "index.ts#extend",
+      "index.ts#invariant",
+      "index.ts#isEquals",
+      "index.ts#newContext"
+    ],
+    "transitiveOnly": [],
+    "unsupported": [],
+    "nonMutableInputs": [
+      {
+        "target": "index.ts#default",
+        "path": "arg1",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1.a.$apply",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1.a.$apply",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1.$apply",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1.$apply",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1.a",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1.c.l.$apply",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1.c.m",
+        "reason": "OPAQUE"
+      },
+      {
+        "target": "index.ts#default",
+        "path": "arg1.a",
+        "reason": "OPAQUE"
+      }
+    ],
+    "flakyTests": [],
+    "skippedMutations": [
+      {
+        "id": "m_8876a8972e91",
+        "reason": "NOT_REACHED"
+      }
+    ],
+    "pendingMutations": 0
+  },
+  "limitations": [
+    "INTERNAL_CALLS_NOT_OBSERVED",
+    "NON_EXPORTED_FUNCTIONS_NOT_TARGETED",
+    "MOCKED_TARGETS_NOT_OBSERVED",
+    "NATIVE_ESM_UNSUPPORTED",
+    "CLASS_METHODS_NOT_TARGETED",
+    "TRANSITIVE_CALLS_NOT_MUTATED",
+    "NO_DATABASE_OR_FILESYSTEM_RESET",
+    "UNHANDLED_REJECTION_NOT_DETECTED"
+  ]
+}

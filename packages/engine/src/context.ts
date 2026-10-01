@@ -22,6 +22,8 @@ export interface EngineOptions {
   adapter: TestAdapter
   dataDir?: string
   mode?: 'quick' | 'normal' | 'full'
+  /** Configuration hors du projet (`varia --config`). */
+  configFile?: string
   onProgress?: (e: ProgressEvent) => void
 }
 
@@ -40,7 +42,10 @@ export class EngineContext {
 
   constructor(o: EngineOptions) {
     try {
-      this.config = loadConfig(resolve(o.root), o.mode !== undefined ? { mode: o.mode } : {})
+      this.config = loadConfig(resolve(o.root), {
+        ...(o.mode !== undefined ? { mode: o.mode } : {}),
+        ...(o.configFile !== undefined ? { file: resolve(o.configFile) } : {}),
+      })
     } catch (e) {
       if (e instanceof ConfigError) throw new VariaError('CONFIG_FAILURE', e.message, e.issues)
       throw e

@@ -19,7 +19,7 @@ const get = async (url: string) => {
   const r = await app.inject({ method: 'GET', url })
   return {
     status: r.statusCode,
-    json: r.headers['content-type']?.includes('json')
+    json: String(r.headers['content-type'] ?? '').includes('json')
       ? (r.json() as Record<string, unknown>)
       : null,
     headers: r.headers,

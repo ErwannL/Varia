@@ -3,9 +3,11 @@
 // Sonde Varia (CDC §10, D.0) : fichier `setupFilesAfterEnv` éphémère, chargé dans chaque fichier de test
 // Jest. Elle n'a aucune politique : elle observe, applique au plus UNE mutation, et écrit des JSONL.
 
-const fs = require('node:fs')
-const path = require('node:path')
-const { AsyncLocalStorage } = require('node:async_hooks')
+const fs = require('fs')
+const path = require('path')
+const { AsyncLocalStorage } = require('async_hooks')
+// Jest 24 n'expose pas le global `performance` dans l'environnement de test.
+const { performance } = require('perf_hooks')
 const S = require('./serialize.cjs')
 
 const PROTOCOL_VERSION = 1
@@ -283,6 +285,11 @@ function wrapFunction(st, fn, moduleId, exportName) {
     if (key === 'prototype' || key === 'caller' || key === 'arguments') continue
     const d = Object.getOwnPropertyDescriptor(fn, key)
     if (d) Object.defineProperty(variaWrapper, key, d)
+  }
+  // Constructeur (ES5 ou classe compilée) : `new enveloppe()` doit produire une instance de `fn` ;
+  // l'enveloppe partage donc le prototype de `fn` (instanceof préservé, méthodes disponibles).
+  if (typeof fn.prototype === 'object' && fn.prototype !== null) {
+    Object.defineProperty(variaWrapper, 'prototype', { value: fn.prototype, writable: true })
   }
   Object.defineProperty(variaWrapper, WRAPPED, { value: fn })
   return variaWrapper

@@ -101,6 +101,12 @@ describe('erreurs (code de sortie 3)', () => {
       loadConfig(dir({ 'varia.yml': 'version: 1\n', 'varia.json': '{"version":1}' })),
     ).toThrow(/plusieurs/)
   })
+  it('fichier de configuration hors du projet (--config)', () => {
+    const outside = dir({ 'other.yml': 'version: 1\nmutations: { mode: quick }\n' })
+    const c = loadConfig(dir({ 'varia.yml': 'version: 1\n' }), { file: join(outside, 'other.yml') })
+    expect([c.file, c.perInput]).toEqual([join(outside, 'other.yml'), 3])
+    expect(() => loadConfig(dir(), { file: join(outside, 'absent.yml') })).toThrow(/introuvable/)
+  })
   it('YAML illisible', () => {
     expect(() => loadConfig(dir({ 'varia.yml': 'version: [1\n' }))).toThrow(/illisible/)
   })

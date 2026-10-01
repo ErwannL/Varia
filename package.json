@@ -23,12 +23,15 @@
     "check:skips": "node scripts/check-skipped-tests.mjs",
     "check:lines": "node scripts/check-file-lines.mjs",
     "check:readmes": "node scripts/check-readmes.mjs",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm run brand:check && npm test",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm run brand:check && npm run build && npm run test:coverage",
     "brand": "node scripts/brand.mjs",
     "brand:check": "node scripts/brand.mjs --check",
     "examples:install": "node scripts/install-examples.mjs",
     "mutation-check": "node scripts/mutation-check.mjs",
-    "build": "tsc -b packages/cli/tsconfig.json packages/api/tsconfig.json && npm run build -w @varia/dashboard"
+    "build": "tsc -b packages/cli/tsconfig.json packages/api/tsconfig.json && npm run build -w @varia/dashboard",
+    "external:fetch": "node scripts/fetch-external.mjs",
+    "acceptance:external": "node scripts/acceptance-external.mjs",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

@@ -1,0 +1,58 @@
+[
+  {
+    "name": "oracle inversé (HANDLED <-> CRASH)",
+    "file": "packages/core/src/oracle.ts",
+    "find": "names.some((n) => cfg.handledErrors.includes(n))",
+    "replace": "names.some((n) => cfg.crashErrors.includes(n))",
+    "tests": ["packages/core/test/oracle.test.ts"]
+  },
+  {
+    "name": "graine ignorée",
+    "file": "packages/core/src/plan.ts",
+    "find": "const next = mulberry32(o.seed)",
+    "replace": "const next = mulberry32(0)",
+    "tests": ["packages/core/test/plan.test.ts"]
+  },
+  {
+    "name": "redaction désactivée",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "opts.redactFields?.has(key.toLowerCase()) ||",
+    "replace": "false ||",
+    "tests": ["packages/probe-runtime/test/serialize.test.ts"]
+  },
+  {
+    "name": "timeout ignoré",
+    "file": "packages/core/runtime/supervisor.cjs",
+    "find": "}, timeoutMs)",
+    "replace": "}, timeoutMs * 20)",
+    "tests": ["packages/core/test/exec.test.ts"]
+  },
+  {
+    "name": "plan non trié",
+    "file": "packages/core/src/plan.ts",
+    "find": "mutations.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))",
+    "replace": "mutations.reverse()",
+    "tests": ["packages/core/test/plan.test.ts"]
+  },
+  {
+    "name": "statut du test utilisé pour classer (J0-6)",
+    "file": "packages/core/src/oracle.ts",
+    "find": "if (out.kind === 'throw' || out.kind === 'reject') {",
+    "replace": "if (i.testStatus === 'passed') return { ...base, status: 'PASSED' }\n  if (out.kind === 'throw' || out.kind === 'reject') {",
+    "tests": ["packages/core/test/oracle.test.ts"]
+  },
+  {
+    "name": "empreinte d'arguments ignorée (J0-13)",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "if (argsFingerprint !== m.argsFingerprint) {",
+    "replace": "if (false) {",
+    "tests": ["tests/j1/j0-via-cli.test.ts"]
+  },
+  {
+    "name": "écho des primitifs banals (J0-18)",
+    "file": "packages/core/src/oracle.ts",
+    "find": "!BANAL.has(stableStringify(m.value)) &&",
+    "replace": "",
+    "tests": ["packages/core/test/oracle.test.ts"]
+  }
+]

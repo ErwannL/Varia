@@ -1,0 +1,105 @@
+Varia par Orqea · v0.1.0
+Baseline 1/1 : 82/82 tests verts (2.5 s)
+121 appels observés · 3 targets observées · 4 jamais appelées · 0 non supportées · 647 inputs mutables · 11 non mutables
+120 mutations retenues sur 4517 possibles · graine 7
+Échantillonnage : 120 retenues sur 4517 possibles (annoncé et enregistré).
+Durée estimée : 5.0 min (≈ coût mesuré d'un processus de test × mutations)
+120 mutations planifiées — 120 exécutées, 1 ignorées, 0 non exécutées
+Handled 0 · Expected 0 · Passed 58 (dont 8 suspects) · Unexpected 46
+Crashes 15 · Timeouts 0 · Skipped 1 · Infra 0 · En attente 0
+28 issues
+  [HIGH] index.ts#default : TypeError — Cannot read properties of null (reading <str>) (4 mutations) — rejeu : varia replay m_40d307b21177
+  [HIGH] index.ts#default : TypeError — Cannot read properties of undefined (reading <str>) (4 mutations) — rejeu : varia replay m_14fa55eed3b2
+  [HIGH] index.ts#default : TypeError — Cannot use <str> operator to search for <str> in null (5 mutations) — rejeu : varia replay m_01ca83309bc0
+  [HIGH] index.ts#default : TypeError — Cannot create property <str> on string <str> (2 mutations) — rejeu : varia replay m_d6bac9e48abd
+  [MEDIUM] index.ts#default : Error — update(): $merge expects a spec of type <str>; got (1 mutations) — rejeu : varia replay m_832af34789ab
+  [MEDIUM] index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Number (2 mutations) — rejeu : varia replay m_8a91d028acb6
+  [MEDIUM] index.ts#default : Error — update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply. (18 mutations) — rejeu : varia replay m_03801d2ada2f
+  [MEDIUM] index.ts#default : Error — update(): $remove expects a target of type Set or Map; got String (1 mutations) — rejeu : varia replay m_93eff444dab7
+  [MEDIUM] index.ts#default : Error — update(): expected target of $unshift to be an array; got <num>. (1 mutations) — rejeu : varia replay m_e6121ac10845
+  [MEDIUM] index.ts#default : Error — update(): expected spec of $splice to be an array of arrays; got <num>. Did you forget to wrap your parameters in an array? (1 mutations) — rejeu : varia replay m_20a34fec222a
+  [MEDIUM] index.ts#default : Error — update(): expected spec of $add to be an array; got [object Object]. Did you forget to wrap your parameter in an array? (1 mutations) — rejeu : varia replay m_9db23d57e5c7
+  [MEDIUM] index.ts#default : Error — Expected $splice target to be an array; got (1 mutations) — rejeu : varia replay m_78cd61b9b6b6
+  [MEDIUM] index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Null (1 mutations) — rejeu : varia replay m_2ab16c569708
+  [MEDIUM] index.ts#default : Error — update(): $add expects a target of type Set or Map; got String (1 mutations) — rejeu : varia replay m_3011c283e68c
+  [MEDIUM] index.ts#default : Error — update(): $merge expects a target of type <str>; got undefined (1 mutations) — rejeu : varia replay m_3c08939da4a6
+  [MEDIUM] index.ts#default : Error — update(): expected spec of $toggle to be an array; got . Did you forget to wrap your parameter in an array? (1 mutations) — rejeu : varia replay m_1e52cac26e1e
+  [MEDIUM] index.ts#default : acceptation suspecte (ECHO) sur arg1.a.b.$set (3 mutations) — rejeu : varia replay m_10b309918a89
+  [MEDIUM] index.ts#default : acceptation suspecte (ECHO) sur arg0.a (2 mutations) — rejeu : varia replay m_31421599dbd2
+  [MEDIUM] index.ts#default : Error — update(): $merge expects a target of type <str>; got (1 mutations) — rejeu : varia replay m_abfe51118de9
+  [MEDIUM] index.ts#default : Error — update(): expected spec of $splice to be an array of arrays; got [object Object]. Did you forget to wrap your parameters in an array? (1 mutations) — rejeu : varia replay m_e1a6a00f6026
+  [MEDIUM] index.ts#default : acceptation suspecte (ECHO) sur arg1.hasOwnProperty.$set (1 mutations) — rejeu : varia replay m_74d1df349a0f
+  [MEDIUM] index.ts#default : acceptation suspecte (ECHO) sur arg0.c.g[0] (1 mutations) — rejeu : varia replay m_90508e2a73e9
+  [MEDIUM] index.ts#default : Error — update(): expected spec of $apply to be a function; got <num>. (1 mutations) — rejeu : varia replay m_dcd8104e021f
+  [MEDIUM] index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Object (1 mutations) — rejeu : varia replay m_c3b0b2e8a309
+  [MEDIUM] index.ts#default : Error — update(): expected spec of $toggle to be an array; got [object Object]. Did you forget to wrap your parameter in an array? (1 mutations) — rejeu : varia replay m_7843ab404a9c
+  [MEDIUM] index.ts#default : acceptation suspecte (ECHO) sur arg0.c.d.e (1 mutations) — rejeu : varia replay m_8a7b9f3c1e58
+  [MEDIUM] index.ts#default : Error — update(): expected target of $push to be an array; got . (1 mutations) — rejeu : varia replay m_e7040d9758ac
+  [MEDIUM] index.ts#default : Error — update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value. (10 mutations) — rejeu : varia replay m_0116fdb13603
+Non couvert : 4 targets jamais appelées · 0 non supportées · 11 inputs non mutables · 0 tests instables
+Limites : appels internes au même module et cibles mockées non observés ; ESM natif non supporté.
+Run r_c73288110137 · rapport : varia report r_c73288110137
+Code de sortie : 1
+{
+  "exitCode": 1,
+  "seconds": "134.7",
+  "baseline": {
+    "tests": 82,
+    "passed": 82,
+    "failing": [],
+    "flaky": [],
+    "calls": 121
+  },
+  "plan": {
+    "possible": 4517,
+    "planned": 120,
+    "sampled": true,
+    "estimateMs": 299255
+  },
+  "counts": {
+    "mutations": 120,
+    "handled": 0,
+    "expected": 0,
+    "passed": 58,
+    "suspicious": 8,
+    "unexpected": 46,
+    "crashes": 15,
+    "timeouts": 0,
+    "skipped": 1,
+    "infra": 0,
+    "pending": 0
+  },
+  "issues": [
+    "HIGH index.ts#default : TypeError — Cannot read properties of null (reading <str>) (4)",
+    "HIGH index.ts#default : TypeError — Cannot read properties of undefined (reading <str>) (4)",
+    "HIGH index.ts#default : TypeError — Cannot use <str> operator to search for <str> in null (5)",
+    "HIGH index.ts#default : TypeError — Cannot create property <str> on string <str> (2)",
+    "MEDIUM index.ts#default : Error — update(): $merge expects a spec of type <str>; got (1)",
+    "MEDIUM index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Number (2)",
+    "MEDIUM index.ts#default : Error — update(): You provided an invalid spec to update(). The spec and every included key path must be plain objects containing one of the following commands: $push, $unshift, $splice, $set, $toggle, $unset, $add, $remove, $merge, $apply. (18)",
+    "MEDIUM index.ts#default : Error — update(): $remove expects a target of type Set or Map; got String (1)",
+    "MEDIUM index.ts#default : Error — update(): expected target of $unshift to be an array; got <num>. (1)",
+    "MEDIUM index.ts#default : Error — update(): expected spec of $splice to be an array of arrays; got <num>. Did you forget to wrap your parameters in an array? (1)",
+    "MEDIUM index.ts#default : Error — update(): expected spec of $add to be an array; got [object Object]. Did you forget to wrap your parameter in an array? (1)",
+    "MEDIUM index.ts#default : Error — Expected $splice target to be an array; got (1)",
+    "MEDIUM index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Null (1)",
+    "MEDIUM index.ts#default : Error — update(): $add expects a target of type Set or Map; got String (1)",
+    "MEDIUM index.ts#default : Error — update(): $merge expects a target of type <str>; got undefined (1)",
+    "MEDIUM index.ts#default : Error — update(): expected spec of $toggle to be an array; got . Did you forget to wrap your parameter in an array? (1)",
+    "MEDIUM index.ts#default : acceptation suspecte (ECHO) sur arg1.a.b.$set (3)",
+    "MEDIUM index.ts#default : acceptation suspecte (ECHO) sur arg0.a (2)",
+    "MEDIUM index.ts#default : Error — update(): $merge expects a target of type <str>; got (1)",
+    "MEDIUM index.ts#default : Error — update(): expected spec of $splice to be an array of arrays; got [object Object]. Did you forget to wrap your parameters in an array? (1)",
+    "MEDIUM index.ts#default : acceptation suspecte (ECHO) sur arg1.hasOwnProperty.$set (1)",
+    "MEDIUM index.ts#default : acceptation suspecte (ECHO) sur arg0.c.g[0] (1)",
+    "MEDIUM index.ts#default : Error — update(): expected spec of $apply to be a function; got <num>. (1)",
+    "MEDIUM index.ts#default : Error — update(): $remove expects a target of type Set or Map; got Object (1)",
+    "MEDIUM index.ts#default : Error — update(): expected spec of $toggle to be an array; got [object Object]. Did you forget to wrap your parameter in an array? (1)",
+    "MEDIUM index.ts#default : acceptation suspecte (ECHO) sur arg0.c.d.e (1)",
+    "MEDIUM index.ts#default : Error — update(): expected target of $push to be an array; got . (1)",
+    "MEDIUM index.ts#default : Error — update(): You provided an invalid spec to update(). The spec may not contain an array except as the value of $set, $push, $unshift, $splice or any custom command allowing an array value. (10)"
+  ],
+  "schemaValid": true,
+  "projectUnchanged": true,
+  "report": "/tmp/claude-0/ext2/external-report.json"
+}
