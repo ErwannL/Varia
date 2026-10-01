@@ -114,7 +114,7 @@ function candidatesForInput(input: InputDescriptor, o: PlanOptions): PlannedMuta
 
 /**
  * Sélection par chemin (CDC §13.4) : (1) historique de crash, (2) une par stratégie, (3) diversité des
- * types mutés, (4) tirage reproductible (mulberry32). Jamais `Math.random`.
+ * types mutés, (4) tirage reproductible (mulberry32 seulement, jamais d’aléa non graine).
  */
 export function selectPerInput(
   all: PlannedMutation[],
