@@ -7,7 +7,7 @@ import type {
   TestAdapter,
   TestResult,
 } from '@varia/core'
-import { globToRegExpSource, runSupervised, statusFileIn } from '@varia/core'
+import { globToRegExpSource, parseCoverageSummary, runSupervised, statusFileIn } from '@varia/core'
 import { parseProbeLog, PROBE_ENV, type ProbeEvent } from '@varia/probe-protocol'
 import { PROBE_PATH, testIdOf } from '@varia/probe-runtime'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -150,6 +150,15 @@ export class VitestAdapter implements TestAdapter {
     writeFileSync(join(ctx.tmpDir, 'redact.json'), JSON.stringify(ctx.redact), { mode: 0o600 })
   }
 
+  private coverageProvider(root: string): boolean {
+    try {
+      createRequire(join(root, 'package.json')).resolve('@vitest/coverage-v8/package.json')
+      return true
+    } catch {
+      return false
+    }
+  }
+
   async run(o: AdapterRunOptions): Promise<AdapterRun> {
     const ctx = this.ctx
     if (ctx === null) throw new Error('VitestAdapter.prepare() doit être appelé avant run()')
@@ -162,6 +171,10 @@ export class VitestAdapter implements TestAdapter {
       exclude: ctx.exclude.map(globToRegExpSource),
       cacheDir: join(ctx.tmpDir, 'vite-cache'),
       setupFile: join(ctx.tmpDir, 'varia-setup.mjs'),
+      // Couverture seulement si le fournisseur v8 est installé dans le projet (sinon : non disponible).
+      coverageDir:
+        o.coverage === true && this.coverageProvider(ctx.root) ? join(o.runDir, 'coverage') : null,
+      coverageInclude: ctx.include,
     }
     const paramsFile = join(o.runDir, 'vitest-params.json')
     writeFileSync(paramsFile, JSON.stringify(params))
@@ -199,12 +212,19 @@ export class VitestAdapter implements TestAdapter {
       truncatedLines += parsed.truncatedLines
       invalidLines += parsed.invalidLines
     }
+    const summary = join(o.runDir, 'coverage', 'coverage-summary.json')
+    const coverage = existsSync(summary)
+      ? parseCoverageSummary(readFileSync(summary, 'utf8'), ctx.root, (f) =>
+          relative(ctx.root, f).split(sep).join('/'),
+        )
+      : undefined
     return {
       process: proc,
       tests: proc.timedOut ? null : parseVitestReport(proc.stdout, ctx.root),
       events,
       truncatedLines,
       invalidLines,
+      ...(coverage !== undefined ? { coverage } : {}),
     }
   }
 }

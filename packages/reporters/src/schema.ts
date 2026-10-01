@@ -96,6 +96,18 @@ export const reportSchema = z
       z.object({ id: z.string(), state: z.string(), target: z.string(), title: z.string() }),
     ),
     comparedTo: z.string().nullable(),
+    baselineCoverage: z.object({
+      status: z.enum(['DISABLED', 'COLLECTED', 'UNAVAILABLE']),
+      files: z.array(
+        z.object({
+          file: z.string(),
+          lines: z.number(),
+          statements: z.number(),
+          functions: z.number(),
+          branches: z.number(),
+        }),
+      ),
+    }),
     cache: z
       .object({ hits: z.number().int(), misses: z.number().int(), contentHash: z.string() })
       .nullable(),

@@ -7,7 +7,7 @@ import type {
   TestAdapter,
   TestResult,
 } from '@varia/core'
-import { globToRegExpSource, runSupervised, statusFileIn } from '@varia/core'
+import { globToRegExpSource, parseCoverageSummary, runSupervised, statusFileIn } from '@varia/core'
 import { parseProbeLog, PROBE_ENV, type ProbeEvent } from '@varia/probe-protocol'
 import { PROBE_PATH, testIdOf } from '@varia/probe-runtime'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -52,7 +52,7 @@ export const JEST_CAPABILITIES: AdapterCapabilities = {
   cjs: true,
   mocks: false,
   testParameters: true,
-  coverage: false,
+  coverage: true,
   isolatedProcess: true,
   parallelSafe: false,
 }
@@ -174,9 +174,15 @@ export class JestAdapter implements TestAdapter {
       '--json',
       '--colors=false',
       '--watchman=false',
-      '--coverage=false',
     ]
     if (o.testFile !== undefined) args.push('--runTestsByPath', join(ctx.root, o.testFile))
+    const coverageDir = join(o.runDir, 'coverage')
+    if (o.coverage === true)
+      args.push(
+        '--coverage',
+        '--coverageReporters=json-summary',
+        `--coverageDirectory=${coverageDir}`,
+      )
     if (o.testName !== undefined) args.push('--testNamePattern', `^${escapeRegExp(o.testName)}$`)
     const env: NodeJS.ProcessEnv = { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' }
     for (const k of Object.keys(env)) if (k.startsWith('VARIA_')) Reflect.deleteProperty(env, k)
@@ -208,12 +214,20 @@ export class JestAdapter implements TestAdapter {
       truncatedLines += parsed.truncatedLines
       invalidLines += parsed.invalidLines
     }
+    const summary = join(coverageDir, 'coverage-summary.json')
+    const coverage =
+      o.coverage === true && existsSync(summary)
+        ? parseCoverageSummary(readFileSync(summary, 'utf8'), ctx.root, (f) =>
+            relative(ctx.root, f).split(sep).join('/'),
+          )
+        : undefined
     return {
       process: proc,
       tests: proc.timedOut ? null : parseJestReport(proc.stdout, ctx.root),
       events,
       truncatedLines,
       invalidLines,
+      ...(coverage !== undefined ? { coverage } : {}),
     }
   }
 }

@@ -241,6 +241,10 @@ export const configSchema = z
       })
       .strict()
       .default({ watch_ignored: false, ignore_for_integrity: [] }),
+    coverage: z
+      .object({ baseline: z.boolean().default(false) })
+      .strict()
+      .default({ baseline: false }),
     incremental: z
       .object({ on_unknown: z.enum(['full', 'abort']).default('full') })
       .strict()

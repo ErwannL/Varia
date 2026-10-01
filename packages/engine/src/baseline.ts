@@ -5,6 +5,7 @@ import {
   type InputDescriptor,
   type Observation,
   type ObservedCall,
+  type CoverageRow,
 } from '@varia/core'
 import { randomBytes } from 'node:crypto'
 import { mkdirSync, rmSync } from 'node:fs'
@@ -124,6 +125,7 @@ export async function runBaseline(
   mkdirSync(tmpDir, { recursive: true })
   await ctx.adapter.prepare(prepareContext(ctx, runId, tmpDir))
   const observations: Observation[] = []
+  let coverageRows: CoverageRow[] | null = null
   const started = performance.now()
   let firstDuration = 0
   const timeoutMs = Math.max(120_000, ctx.config.parsed.execution.timeout_ms * 20)
@@ -155,6 +157,13 @@ export async function runBaseline(
       total: obs.tests.length,
       durationMs: run.process.durationMs,
     })
+  }
+  if (ctx.config.parsed.coverage.baseline) {
+    // Exécution séparée : l'instrumentation ne perturbe ni les durées ni la stabilité mesurées.
+    const runDir = join(tmpDir, 'coverage-run')
+    mkdirSync(runDir, { recursive: true })
+    const cov = await ctx.adapter.run({ mode: 'observe', runDir, timeoutMs, coverage: true })
+    coverageRows = cov.coverage ?? null
   }
   rmSync(tmpDir, { recursive: true, force: true })
   const first = observations[0] as Observation
@@ -189,6 +198,7 @@ export async function runBaseline(
   )
   const targets = targetStatuses(first)
   ctx.writer.saveTargets(runId, targets)
+  if (coverageRows !== null) ctx.writer.saveCoverage(runId, coverageRows)
   const eligible = new Set(
     first.tests
       .filter((t) => t.status === 'passed' && !flakyById.has(t.testId))
@@ -228,6 +238,11 @@ export async function runBaseline(
     probeTruncatedLines: observations.reduce((n, x) => n + x.truncatedLines, 0),
     probeInvalidLines: observations.reduce((n, x) => n + x.invalidLines, 0),
     failing,
+    coverage: ctx.config.parsed.coverage.baseline
+      ? coverageRows === null
+        ? 'UNAVAILABLE'
+        : 'COLLECTED'
+      : 'DISABLED',
   }
   ctx.writer.updateRun(runId, { state, partial: state === 'BASELINE_PARTIAL', info })
   ctx.writer.event(runId, 'BASELINE_COMPLETED', { state })

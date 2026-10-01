@@ -302,6 +302,25 @@ export class Writer {
     })
   }
 
+  saveCoverage(
+    runId: string,
+    rows: {
+      file: string
+      lines: number
+      statements: number
+      functions: number
+      branches: number
+    }[],
+  ): void {
+    this.db.transaction((tx) => {
+      for (const r of rows)
+        tx.insert(t.coverage)
+          .values({ ...r, runId })
+          .onConflictDoNothing()
+          .run()
+    })
+  }
+
   cacheResult(key: string, result: ResultRecord): void {
     this.db
       .insert(t.resultCache)
@@ -519,6 +538,15 @@ export class Reader {
       .where(eq(t.issueOccurrences.issueId, id))
       .all()
       .map((r) => ({ ...r, mutationIds: JSON.parse(r.mutationIds) as string[] }))
+  }
+
+  coverage(runId: string) {
+    return this.db
+      .select()
+      .from(t.coverage)
+      .where(eq(t.coverage.runId, runId))
+      .orderBy(asc(t.coverage.file))
+      .all()
   }
 
   cachedResult(key: string): ResultRecord | null {

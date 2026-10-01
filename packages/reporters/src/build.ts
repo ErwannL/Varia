@@ -159,6 +159,16 @@ export function buildReport(reader: Reader, runId: string): Report {
       .map((i) => ({ id: i.id, state: i.state, target: i.target, title: i.title }))
       .sort((a, b) => (a.id < b.id ? -1 : 1)),
     comparedTo: typeof info['comparedTo'] === 'string' ? info['comparedTo'] : null,
+    baselineCoverage: {
+      status: (info['coverage'] ?? 'DISABLED') as Report['baselineCoverage']['status'],
+      files: reader.coverage(runId).map((c) => ({
+        file: c.file,
+        lines: c.lines,
+        statements: c.statements,
+        functions: c.functions,
+        branches: c.branches,
+      })),
+    },
     cache: (info['cache'] ?? null) as Report['cache'],
     incremental: (info['incremental'] ?? null) as Report['incremental'],
     acceptances: (info['acceptances'] ?? []) as Report['acceptances'],

@@ -177,7 +177,21 @@ export const resultCache = sqliteTable('result_cache', {
   createdAt: text('created_at').notNull(),
 })
 
+export const coverage = sqliteTable(
+  'coverage',
+  {
+    runId: text('run_id').notNull(),
+    file: text('file').notNull(),
+    lines: real('lines').notNull(),
+    statements: real('statements').notNull(),
+    functions: real('functions').notNull(),
+    branches: real('branches').notNull(),
+  },
+  (t) => ({ pk: primaryKey({ columns: [t.runId, t.file] }) }),
+)
+
 export const ALL_TABLES = {
+  coverage,
   resultCache,
   acceptances,
   projects,

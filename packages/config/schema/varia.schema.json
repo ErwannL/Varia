@@ -572,6 +572,19 @@
       },
       "additionalProperties": false
     },
+    "coverage": {
+      "default": {
+        "baseline": false
+      },
+      "type": "object",
+      "properties": {
+        "baseline": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
     "incremental": {
       "default": {
         "on_unknown": "full"

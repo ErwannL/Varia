@@ -221,6 +221,12 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
     const rep = buildReport(need(), req.params.id)
     return { notCovered: rep.notCovered, limitations: rep.limitations, coverage: rep.coverage }
   })
+  app.get<{ Params: { id: string } }>('/api/v1/runs/:id/coverage', async (req, reply) => {
+    if (need().getRun(req.params.id) === null)
+      return reply.code(404).send({ error: 'RUN_NOT_FOUND' })
+    const rep = buildReport(need(), req.params.id)
+    return { baseline: rep.baselineCoverage, mutation: rep.coverage }
+  })
   app.get<{ Params: { id: string } }>('/api/v1/reports/:id', async (req, reply) => {
     if (need().getRun(req.params.id) === null)
       return reply.code(404).send({ error: 'RUN_NOT_FOUND' })

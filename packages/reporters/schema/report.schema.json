@@ -563,6 +563,55 @@
         }
       ]
     },
+    "baselineCoverage": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "DISABLED",
+            "COLLECTED",
+            "UNAVAILABLE"
+          ]
+        },
+        "files": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "lines": {
+                "type": "number"
+              },
+              "statements": {
+                "type": "number"
+              },
+              "functions": {
+                "type": "number"
+              },
+              "branches": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "file",
+              "lines",
+              "statements",
+              "functions",
+              "branches"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "status",
+        "files"
+      ],
+      "additionalProperties": false
+    },
     "cache": {
       "anyOf": [
         {
@@ -923,6 +972,7 @@
     "issues",
     "resolvedIssues",
     "comparedTo",
+    "baselineCoverage",
     "cache",
     "incremental",
     "acceptances",

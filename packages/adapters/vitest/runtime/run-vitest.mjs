@@ -31,7 +31,15 @@ const vitest = await startVitest(
     ...(params.testNamePattern ? { testNamePattern: params.testNamePattern } : {}),
     pool: 'forks',
     fileParallelism: false,
-    coverage: { enabled: false },
+    coverage: params.coverageDir
+      ? {
+          enabled: true,
+          provider: 'v8',
+          reporter: ['json-summary'],
+          reportsDirectory: params.coverageDir,
+          include: params.coverageInclude,
+        }
+      : { enabled: false },
     passWithNoTests: true,
   },
   {

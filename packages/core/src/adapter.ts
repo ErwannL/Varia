@@ -44,6 +44,8 @@ export interface AdapterRunOptions {
   planPath?: string
   mutationId?: string
   maxOutputBytes?: number
+  /** Collecter la couverture (baseline seulement, CDC §23). */
+  coverage?: boolean
 }
 
 export interface TestResult {
@@ -61,6 +63,39 @@ export interface AdapterRun {
   events: ProbeEvent[]
   truncatedLines: number
   invalidLines: number
+  /** Couverture par fichier relatif (pourcentages), si demandée et produite par le runner. */
+  coverage?: CoverageRow[]
+}
+
+export interface CoverageRow {
+  file: string
+  lines: number
+  statements: number
+  functions: number
+  branches: number
+}
+
+/** Lit un `coverage-summary.json` (format istanbul, commun à Jest et Vitest). */
+export function parseCoverageSummary(
+  json: string,
+  root: string,
+  rel: (abs: string) => string,
+): CoverageRow[] {
+  const data = JSON.parse(json) as Record<string, Record<string, { pct: number | string }>>
+  void root
+  return Object.entries(data)
+    .filter(([k]) => k !== 'total')
+    .map(([file, m]) => {
+      const pct = (k: string) => (typeof m[k]?.pct === 'number' ? (m[k]?.pct as number) : 100)
+      return {
+        file: rel(file),
+        lines: pct('lines'),
+        statements: pct('statements'),
+        functions: pct('functions'),
+        branches: pct('branches'),
+      }
+    })
+    .sort((a, b) => (a.file < b.file ? -1 : 1))
 }
 
 /**
