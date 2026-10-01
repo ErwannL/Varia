@@ -5,12 +5,19 @@
     "outDir": "dist",
     "composite": true,
     "allowJs": true,
-    "checkJs": true
+    "checkJs": true,
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
   },
   "include": ["src", "runtime/*.cjs"],
   "references": [
-    { "path": "../../core" },
-    { "path": "../../probe-protocol" },
-    { "path": "../../probe-runtime" }
+    {
+      "path": "../../core"
+    },
+    {
+      "path": "../../probe-protocol"
+    },
+    {
+      "path": "../../probe-runtime"
+    }
   ]
 }

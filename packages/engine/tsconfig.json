@@ -1,12 +1,27 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": { "rootDir": "src", "outDir": "dist", "composite": true },
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "composite": true,
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo"
+  },
   "include": ["src"],
   "references": [
-    { "path": "../config" },
-    { "path": "../core" },
-    { "path": "../database" },
-    { "path": "../probe-protocol" },
-    { "path": "../probe-runtime" }
+    {
+      "path": "../config"
+    },
+    {
+      "path": "../core"
+    },
+    {
+      "path": "../database"
+    },
+    {
+      "path": "../probe-protocol"
+    },
+    {
+      "path": "../probe-runtime"
+    }
   ]
 }
