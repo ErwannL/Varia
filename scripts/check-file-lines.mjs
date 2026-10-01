@@ -7,7 +7,14 @@ const exempt = new Set(['package-lock.json', 'docs/SPEC.md'])
 const textExt = /\.(?:[cm]?[jt]sx?|json|md|ya?ml|css|html|svg|txt)$/
 const offenders = []
 for (const file of trackedFiles()) {
-  if (exempt.has(file) || !textExt.test(file) || !existsSync(file)) continue
+  // Fichiers générés (lockfiles) et copie intégrale de la spécification : exemptés (docs/notes/fichiers-longs.md).
+  if (
+    exempt.has(file) ||
+    file.endsWith('/package-lock.json') ||
+    !textExt.test(file) ||
+    !existsSync(file)
+  )
+    continue
   const n = readFileSync(file, 'utf8').split('\n').length
   if (n > MAX) offenders.push(`${file}: ${n} lignes`)
 }

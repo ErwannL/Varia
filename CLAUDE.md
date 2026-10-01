@@ -50,4 +50,5 @@ npm test             # vitest
 
 ## Notes durables
 
-(pointeurs vers `docs/notes/*.md`, ajoutés au fil de l'eau)
+- `docs/notes/fichiers-longs.md` — exemptions de la limite de 1000 lignes (lockfiles, SPEC).
+- `docs/notes/sonde-jest.md` — pièges de la sonde sous Jest (instanceof, resetModules, preset, cache, ESM, mocks).

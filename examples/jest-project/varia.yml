@@ -1,0 +1,8 @@
+version: 1
+project: { name: jest-project }
+test: { command: npx jest, framework: jest }
+targets: { mode: auto, include: ['src/**'] }
+mutations: { mode: normal, seed: 42 }
+execution: { timeout_ms: 3000 }
+oracle:
+  handled_errors: [{ name: ValidationError }]

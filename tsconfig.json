@@ -2,10 +2,11 @@
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
-    "allowJs": false,
+    "allowJs": true,
     "paths": {
       "@varia/*": ["./packages/*/src/index.ts"]
-    }
+    },
+    "checkJs": true
   },
   "include": [
     "packages/*/src/**/*.ts",
@@ -13,6 +14,7 @@
     "packages/*/locales/*.json",
     "spike/**/*.ts",
     "tests/**/*.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "spike/runtime/*.cjs"
   ]
 }
