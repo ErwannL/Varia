@@ -111,6 +111,49 @@ describe('écrivaine et lectrice', () => {
     expect(r.resultIds('r1')).toEqual(new Set(['m1']))
     expect(r.result('r1', 'm1')?.error).toEqual({ name: 'TypeError' })
   })
+  it('clearPlan retire mutations, résultats et issues du run', () => {
+    const { w, r } = seeded()
+    w.saveMutations('r1', [
+      {
+        id: 'm1',
+        callSiteId: 'c',
+        testId: 't',
+        module: 'm',
+        export: 'f',
+        pathStr: 'arg0',
+        strategy: 'null',
+      },
+    ])
+    w.saveResult('r1', {
+      mutationId: 'm1',
+      status: 'CRASH',
+      subtype: null,
+      reason: null,
+      outcome: null,
+      testStatus: null,
+      durationMs: 1,
+      exitCode: 1,
+      signal: null,
+      timedOut: false,
+      error: null,
+      echoPath: null,
+    })
+    w.saveIssues('r1', 'p', [
+      {
+        fingerprint: 'i9',
+        kind: 'ERROR',
+        severity: 'HIGH',
+        target: 't',
+        title: 'x',
+        errorName: null,
+        frame: null,
+        message: null,
+        mutationIds: ['m1'],
+      },
+    ])
+    w.clearPlan('r1')
+    expect([r.mutations('r1'), r.results('r1'), r.issues('r1')]).toEqual([[], [], []])
+  })
   it('issues : NEW puis UNCHANGED dans un run suivant', () => {
     const { w, r } = seeded()
     const draft = {

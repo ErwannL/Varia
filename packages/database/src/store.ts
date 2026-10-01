@@ -217,6 +217,15 @@ export class Writer {
     })
   }
 
+  /** Remplace le plan d'un run (import `--plan`) : mutations, résultats et issues du run sont retirés. */
+  clearPlan(runId: string): void {
+    this.db.transaction((tx) => {
+      tx.delete(t.issueOccurrences).where(eq(t.issueOccurrences.runId, runId)).run()
+      tx.delete(t.mutationResults).where(eq(t.mutationResults.runId, runId)).run()
+      tx.delete(t.mutations).where(eq(t.mutations.runId, runId)).run()
+    })
+  }
+
   /** Persiste un résultat dès son ingestion ; idempotent (dédoublonné par identifiant stable, §16.6). */
   saveResult(runId: string, r: ResultRecord): boolean {
     const res = this.db

@@ -90,12 +90,13 @@ export function planRun(
   return savePlan(ctx, runId, plan)
 }
 
-/** Enregistre un plan (généré ou importé par `--plan`) pour un run. */
+/** Enregistre un plan (généré ou importé par `--plan`) pour un run ; il REMPLACE le plan précédent. */
 export function savePlan(ctx: EngineContext, runId: string, plan: Plan): PlanSummary {
   const run = ctx.reader.getRun(runId)
   const planPath = join(ctx.dataDir, 'plans', `${runId}.json`)
   mkdirSync(join(ctx.dataDir, 'plans'), { recursive: true })
   writeFileSync(planPath, serializePlan(plan))
+  ctx.writer.clearPlan(runId)
   ctx.writer.saveMutations(runId, plan.mutations)
   const info = run?.info ?? {}
   const estimate = estimateMs(
