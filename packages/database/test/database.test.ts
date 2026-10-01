@@ -1,10 +1,11 @@
 import Database from 'better-sqlite3'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
-import { mkdtempSync } from 'node:fs'
+import { copyFileSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+  MIGRATIONS_DIR,
   checkDatabase,
   migrate,
   openReader,
@@ -42,8 +43,19 @@ function seeded() {
 describe('migrations', () => {
   it('appliquées une fois, idempotentes', () => {
     const sqlite = new Database(':memory:')
-    expect(migrate(sqlite)).toEqual(['0001'])
+    expect(migrate(sqlite)).toEqual(['0001', '0002'])
     expect(migrate(sqlite)).toEqual([])
+  })
+  it('montée de version d’une base existante (0001 → 0002), données conservées', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'varia-mig-'))
+    for (const f of ['0001_init.sql']) copyFileSync(join(MIGRATIONS_DIR, f), join(dir, f))
+    const sqlite = new Database(':memory:')
+    expect(migrate(sqlite, dir)).toEqual(['0001'])
+    sqlite
+      .prepare("INSERT INTO projects (id, name, root, framework) VALUES ('p', 'n', '/r', 'jest')")
+      .run()
+    expect(migrate(sqlite)).toEqual(['0002'])
+    expect(sqlite.prepare('SELECT name FROM projects').get()).toEqual({ name: 'n' })
   })
   it('le schéma Drizzle correspond exactement aux tables migrées', () => {
     const sqlite = new Database(':memory:')

@@ -33,6 +33,7 @@ import {
 } from '@varia/reporters'
 import { diffIssues } from '@varia/core'
 import { Command, CommanderError, Option } from 'commander'
+import { randomBytes } from 'node:crypto'
 import { copyFileSync, existsSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { printer, type Io, type Printer } from './io.js'
@@ -519,6 +520,48 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
           })
           return verdict.fail ? EXIT.RESILIENCE : EXIT.OK
         }),
+    )
+
+  program
+    .command('accept <issueId>')
+    .description(t(locale(), 'cli.cmd.accept'))
+    .requiredOption('--reason <text>')
+    .option('--owner <name>')
+    .option('--expires <date>')
+    .action((issueId: string, o: { reason: string; owner?: string; expires?: string }) =>
+      withCtx(undefined, (ctx) => {
+        const issue = ctx.reader.issue(issueId)
+        const occ = ctx.reader
+          .issueHistory(issueId)
+          .filter((h) => h.count > 0)
+          .at(-1)
+        if (issue === null || occ === undefined)
+          throw new VariaError('PROJECT_FAILURE', `issue inconnue : ${issueId}`)
+        const muts = occ.mutationIds
+          .map((id) => ctx.reader.mutation(occ.runId, id))
+          .filter((m): m is Record<string, unknown> => m !== null)
+        const same = (k: string) =>
+          muts.length > 0 && muts.every((m) => m[k] === muts[0]?.[k]) ? String(muts[0]?.[k]) : null
+        const a = {
+          id: `a_${randomBytes(5).toString('hex')}`,
+          projectId: ctx.projectId,
+          function: issue.target,
+          path: same('pathStr'),
+          strategy: same('strategy'),
+          reason: o.reason,
+          owner: o.owner ?? null,
+          expires: o.expires ?? null,
+        }
+        ctx.writer.addAcceptance(a)
+        p.say('cli.accept.done', {
+          id: a.id,
+          function: a.function,
+          path: a.path ?? '*',
+          strategy: a.strategy ?? '*',
+          reason: a.reason,
+        })
+        return EXIT.OK
+      }),
     )
 
   program

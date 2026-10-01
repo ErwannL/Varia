@@ -1,9 +1,10 @@
 import fastifyStatic from '@fastify/static'
-import { openReader, Reader, type Opened } from '@varia/database'
+import { openReader, openWriter, Reader, Writer, type Opened } from '@varia/database'
 import { orqeaUrl } from '@varia/i18n'
 import { buildReport } from '@varia/reporters'
 import { diffIssues } from '@varia/core'
 import Fastify, { type FastifyInstance } from 'fastify'
+import { randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -57,6 +58,71 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
     )
   })
   app.addHook('onClose', async () => db?.close())
+
+  // Écritures publiques limitées aux acceptations (CDC §25.1), avec un jeton local par démarrage.
+  const token = randomBytes(24).toString('hex')
+  let writer: { w: Writer; close(): void } | null = null
+  const getWriter = () => {
+    if (writer === null) {
+      const o2 = openWriter(dbPath)
+      writer = { w: new Writer(o2.db), close: () => o2.close() }
+    }
+    return writer.w
+  }
+  app.addHook('onClose', async () => writer?.close())
+  const authorized = (h: Record<string, unknown>) => h['x-varia-token'] === token
+  app.get('/api/v1/session', async (req, reply) => {
+    // Jeton lisible uniquement par une page de même origine (aucun en-tête CORS n'est émis).
+    if (
+      req.headers['sec-fetch-site'] !== undefined &&
+      req.headers['sec-fetch-site'] !== 'same-origin'
+    )
+      return reply.code(403).send({ error: 'FORBIDDEN' })
+    return { token }
+  })
+  app.get('/api/v1/acceptances', async () => {
+    const r = need()
+    const project = r.listRuns(1)[0]?.projectId
+    return project === undefined ? [] : r.acceptances(project)
+  })
+  app.post<{
+    Body: {
+      function?: unknown
+      path?: unknown
+      strategy?: unknown
+      reason?: unknown
+      owner?: unknown
+      expires?: unknown
+    }
+  }>('/api/v1/acceptances', async (req, reply) => {
+    if (!authorized(req.headers)) return reply.code(401).send({ error: 'TOKEN_REQUIRED' })
+    const b = req.body ?? {}
+    const str = (v: unknown) =>
+      typeof v === 'string' && v.trim() !== '' ? v.trim().slice(0, 500) : null
+    const project = need().listRuns(1)[0]?.projectId
+    if (str(b.function) === null || str(b.reason) === null || project === undefined)
+      return reply.code(400).send({ error: 'INVALID_ACCEPTANCE' })
+    if (str(b.expires) !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(b.expires)))
+      return reply.code(400).send({ error: 'INVALID_EXPIRES' })
+    const a = {
+      id: `a_${randomBytes(5).toString('hex')}`,
+      projectId: project,
+      function: str(b.function) ?? '',
+      path: str(b.path),
+      strategy: str(b.strategy),
+      reason: str(b.reason) ?? '',
+      owner: str(b.owner),
+      expires: str(b.expires),
+    }
+    getWriter().addAcceptance(a)
+    return reply.code(201).send(a)
+  })
+  app.delete<{ Params: { id: string } }>('/api/v1/acceptances/:id', async (req, reply) => {
+    if (!authorized(req.headers)) return reply.code(401).send({ error: 'TOKEN_REQUIRED' })
+    return getWriter().deleteAcceptance(req.params.id)
+      ? reply.code(204).send()
+      : reply.code(404).send({ error: 'ACCEPTANCE_NOT_FOUND' })
+  })
 
   app.get('/health', async () => ({
     status: 'ok',

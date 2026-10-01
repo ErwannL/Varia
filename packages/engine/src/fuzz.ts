@@ -2,6 +2,8 @@ import {
   classify,
   groupIssues,
   issueStates,
+  evaluateAcceptances,
+  type Acceptance,
   type Classification,
   type Plan,
   type PlannedMutation,
@@ -288,16 +290,61 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
     everSeen,
     executedTargets: new Set(results.map((r) => `${r.mutation.module}#${r.mutation.export}`)),
   })
+  const evaluation = evaluateAcceptances(
+    loadAcceptances(ctx),
+    plan.mutations,
+    new Date().toISOString().slice(0, 10),
+  )
+  const fullyAccepted = (d: (typeof drafts)[number]) =>
+    d.mutationIds.length > 0 && d.mutationIds.every((id) => evaluation.accepted.has(id))
   ctx.writer.saveIssues(
     runId,
     ctx.projectId,
-    drafts.map((d) => ({ ...d, state: states.present.get(d.fingerprint) ?? 'NEW' })),
+    drafts.map((d) => ({
+      ...d,
+      state: fullyAccepted(d) ? 'ACCEPTED' : (states.present.get(d.fingerprint) ?? 'NEW'),
+    })),
   )
   ctx.writer.saveAbsentIssues(runId, states.absent)
-  if (previous !== undefined)
-    ctx.writer.updateRun(runId, {
-      info: { ...(ctx.reader.getRun(runId)?.info ?? {}), comparedTo: previous.id },
-    })
+  ctx.writer.updateRun(runId, {
+    info: {
+      ...(ctx.reader.getRun(runId)?.info ?? {}),
+      ...(previous !== undefined ? { comparedTo: previous.id } : {}),
+      acceptances: evaluation.statuses.map((x) => ({
+        ...x.acceptance,
+        status: x.status,
+        matched: x.matched,
+      })),
+      acceptedMutations: Object.fromEntries(evaluation.accepted),
+    },
+  })
   for (const d of drafts)
     ctx.writer.event(runId, 'ISSUE_CREATED', { issueId: d.fingerprint, transitive })
+}
+
+/** Acceptations du projet : `varia.yml` (`store: file`, forme abrégée ou `{ store, items }`) + base. */
+export function loadAcceptances(ctx: EngineContext): Acceptance[] {
+  const raw = ctx.config.parsed.acceptances
+  const items = Array.isArray(raw) ? raw : raw.items
+  const fromFile: Acceptance[] = items.map((a, n) => ({
+    id: `file:${String(n)}`,
+    source: 'file',
+    function: a.mutation_pattern.function,
+    path: a.mutation_pattern.path,
+    strategy: a.mutation_pattern.strategy,
+    reason: a.reason,
+    owner: a.owner,
+    expires: a.expires,
+  }))
+  const fromDb: Acceptance[] = ctx.reader.acceptances(ctx.projectId).map((a) => ({
+    id: a.id,
+    source: 'db',
+    function: a.function,
+    path: a.path ?? undefined,
+    strategy: a.strategy ?? undefined,
+    reason: a.reason,
+    owner: a.owner ?? undefined,
+    expires: a.expires ?? undefined,
+  }))
+  return [...fromFile, ...fromDb]
 }

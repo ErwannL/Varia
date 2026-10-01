@@ -227,5 +227,7 @@
   "cli.ci.written": "Written: {path}",
   "cli.ci.verdict": "CI policy: {verdict} ({reasons})",
   "cli.ci.against": "“New issues only” reference: run {run} (branch {branch})",
-  "cli.ci.noReference": "No reference run on branch {branch}: all issues count."
+  "cli.ci.noReference": "No reference run on branch {branch}: all issues count.",
+  "cli.cmd.accept": "accept an issue (value allowed by the domain), stored in the database",
+  "cli.accept.done": "Acceptance {id}: {function} {path} {strategy} — {reason}"
 }

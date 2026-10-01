@@ -302,6 +302,26 @@ export class Writer {
     })
   }
 
+  addAcceptance(a: {
+    id: string
+    projectId: string
+    function: string
+    path: string | null
+    strategy: string | null
+    reason: string
+    owner: string | null
+    expires: string | null
+  }): void {
+    this.db
+      .insert(t.acceptances)
+      .values({ ...a, createdAt: now() })
+      .run()
+  }
+
+  deleteAcceptance(id: string): boolean {
+    return this.db.delete(t.acceptances).where(eq(t.acceptances.id, id)).run().changes === 1
+  }
+
   event(runId: string, type: string, data: Record<string, unknown> = {}): void {
     this.db
       .insert(t.events)
@@ -491,6 +511,15 @@ export class Reader {
       .where(eq(t.issueOccurrences.issueId, id))
       .all()
       .map((r) => ({ ...r, mutationIds: JSON.parse(r.mutationIds) as string[] }))
+  }
+
+  acceptances(projectId: string) {
+    return this.db
+      .select()
+      .from(t.acceptances)
+      .where(eq(t.acceptances.projectId, projectId))
+      .orderBy(asc(t.acceptances.createdAt), asc(t.acceptances.id))
+      .all()
   }
 
   events(runId: string, type?: string) {

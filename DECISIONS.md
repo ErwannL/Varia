@@ -118,3 +118,9 @@ Format : date — contexte — options — choix — raison.
 - Documentée (prompt §4.5) mais **non lue** par Varia en J1 : elle servira à Orqea pour construire
   l'URL de l'iframe. Constat : Chromium bloque une page publique qui embarque `127.0.0.1`
   (Local Network Access) — consigné dans `docs/INTEGRATION.md`.
+
+## D-018 — 2026-10-01 — Test des migrations mis à jour
+
+- `database.test.ts` attendait la liste exacte `['0001']` ; l'ajout de la migration `0002_acceptances`
+  (J2) rend cette attente fausse par construction. Le test liste désormais `['0001', '0002']` et un test
+  de **montée de version** (base 0001 avec données → 0002, données conservées) est ajouté.

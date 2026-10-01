@@ -156,6 +156,7 @@ export function buildReport(reader: Reader, runId: string): Report {
       .map((i) => ({ id: i.id, state: i.state, target: i.target, title: i.title }))
       .sort((a, b) => (a.id < b.id ? -1 : 1)),
     comparedTo: typeof info['comparedTo'] === 'string' ? info['comparedTo'] : null,
+    acceptances: (info['acceptances'] ?? []) as Report['acceptances'],
     mutations: mutations.map((m) => {
       const r = results.get(String(m['id']))
       const err = r?.error as { name?: string; message?: string } | null | undefined
@@ -174,6 +175,8 @@ export function buildReport(reader: Reader, runId: string): Report {
         echoPath: r?.echoPath ?? null,
         error: err ? { name: String(err.name ?? ''), message: String(err.message ?? '') } : null,
         durationMs: r?.durationMs ?? null,
+        acceptedBy:
+          ((info['acceptedMutations'] ?? {}) as Record<string, string>)[String(m['id'])] ?? null,
       }
     }),
     notCovered: {

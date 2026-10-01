@@ -114,3 +114,91 @@ describe('/api/v1 (lecture seule)', () => {
     await s.app.close()
   })
 })
+
+describe('acceptations (seules écritures publiques, §25.1)', () => {
+  it('jeton requis ; création, liste, suppression', async () => {
+    const session = await app.inject({
+      url: '/api/v1/session',
+      headers: { 'sec-fetch-site': 'same-origin' },
+    })
+    const token = (session.json() as { token: string }).token
+    expect(token).toMatch(/^[0-9a-f]{48}$/)
+    expect(
+      (await app.inject({ url: '/api/v1/session', headers: { 'sec-fetch-site': 'cross-site' } }))
+        .statusCode,
+    ).toBe(403)
+    const body = {
+      function: 'createUser',
+      path: 'arg0.age',
+      reason: 'domaine',
+      expires: '2030-01-01',
+    }
+    expect(
+      (await app.inject({ method: 'POST', url: '/api/v1/acceptances', payload: body })).statusCode,
+    ).toBe(401)
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/v1/acceptances',
+          payload: body,
+          headers: { 'x-varia-token': 'nope' },
+        })
+      ).statusCode,
+    ).toBe(401)
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/v1/acceptances',
+          payload: { reason: 'x' },
+          headers: { 'x-varia-token': token },
+        })
+      ).statusCode,
+    ).toBe(400)
+    expect(
+      (
+        await app.inject({
+          method: 'POST',
+          url: '/api/v1/acceptances',
+          payload: { ...body, expires: 'demain' },
+          headers: { 'x-varia-token': token },
+        })
+      ).statusCode,
+    ).toBe(400)
+    const created = await app.inject({
+      method: 'POST',
+      url: '/api/v1/acceptances',
+      payload: body,
+      headers: { 'x-varia-token': token },
+    })
+    expect(created.statusCode).toBe(201)
+    const id = (created.json() as { id: string }).id
+    expect(
+      ((await app.inject({ url: '/api/v1/acceptances' })).json() as { id: string }[]).map(
+        (x) => x.id,
+      ),
+    ).toContain(id)
+    expect(
+      (await app.inject({ method: 'DELETE', url: `/api/v1/acceptances/${id}` })).statusCode,
+    ).toBe(401)
+    expect(
+      (
+        await app.inject({
+          method: 'DELETE',
+          url: `/api/v1/acceptances/${id}`,
+          headers: { 'x-varia-token': token },
+        })
+      ).statusCode,
+    ).toBe(204)
+    expect(
+      (
+        await app.inject({
+          method: 'DELETE',
+          url: `/api/v1/acceptances/${id}`,
+          headers: { 'x-varia-token': token },
+        })
+      ).statusCode,
+    ).toBe(404)
+  })
+})

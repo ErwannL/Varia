@@ -96,6 +96,20 @@ export const reportSchema = z
       z.object({ id: z.string(), state: z.string(), target: z.string(), title: z.string() }),
     ),
     comparedTo: z.string().nullable(),
+    acceptances: z.array(
+      z.object({
+        id: z.string(),
+        source: z.string(),
+        function: z.string(),
+        path: z.string().optional(),
+        strategy: z.string().optional(),
+        reason: z.string(),
+        owner: z.string().optional(),
+        expires: z.string().optional(),
+        status: z.enum(['ACTIVE', 'EXPIRED', 'OBSOLETE']),
+        matched: z.number().int(),
+      }),
+    ),
     mutations: z.array(
       z.object({
         id: z.string(),
@@ -112,6 +126,7 @@ export const reportSchema = z
         echoPath: z.string().nullable(),
         error: z.object({ name: z.string(), message: z.string() }).nullable(),
         durationMs: z.number().nullable(),
+        acceptedBy: z.string().nullable(),
       }),
     ),
     notCovered: z.object({

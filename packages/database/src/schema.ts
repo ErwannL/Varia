@@ -159,7 +159,20 @@ export const events = sqliteTable('events', {
   data: text('data').notNull().default('{}'),
 })
 
+export const acceptances = sqliteTable('acceptances', {
+  id: text('id').primaryKey(),
+  projectId: text('project_id').notNull(),
+  function: text('function').notNull(),
+  path: text('path'),
+  strategy: text('strategy'),
+  reason: text('reason').notNull(),
+  owner: text('owner'),
+  expires: text('expires'),
+  createdAt: text('created_at').notNull(),
+})
+
 export const ALL_TABLES = {
+  acceptances,
   projects,
   runs,
   configSnapshots,

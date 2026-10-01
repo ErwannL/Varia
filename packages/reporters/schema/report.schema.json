@@ -563,6 +563,60 @@
         }
       ]
     },
+    "acceptances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "function": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "strategy": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "expires": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "EXPIRED",
+              "OBSOLETE"
+            ]
+          },
+          "matched": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "id",
+          "source",
+          "function",
+          "reason",
+          "status",
+          "matched"
+        ],
+        "additionalProperties": false
+      }
+    },
     "mutations": {
       "type": "array",
       "items": {
@@ -660,6 +714,16 @@
                 "type": "null"
               }
             ]
+          },
+          "acceptedBy": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
@@ -676,7 +740,8 @@
           "reason",
           "echoPath",
           "error",
-          "durationMs"
+          "durationMs",
+          "acceptedBy"
         ],
         "additionalProperties": false
       }
@@ -790,6 +855,7 @@
     "issues",
     "resolvedIssues",
     "comparedTo",
+    "acceptances",
     "mutations",
     "notCovered",
     "limitations"
