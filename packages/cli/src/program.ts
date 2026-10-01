@@ -20,8 +20,17 @@ import {
   VariaError,
   type ProgressEvent,
 } from '@varia/engine'
-import { resolveLocale, t, type Locale, type MessageKey } from '@varia/i18n'
-import { buildReport, reportSchema } from '@varia/reporters'
+import { orqeaUrl, resolveLocale, t, type Locale, type MessageKey } from '@varia/i18n'
+import {
+  buildReport,
+  ciVerdict,
+  githubAnnotations,
+  reportSchema,
+  toHtml,
+  toJUnit,
+  toMarkdown,
+  toSarif,
+} from '@varia/reporters'
 import { diffIssues } from '@varia/core'
 import { Command, CommanderError, Option } from 'commander'
 import { copyFileSync, existsSync, rmSync, writeFileSync } from 'node:fs'
@@ -383,20 +392,133 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
       }),
     )
 
+  const writeOutputs = (
+    ctx: EngineContext,
+    runId: string,
+    o: { json?: string; junit?: string; sarif?: string; markdown?: string; html?: string },
+  ) => {
+    const report = buildReport(ctx.reader, runId)
+    const env = cli.env
+    const outputs: [string | undefined, () => string][] = [
+      [o.json, () => JSON.stringify(report, null, 2) + '\n'],
+      [o.junit, () => toJUnit(report, ctx.config.parsed.ci.fail_on)],
+      [o.sarif, () => toSarif(report)],
+      [o.markdown, () => toMarkdown(report, p.locale)],
+      [o.html, () => toHtml(report, p.locale, orqeaUrl(env))],
+    ]
+    for (const [file, render] of outputs) {
+      if (file === undefined) continue
+      writeFileSync(resolve(cli.cwd, file), render())
+      p.say('cli.ci.written', { path: resolve(cli.cwd, file) })
+    }
+    return report
+  }
+
   program
     .command('report [runId]')
     .description(t(locale(), 'cli.cmd.report'))
     .option('--out <file>')
-    .action((runIdArg: string | undefined, o: { out?: string }) =>
-      withCtx(undefined, (ctx) => {
-        const runId = runIdArg ?? ctx.reader.latestRun(ctx.projectId)?.id
-        if (runId === undefined) throw new VariaError('PROJECT_FAILURE', t(p.locale, 'cli.noRun'))
-        const report = reportSchema.parse(buildReport(ctx.reader, runId))
-        if (o.out !== undefined)
-          writeFileSync(resolve(cli.cwd, o.out), JSON.stringify(report, null, 2) + '\n')
-        else io.out(JSON.stringify(report, null, 2))
-        return EXIT.OK
-      }),
+    .option('--html <file>')
+    .option('--junit <file>')
+    .option('--sarif <file>')
+    .option('--markdown <file>')
+    .action(
+      (
+        runIdArg: string | undefined,
+        o: { out?: string; html?: string; junit?: string; sarif?: string; markdown?: string },
+      ) =>
+        withCtx(undefined, (ctx) => {
+          const runId = runIdArg ?? ctx.reader.latestRun(ctx.projectId)?.id
+          if (runId === undefined) throw new VariaError('PROJECT_FAILURE', t(p.locale, 'cli.noRun'))
+          const report = reportSchema.parse(buildReport(ctx.reader, runId))
+          const { out: _o, ...formats } = o
+          void _o
+          if (Object.keys(formats).length > 0) {
+            writeOutputs(ctx, runId, formats)
+            return EXIT.OK
+          }
+          if (o.out !== undefined)
+            writeFileSync(resolve(cli.cwd, o.out), JSON.stringify(report, null, 2) + '\n')
+          else io.out(JSON.stringify(report, null, 2))
+          return EXIT.OK
+        }),
+    )
+
+  program
+    .command('ci')
+    .description(t(locale(), 'cli.cmd.ci'))
+    .option('--json-out <file>')
+    .option('--junit <file>')
+    .option('--sarif <file>')
+    .option('--markdown <file>')
+    .option('--html <file>')
+    .option('--seed <n>')
+    .option('--max-mutations <n>')
+    .option('--quick')
+    .option('--full')
+    .action(
+      (o: {
+        jsonOut?: string
+        junit?: string
+        sarif?: string
+        markdown?: string
+        html?: string
+        seed?: string
+        maxMutations?: string
+        quick?: boolean
+        full?: boolean
+      }) =>
+        withCtx(modeOf(o), async (ctx) => {
+          const b = await runBaseline(ctx)
+          planRun(ctx, b.runId, {
+            ...(o.seed !== undefined ? { seed: Number(o.seed) } : {}),
+            ...(o.maxMutations !== undefined ? { maxMutations: Number(o.maxMutations) } : {}),
+          })
+          await runFuzz(ctx, b.runId)
+          const report = writeOutputs(ctx, b.runId, {
+            ...(o.jsonOut !== undefined ? { json: o.jsonOut } : {}),
+            ...(o.junit !== undefined ? { junit: o.junit } : {}),
+            ...(o.sarif !== undefined ? { sarif: o.sarif } : {}),
+            ...(o.markdown !== undefined ? { markdown: o.markdown } : {}),
+            ...(o.html !== undefined ? { html: o.html } : {}),
+          })
+          const ci = ctx.config.parsed.ci
+          let reference: Set<string> | null = null
+          if (ci.fail_on_new_only_against !== undefined) {
+            const ref = ctx.reader
+              .listRuns(500)
+              .find(
+                (r) =>
+                  r.projectId === ctx.projectId &&
+                  r.id !== b.runId &&
+                  r.state === 'COMPLETED' &&
+                  r.gitBranch === ci.fail_on_new_only_against,
+              )
+            if (ref === undefined)
+              p.warn('cli.ci.noReference', { branch: ci.fail_on_new_only_against })
+            else {
+              p.say('cli.ci.against', { run: ref.id, branch: ci.fail_on_new_only_against })
+              reference = new Set(
+                ctx.reader
+                  .issues(ref.id)
+                  .filter((i) => i.count > 0)
+                  .map((i) => i.id),
+              )
+            }
+          }
+          if (cli.env['GITHUB_ACTIONS'] === 'true')
+            for (const line of githubAnnotations(report)) io.out(line)
+          const verdict = ciVerdict(report, {
+            failOn: ci.fail_on,
+            failOnRegression: ci.fail_on_regression,
+            reference,
+          })
+          p.say('cli.ci.verdict', {
+            verdict: verdict.fail ? 'FAIL' : 'PASS',
+            reasons: verdict.reasons.length === 0 ? '—' : verdict.reasons.slice(0, 5).join(', '),
+          })
+          return verdict.fail ? EXIT.RESILIENCE : EXIT.OK
+        }),
     )
 
   program
