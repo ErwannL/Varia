@@ -27,7 +27,7 @@
     "brand": "node scripts/brand.mjs",
     "brand:check": "node scripts/brand.mjs --check",
     "examples:install": "node scripts/install-examples.mjs",
-    "mutation-check": "node scripts/mutation-check.mjs",
+    "mutation-check": "node scripts/mutation-check.mjs scripts/mutation-cases.json",
     "build": "tsc -b packages/cli/tsconfig.json packages/api/tsconfig.json && npm run build -w @varia/dashboard",
     "external:fetch": "node scripts/fetch-external.mjs",
     "acceptance:external": "node scripts/acceptance-external.mjs",

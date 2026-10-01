@@ -16,8 +16,6 @@
     "packages/adapters/*/src/**/*",
     "packages/adapters/*/test/**/*.ts",
     "packages/adapters/*/runtime/*.cjs",
-    "spike/**/*.ts",
-    "spike/runtime/*.cjs",
     "tests/**/*.ts",
     "vitest.config.ts"
   ],

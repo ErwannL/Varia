@@ -16,7 +16,6 @@ export default defineConfig({
     include: [
       'packages/dashboard/test/**/*.test.tsx',
       'packages/*/test/**/*.test.ts',
-      'spike/test/**/*.test.ts',
       'tests/**/*.test.ts',
     ],
     testTimeout: 120_000,

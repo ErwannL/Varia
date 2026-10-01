@@ -19,4 +19,20 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run examples:install
+      - run: npx playwright-core --version
+      # check : typage, lint (0 avertissement), format, tests sautés, 1000 lignes, README, marque, build,
+      # tests + couverture par fichier.
       - run: npm run check
+  external:
+    # Acceptation J1-3 sur le projet externe épinglé (réseau : récupération au développement seulement).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run external:fetch
+      - run: npm run acceptance:external

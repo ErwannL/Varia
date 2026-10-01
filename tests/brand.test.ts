@@ -96,3 +96,21 @@ describe('logos SVG', () => {
     }
   })
 })
+
+describe('signature hors application (prompt §4.2)', () => {
+  it('en-tête exact du README.md racine', () => {
+    const header = [
+      '<p align="center"><img src="docs/assets/logo-animated.svg" width="140" alt="Varia"></p>',
+      '',
+      '# Varia by Orqea',
+      '',
+      '> Propulsé par [Orqea](https://orqea.dev) · Développé par [Erwann Laplante](https://github.com/ErwannL)',
+    ].join('\n')
+    expect(readFileSync('README.md', 'utf8').startsWith(header)).toBe(true)
+  })
+  it('author et homepage dans package.json', () => {
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8')) as { author: string; homepage: string }
+    expect(pkg.author).toBe('Erwann Laplante (https://github.com/ErwannL)')
+    expect(pkg.homepage).toBe('https://orqea.dev')
+  })
+})
