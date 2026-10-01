@@ -11,7 +11,8 @@
     "node": ">=20"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/adapters/*"
   ],
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",

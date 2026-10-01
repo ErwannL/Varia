@@ -4,17 +4,21 @@
     "noEmit": true,
     "allowJs": true,
     "paths": {
+      "@varia/adapter-jest": ["./packages/adapters/jest/src/index.ts"],
       "@varia/*": ["./packages/*/src/index.ts"]
     },
     "checkJs": true
   },
   "include": [
-    "packages/*/src/**/*.ts",
+    "packages/*/src/**/*",
     "packages/*/test/**/*.ts",
-    "packages/*/locales/*.json",
+    "packages/*/runtime/*.cjs",
+    "packages/adapters/*/src/**/*",
+    "packages/adapters/*/test/**/*.ts",
+    "packages/adapters/*/runtime/*.cjs",
     "spike/**/*.ts",
+    "spike/runtime/*.cjs",
     "tests/**/*.ts",
-    "vitest.config.ts",
-    "spike/runtime/*.cjs"
+    "vitest.config.ts"
   ]
 }

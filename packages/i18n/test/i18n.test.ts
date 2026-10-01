@@ -20,7 +20,7 @@ describe('signature (prompt §4.1)', () => {
 
   it('« nouvel onglet » / « new tab » n’apparaît dans aucun catalogue', () => {
     for (const file of ['fr', 'en']) {
-      const raw = readFileSync(`packages/i18n/locales/${file}.json`, 'utf8').toLowerCase()
+      const raw = readFileSync(`packages/i18n/src/locales/${file}.json`, 'utf8').toLowerCase()
       expect(raw).not.toContain('nouvel onglet')
       expect(raw).not.toContain('new tab')
     }

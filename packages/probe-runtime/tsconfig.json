@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist",
+    "composite": true,
+    "allowJs": true,
+    "checkJs": true
+  },
+  "include": ["src", "runtime/*.cjs"],
+  "references": [{ "path": "../probe-protocol" }]
+}

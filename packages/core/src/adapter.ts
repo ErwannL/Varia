@@ -1,0 +1,76 @@
+import type { ProbeEvent } from '@varia/probe-protocol'
+import type { ProcessResult } from './exec/proc.js'
+
+/** Capacités d'un adapter (CDC §9.2). Déclarées ici ; `varia doctor` les VÉRIFIE sur le projet. */
+export interface AdapterCapabilities {
+  observation: boolean
+  argumentMutation: boolean
+  perTestSelection: boolean
+  asyncTargets: boolean
+  esm: boolean
+  cjs: boolean
+  mocks: boolean
+  testParameters: boolean
+  coverage: boolean
+  isolatedProcess: boolean
+  parallelSafe: boolean
+}
+
+export interface DetectResult {
+  detected: boolean
+  framework: string
+  version: string | null
+  /** Le projet est en ESM natif (`"type": "module"` sans transform) : la sonde ne peut pas s'y injecter (J1). */
+  nativeEsm: boolean
+  reasons: string[]
+}
+
+export interface PrepareContext {
+  root: string
+  tmpDir: string
+  runId: string
+  include: string[]
+  exclude: string[]
+  redact: { fields: string[]; skipPaths: string[]; hmacKey: string }
+  nodeOptions?: string
+}
+
+export interface AdapterRunOptions {
+  mode: 'observe' | 'fuzz'
+  runDir: string
+  timeoutMs: number
+  testFile?: string
+  testName?: string
+  planPath?: string
+  mutationId?: string
+  maxOutputBytes?: number
+}
+
+export interface TestResult {
+  testId: string
+  file: string
+  name: string
+  status: 'passed' | 'failed' | 'skipped' | 'other'
+  durationMs: number | null
+}
+
+export interface AdapterRun {
+  process: ProcessResult
+  /** `null` si le runner n'a produit aucun résultat exploitable (processus mort, crash). */
+  tests: TestResult[] | null
+  events: ProbeEvent[]
+  truncatedLines: number
+  invalidLines: number
+}
+
+/**
+ * Interface d'adapter (CDC §9.2, simplifiée en J1 : `discover` et `parseResult` sont internes à `run`).
+ * Le cœur ne connaît aucun runner : tout ce qui est propre à Jest vit dans `packages/adapters/jest`.
+ */
+export interface TestAdapter {
+  id: string
+  detect(root: string): Promise<DetectResult>
+  capabilities(): AdapterCapabilities
+  prepare(ctx: PrepareContext): Promise<void>
+  run(o: AdapterRunOptions): Promise<AdapterRun>
+}
