@@ -2,6 +2,7 @@ import fastifyStatic from '@fastify/static'
 import { openReader, Reader, type Opened } from '@varia/database'
 import { orqeaUrl } from '@varia/i18n'
 import { buildReport } from '@varia/reporters'
+import { diffIssues } from '@varia/core'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
@@ -106,6 +107,7 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
     const order = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']
     const all = need()
       .issues(req.params.id)
+      .filter((i) => i.count > 0)
       .filter((i) => req.query.severity === undefined || i.severity === req.query.severity)
       .sort(
         (a, b) => order.indexOf(a.severity) - order.indexOf(b.severity) || (a.id < b.id ? -1 : 1),
@@ -124,6 +126,29 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
     )
     return { total: all.length, limit, offset, items: all.slice(offset, offset + limit) }
   })
+  app.get<{ Params: { id: string }; Querystring: { against?: string } }>(
+    '/api/v1/runs/:id/diff',
+    async (req, reply) => {
+      const r = need()
+      const run = r.getRun(req.params.id)
+      const against =
+        req.query.against ??
+        (typeof run?.info['comparedTo'] === 'string' ? run.info['comparedTo'] : undefined)
+      if (run === null || against === undefined || r.getRun(against) === null)
+        return reply.code(404).send({ error: 'RUN_NOT_FOUND' })
+      const counts = (id: string) =>
+        r
+          .issues(id)
+          .filter((i) => i.count > 0)
+          .map((i) => ({ id: i.id, target: i.target, count: i.count }))
+      return {
+        run: run.id,
+        against,
+        diff: diffIssues(counts(against), counts(run.id)),
+        states: r.issues(run.id).map((i) => ({ id: i.id, state: i.state, count: i.count })),
+      }
+    },
+  )
   app.get<{ Params: { id: string } }>('/api/v1/runs/:id/not-covered', async (req, reply) => {
     if (need().getRun(req.params.id) === null)
       return reply.code(404).send({ error: 'RUN_NOT_FOUND' })

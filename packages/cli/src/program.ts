@@ -22,6 +22,7 @@ import {
 } from '@varia/engine'
 import { resolveLocale, t, type Locale, type MessageKey } from '@varia/i18n'
 import { buildReport, reportSchema } from '@varia/reporters'
+import { diffIssues } from '@varia/core'
 import { Command, CommanderError, Option } from 'commander'
 import { copyFileSync, existsSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
@@ -394,6 +395,39 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
         if (o.out !== undefined)
           writeFileSync(resolve(cli.cwd, o.out), JSON.stringify(report, null, 2) + '\n')
         else io.out(JSON.stringify(report, null, 2))
+        return EXIT.OK
+      }),
+    )
+
+  program
+    .command('compare <a> <b>')
+    .description(t(locale(), 'cli.cmd.compare'))
+    .action((a: string, b: string) =>
+      withCtx(undefined, (ctx) => {
+        for (const id of [a, b]) {
+          if (ctx.reader.getRun(id) === null)
+            throw new VariaError('PROJECT_FAILURE', `run inconnu : ${id}`)
+        }
+        const counts = (id: string) =>
+          ctx.reader
+            .issues(id)
+            .filter((i) => i.count > 0)
+            .map((i) => ({ id: i.id, target: i.target, count: i.count }))
+        const d = diffIssues(counts(a), counts(b))
+        if (p.json) p.data({ a, b, ...d })
+        else {
+          p.say('cli.compare.head', { a, b })
+          for (const id of d.added) p.say('cli.compare.added', { id })
+          for (const id of d.removed) p.say('cli.compare.removed', { id })
+          for (const c of d.changed)
+            p.say('cli.compare.changed', { id: c.id, before: c.before, after: c.after })
+          p.say('cli.compare.summary', {
+            added: d.added.length,
+            removed: d.removed.length,
+            changed: d.changed.length,
+            unchanged: d.unchanged.length,
+          })
+        }
         return EXIT.OK
       }),
     )

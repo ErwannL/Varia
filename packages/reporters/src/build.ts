@@ -129,6 +129,7 @@ export function buildReport(reader: Reader, runId: string): Report {
     },
     issues: reader
       .issues(runId)
+      .filter((i) => i.count > 0)
       .map((i) => ({
         id: i.id,
         kind: i.kind,
@@ -149,6 +150,12 @@ export function buildReport(reader: Reader, runId: string): Report {
             ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].indexOf(b.severity) ||
           (a.id < b.id ? -1 : 1),
       ),
+    resolvedIssues: reader
+      .issues(runId)
+      .filter((i) => i.count === 0)
+      .map((i) => ({ id: i.id, state: i.state, target: i.target, title: i.title }))
+      .sort((a, b) => (a.id < b.id ? -1 : 1)),
+    comparedTo: typeof info['comparedTo'] === 'string' ? info['comparedTo'] : null,
     mutations: mutations.map((m) => {
       const r = results.get(String(m['id']))
       const err = r?.error as { name?: string; message?: string } | null | undefined

@@ -91,6 +91,11 @@ export const reportSchema = z
         replay: z.string(),
       }),
     ),
+    /** Issues connues absentes de ce run : FIXED (cible rejouée) ou UNKNOWN (non rejouée). */
+    resolvedIssues: z.array(
+      z.object({ id: z.string(), state: z.string(), target: z.string(), title: z.string() }),
+    ),
+    comparedTo: z.string().nullable(),
     mutations: z.array(
       z.object({
         id: z.string(),

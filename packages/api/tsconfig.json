@@ -16,6 +16,9 @@
     },
     {
       "path": "../reporters"
+    },
+    {
+      "path": "../core"
     }
   ]
 }

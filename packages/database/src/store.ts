@@ -40,6 +40,8 @@ export interface ResultRecord {
 
 export interface IssueDraftRecord {
   fingerprint: string
+  /** État calculé (§20.4) ; à défaut NEW/UNCHANGED selon que l'empreinte est connue. */
+  state?: string
   kind: string
   severity: string
   target: string
@@ -267,7 +269,7 @@ export class Writer {
             })
             .run()
         }
-        const state = existing ? 'UNCHANGED' : 'NEW'
+        const state = d.state ?? (existing ? 'UNCHANGED' : 'NEW')
         tx.insert(t.issueOccurrences)
           .values({
             runId,
@@ -278,7 +280,22 @@ export class Writer {
           })
           .onConflictDoUpdate({
             target: [t.issueOccurrences.runId, t.issueOccurrences.issueId],
-            set: { count: d.mutationIds.length, mutationIds: J(d.mutationIds) },
+            set: { state, count: d.mutationIds.length, mutationIds: J(d.mutationIds) },
+          })
+          .run()
+      }
+    })
+  }
+
+  /** Issues connues ABSENTES de ce run : `FIXED` (cible exécutée) ou `UNKNOWN` (non rejouée). */
+  saveAbsentIssues(runId: string, rows: { issueId: string; state: string }[]): void {
+    this.db.transaction((tx) => {
+      for (const r of rows) {
+        tx.insert(t.issueOccurrences)
+          .values({ runId, issueId: r.issueId, state: r.state, count: 0, mutationIds: '[]' })
+          .onConflictDoUpdate({
+            target: [t.issueOccurrences.runId, t.issueOccurrences.issueId],
+            set: { state: r.state, count: 0, mutationIds: '[]' },
           })
           .run()
       }

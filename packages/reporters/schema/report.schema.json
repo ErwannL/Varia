@@ -526,6 +526,43 @@
         "additionalProperties": false
       }
     },
+    "resolvedIssues": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "target": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "state",
+          "target",
+          "title"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "comparedTo": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "mutations": {
       "type": "array",
       "items": {
@@ -751,6 +788,8 @@
     "resilienceRate",
     "coverage",
     "issues",
+    "resolvedIssues",
+    "comparedTo",
     "mutations",
     "notCovered",
     "limitations"

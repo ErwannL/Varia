@@ -202,5 +202,11 @@
   "issue.kind.TIMEOUT": "{target} : timeout",
   "issue.kind.PROCESS_EXIT": "{target} : sortie anormale du processus",
   "issue.kind.RESOURCE_LIMIT": "{target} : limite de ressources",
-  "issue.kind.SUSPICIOUS_ACCEPT": "{target} : acceptation suspecte ({reason})"
+  "issue.kind.SUSPICIOUS_ACCEPT": "{target} : acceptation suspecte ({reason})",
+  "cli.cmd.compare": "comparer les issues de deux runs",
+  "cli.compare.head": "Comparaison {a} → {b}",
+  "cli.compare.added": "  + nouvelle : {id}",
+  "cli.compare.removed": "  - disparue : {id}",
+  "cli.compare.changed": "  ~ {id} : {before} → {after} mutations",
+  "cli.compare.summary": "{added} nouvelles · {removed} disparues · {changed} modifiées · {unchanged} inchangées"
 }

@@ -1,6 +1,7 @@
 import {
   classify,
   groupIssues,
+  issueStates,
   type Classification,
   type Plan,
   type PlannedMutation,
@@ -265,7 +266,38 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
   })
   const transitive = ctx.config.parsed.ci.include_transitive
   const drafts = groupIssues(results, ctx.root)
-  ctx.writer.saveIssues(runId, ctx.projectId, drafts)
+  const previous = ctx.reader
+    .listRuns(200)
+    .find((r) => r.projectId === ctx.projectId && r.id !== runId && r.state === 'COMPLETED')
+  const everSeen = new Set(
+    drafts.map((d) => d.fingerprint).filter((id) => ctx.reader.issue(id) !== null),
+  )
+  const states = issueStates({
+    current: drafts.map((d) => ({
+      id: d.fingerprint,
+      target: d.target,
+      count: d.mutationIds.length,
+    })),
+    previous:
+      previous === undefined
+        ? null
+        : ctx.reader
+            .issues(previous.id)
+            .filter((i) => i.count > 0)
+            .map((i) => ({ id: i.id, target: i.target, count: i.count })),
+    everSeen,
+    executedTargets: new Set(results.map((r) => `${r.mutation.module}#${r.mutation.export}`)),
+  })
+  ctx.writer.saveIssues(
+    runId,
+    ctx.projectId,
+    drafts.map((d) => ({ ...d, state: states.present.get(d.fingerprint) ?? 'NEW' })),
+  )
+  ctx.writer.saveAbsentIssues(runId, states.absent)
+  if (previous !== undefined)
+    ctx.writer.updateRun(runId, {
+      info: { ...(ctx.reader.getRun(runId)?.info ?? {}), comparedTo: previous.id },
+    })
   for (const d of drafts)
     ctx.writer.event(runId, 'ISSUE_CREATED', { issueId: d.fingerprint, transitive })
 }

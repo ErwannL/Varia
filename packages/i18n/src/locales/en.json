@@ -202,5 +202,11 @@
   "issue.kind.TIMEOUT": "{target}: timeout",
   "issue.kind.PROCESS_EXIT": "{target}: abnormal process exit",
   "issue.kind.RESOURCE_LIMIT": "{target}: resource limit",
-  "issue.kind.SUSPICIOUS_ACCEPT": "{target}: suspicious accept ({reason})"
+  "issue.kind.SUSPICIOUS_ACCEPT": "{target}: suspicious accept ({reason})",
+  "cli.cmd.compare": "compare the issues of two runs",
+  "cli.compare.head": "Comparison {a} → {b}",
+  "cli.compare.added": "  + new: {id}",
+  "cli.compare.removed": "  - gone: {id}",
+  "cli.compare.changed": "  ~ {id}: {before} → {after} mutations",
+  "cli.compare.summary": "{added} new · {removed} gone · {changed} changed · {unchanged} unchanged"
 }
