@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img" aria-labelledby="og-title">
+  <title id="og-title">Varia</title>
+  <rect width="1200" height="630" fill="#14122B"/>
+  <g transform="translate(140 175) scale(4.4)">
+    <rect x="2" y="2" width="60" height="60" rx="15" fill="#4B32D6"/>
+    <path d="M15 19 L30 47 L45 19" fill="none" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="49" cy="15" r="5.5" fill="#FFC857"/>
+  </g>
+  <g fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M490 255 L535 375 L580 255"/>
+    <path d="M612 375 L657 255 L702 375 M629 330 L685 330"/>
+    <path d="M735 375 L735 255 L772 255 A35 35 0 0 1 772 325 L735 325 M770 325 L810 375"/>
+    <path d="M842 255 L842 375"/>
+    <path d="M875 375 L920 255 L965 375 M892 330 L948 330"/>
+  </g>
+  <circle cx="1000" cy="250" r="14" fill="#FFC857"/>
+  <rect x="490" y="420" width="475" height="6" rx="3" fill="#7C6BF0"/>
+</svg>

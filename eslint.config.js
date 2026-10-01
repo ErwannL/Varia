@@ -1,5 +1,6 @@
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
+import globals from 'globals'
 
 export default tseslint.config(
   {
@@ -8,14 +9,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.strict,
   {
-    languageOptions: {
-      globals: {
-        process: 'readonly',
-        console: 'readonly',
-        globalThis: 'readonly',
-        URL: 'readonly',
-      },
-    },
+    languageOptions: { globals: { ...globals.node } },
     rules: {
       'no-restricted-properties': [
         'error',
