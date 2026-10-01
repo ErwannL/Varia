@@ -572,6 +572,23 @@
       },
       "additionalProperties": false
     },
+    "incremental": {
+      "default": {
+        "on_unknown": "full"
+      },
+      "type": "object",
+      "properties": {
+        "on_unknown": {
+          "default": "full",
+          "type": "string",
+          "enum": [
+            "full",
+            "abort"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
     "cache": {
       "default": {
         "enabled": false
@@ -580,8 +597,7 @@
       "properties": {
         "enabled": {
           "default": false,
-          "type": "boolean",
-          "const": false
+          "type": "boolean"
         }
       },
       "additionalProperties": false

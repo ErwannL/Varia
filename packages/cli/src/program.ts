@@ -280,6 +280,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
   program
     .command('plan')
     .description(t(locale(), 'cli.cmd.plan'))
+    .option('--changed [base]')
     .option('--seed <n>')
     .option('--max-mutations <n>')
     .option('--out <file>')
@@ -289,6 +290,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
       (o: {
         seed?: string
         maxMutations?: string
+        changed?: string | boolean
         out?: string
         quick?: boolean
         full?: boolean
@@ -301,6 +303,9 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
           const s = planRun(ctx, base.id, {
             ...(o.seed !== undefined ? { seed: Number(o.seed) } : {}),
             ...(o.maxMutations !== undefined ? { maxMutations: Number(o.maxMutations) } : {}),
+            ...(o.changed !== undefined
+              ? { changed: typeof o.changed === 'string' ? o.changed : 'HEAD' }
+              : {}),
           })
           if (o.out !== undefined) {
             copyFileSync(s.planPath, resolve(cli.cwd, o.out))
@@ -353,6 +358,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
   program
     .command('test')
     .description(t(locale(), 'cli.cmd.test'))
+    .option('--changed [base]')
     .option('--seed <n>')
     .option('--max-mutations <n>')
     .option('--max-time <seconds>')
@@ -363,6 +369,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
       (o: {
         seed?: string
         maxMutations?: string
+        changed?: string | boolean
         maxTime?: string
         quick?: boolean
         full?: boolean
@@ -379,6 +386,9 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
               planRun(ctx, runId, {
                 ...(o.seed !== undefined ? { seed: Number(o.seed) } : {}),
                 ...(o.maxMutations !== undefined ? { maxMutations: Number(o.maxMutations) } : {}),
+                ...(o.changed !== undefined
+                  ? { changed: typeof o.changed === 'string' ? o.changed : 'HEAD' }
+                  : {}),
               }),
             )
             const s = await runFuzz(ctx, runId, fuzzOpts(o, sig.signal))
@@ -473,6 +483,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
   program
     .command('ci')
     .description(t(locale(), 'cli.cmd.ci'))
+    .option('--changed [base]')
     .option('--json-out <file>')
     .option('--junit <file>')
     .option('--sarif <file>')
@@ -491,6 +502,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
         html?: string
         seed?: string
         maxMutations?: string
+        changed?: string | boolean
         quick?: boolean
         full?: boolean
       }) =>
@@ -499,6 +511,9 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
           planRun(ctx, b.runId, {
             ...(o.seed !== undefined ? { seed: Number(o.seed) } : {}),
             ...(o.maxMutations !== undefined ? { maxMutations: Number(o.maxMutations) } : {}),
+            ...(o.changed !== undefined
+              ? { changed: typeof o.changed === 'string' ? o.changed : 'HEAD' }
+              : {}),
           })
           await runFuzz(ctx, b.runId)
           const report = writeOutputs(ctx, b.runId, {

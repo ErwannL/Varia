@@ -241,8 +241,12 @@ export const configSchema = z
       })
       .strict()
       .default({ watch_ignored: false, ignore_for_integrity: [] }),
+    incremental: z
+      .object({ on_unknown: z.enum(['full', 'abort']).default('full') })
+      .strict()
+      .default({ on_unknown: 'full' }),
     cache: z
-      .object({ enabled: z.literal(false).default(false) })
+      .object({ enabled: z.boolean().default(false) })
       .strict()
       .default({ enabled: false }),
     ci: z

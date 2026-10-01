@@ -563,6 +563,43 @@
         }
       ]
     },
+    "incremental": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "base": {
+              "type": "string"
+            },
+            "changedFiles": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "scope": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "base",
+            "changedFiles",
+            "scope"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "acceptances": {
       "type": "array",
       "items": {
@@ -855,6 +892,7 @@
     "issues",
     "resolvedIssues",
     "comparedTo",
+    "incremental",
     "acceptances",
     "mutations",
     "notCovered",

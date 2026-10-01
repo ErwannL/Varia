@@ -4,6 +4,7 @@ import { randomBytes } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { catalogFromCalls } from './baseline.js'
+import { changedFiles, incrementalFilter } from './incremental.js'
 import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
 import { VARIA_VERSION } from './version.js'
@@ -60,7 +61,7 @@ export function estimateMs(baselineMs: number, _testFiles: number, mutations: nu
 export function planRun(
   ctx: EngineContext,
   runId: string,
-  o: { seed?: number; maxMutations?: number } = {},
+  o: { seed?: number; maxMutations?: number; changed?: string } = {},
 ): PlanSummary {
   const run = ctx.reader.getRun(runId)
   if (run === null || !PLANNABLE.includes(run.state))
@@ -75,7 +76,22 @@ export function planRun(
     ctx.reader.tests(runId).map((t) => [t.testId, { file: t.file, name: t.name }]),
   )
   const total = Math.min(p.mutations.limits.total_mutations, o.maxMutations ?? Infinity)
-  const plan = generatePlan(catalogFromCalls(ctx, eligibleCalls(ctx, runId)), {
+  let calls = eligibleCalls(ctx, runId)
+  let incremental: Record<string, unknown> | null = null
+  if (o.changed !== undefined) {
+    const scope = changedFiles(ctx.root, o.changed)
+    const keep = incrementalFilter(ctx, scope)
+    if (keep !== null) {
+      const fileOf = new Map(ctx.reader.tests(runId).map((t) => [t.testId, t.file]))
+      calls = calls.filter((c) => keep({ module: c.module, testFile: fileOf.get(c.testId) ?? '' }))
+    }
+    incremental = {
+      base: scope.base,
+      changedFiles: scope.files,
+      scope: keep === null ? 'FULL_FALLBACK' : 'PARTIAL',
+    }
+  }
+  const plan = generatePlan(catalogFromCalls(ctx, calls), {
     seed,
     perInput: ctx.config.perInput,
     strategies: ctx.config.strategies,
@@ -91,7 +107,13 @@ export function planRun(
       objectDepth: p.mutations.limits.object_depth,
     },
   })
-  return savePlan(ctx, runId, plan)
+  const summary = savePlan(ctx, runId, plan)
+  if (incremental !== null) {
+    // Un run incrémental est TOUJOURS étiqueté partiel (CDC §29).
+    const info = ctx.reader.getRun(runId)?.info ?? {}
+    ctx.writer.updateRun(runId, { partial: true, info: { ...info, incremental } })
+  }
+  return summary
 }
 
 /** Enregistre un plan (généré ou importé par `--plan`) pour un run ; il REMPLACE le plan précédent. */
