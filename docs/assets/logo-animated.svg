@@ -1,13 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="varia-title">
   <title id="varia-title">Varia</title>
   <style>
-    .varia-bolt { animation: varia-strike 2.4s ease-in-out infinite; transform-box: view-box; transform-origin: 32px 32px; }
-    .varia-data { animation: varia-hold 2.4s ease-in-out infinite; transform-box: view-box; transform-origin: 32px 32px; }
-    @keyframes varia-strike { 0%, 100% { transform: translate(0, 0); } 6% { transform: translate(-1.5px, -2px); } 10% { transform: translate(1.5px, 1.5px); } 14% { transform: translate(-1px, 0.5px); } 18% { transform: translate(0, 0); } }
-    @keyframes varia-hold { 0%, 100% { transform: translate(0, 0); } 10% { transform: translate(0, 0) scale(1.05); } 22% { transform: translate(0, 0) scale(1); } }
-    @media (prefers-reduced-motion: reduce) { .varia-bolt, .varia-data { animation: none; transform: none; } }
+    .varia-bolt { animation: varia-strike 3s ease-out infinite; }
+    .varia-left { animation: varia-push-left 3s ease-out infinite; }
+    .varia-right { animation: varia-push-right 3s ease-out infinite; }
+    @keyframes varia-strike { 0%, 100% { transform: translate(0, 0); opacity: 1; } 8% { transform: translate(2px, -7px); opacity: 0.2; } 14% { transform: translate(-1px, 2px); opacity: 1; } 18% { transform: translate(1px, -1px); opacity: 0.45; } 22% { transform: translate(0, 0); opacity: 1; } 26% { opacity: 0.6; } 30% { transform: translate(0, 0); opacity: 1; } }
+    @keyframes varia-push-left { 0%, 100% { transform: translate(0, 0); } 14% { transform: translate(-3.5px, 0); } 34% { transform: translate(0.5px, 0); } 44% { transform: translate(0, 0); } }
+    @keyframes varia-push-right { 0%, 100% { transform: translate(0, 0); } 14% { transform: translate(3.5px, 0); } 34% { transform: translate(-0.5px, 0); } 44% { transform: translate(0, 0); } }
+    @media (prefers-reduced-motion: reduce) { .varia-bolt, .varia-left, .varia-right { animation: none; transform: none; opacity: 1; } }
   </style>
   <rect x="2" y="2" width="60" height="60" rx="15" fill="#4B32D6"/>
-  <path class="varia-data" d="M21 13 C15.5 13 16 18 16 23.5 C16 28.5 14.5 31 11 32 C14.5 33 16 35.5 16 40.5 C16 46 15.5 51 21 51 M43 13 C48.5 13 48 18 48 23.5 C48 28.5 49.5 31 53 32 C49.5 33 48 35.5 48 40.5 C48 46 48.5 51 43 51" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <path class="varia-bolt" d="M35 11 L23 35 L30.5 35 L27 53 L41.5 28.5 L34 28.5 L39.5 11 Z" fill="#FFC857" stroke="#FFC857" stroke-width="1.5" stroke-linejoin="round"/>
+  <path class="varia-left" d="M21 13 C15.5 13 16 18 16 23.5 C16 28.5 14.5 31 11 32 C14.5 33 16 35.5 16 40.5 C16 46 15.5 51 21 51" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="varia-right" d="M43 13 C48.5 13 48 18 48 23.5 C48 28.5 49.5 31 53 32 C49.5 33 48 35.5 48 40.5 C48 46 48.5 51 43 51" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path class="varia-bolt" d="M38.5 14 L24 35 L31 35 L27.5 50 L41 28.5 L34 28.5 Z" fill="#FFC857" stroke="#FFC857" stroke-width="2" stroke-linejoin="round"/>
 </svg>

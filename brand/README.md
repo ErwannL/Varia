@@ -6,8 +6,8 @@
 
 Des accolades blanches `{ }` (les **données d'entrée** d'une fonction) frappées par un éclair ambre (la
 **perturbation** injectée par Varia), sur une tuile violette : Varia perturbe les données pour vérifier
-que le code tient. La version animée fait frapper l'éclair puis « encaisser » le choc aux accolades
-(CSS seul, boucle de 2,4 s) ; sous `prefers-reduced-motion: reduce` l'animation est coupée et l'image
+que le code tient. La version animée fait tomber l'éclair (avec un scintillement) et les accolades s'écartent sous le
+choc puis reviennent (CSS seul, boucle de 3 s) ; sous `prefers-reduced-motion: reduce` l'animation est coupée et l'image
 est exactement le logo fixe.
 
 ## Couleurs

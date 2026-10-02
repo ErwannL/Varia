@@ -3,8 +3,9 @@
   <rect width="1200" height="630" fill="#14122B"/>
   <g transform="translate(140 175) scale(4.4)">
     <rect x="2" y="2" width="60" height="60" rx="15" fill="#4B32D6"/>
-    <path d="M21 13 C15.5 13 16 18 16 23.5 C16 28.5 14.5 31 11 32 C14.5 33 16 35.5 16 40.5 C16 46 15.5 51 21 51 M43 13 C48.5 13 48 18 48 23.5 C48 28.5 49.5 31 53 32 C49.5 33 48 35.5 48 40.5 C48 46 48.5 51 43 51" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-    <path d="M35 11 L23 35 L30.5 35 L27 53 L41.5 28.5 L34 28.5 L39.5 11 Z" fill="#FFC857" stroke="#FFC857" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M21 13 C15.5 13 16 18 16 23.5 C16 28.5 14.5 31 11 32 C14.5 33 16 35.5 16 40.5 C16 46 15.5 51 21 51" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M43 13 C48.5 13 48 18 48 23.5 C48 28.5 49.5 31 53 32 C49.5 33 48 35.5 48 40.5 C48 46 48.5 51 43 51" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M38.5 14 L24 35 L31 35 L27.5 50 L41 28.5 L34 28.5 Z" fill="#FFC857" stroke="#FFC857" stroke-width="2" stroke-linejoin="round"/>
   </g>
   <g fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
     <path d="M490 255 L535 375 L580 255"/>

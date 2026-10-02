@@ -182,3 +182,8 @@ canonique. Le cas d'une racine non canonique reste couvert par `tests/j1/paths.t
 absente sous Windows ; il teste désormais le processus lui-même sous `win32`. `waitGroupGone` fonctionne
 ainsi sur toutes les plateformes et son test s'exécute partout (la couverture de `proc.ts` n'est plus
 dépendante de l'OS ; aucun seuil abaissé).
+
+**Complément D-023** : retour de l'utilisateur, l'animation était imperceptible (décalage de 1,5 px) et
+l'éclair semblait rogné (sommet plat). Éclair à pointe, entièrement dans la tuile ; animation nette
+(chute et scintillement de l'éclair, accolades qui s'écartent sous le choc, boucle de 3 s), vérifiée
+image par image dans Chromium en `<img>` comme dans le README.
