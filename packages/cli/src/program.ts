@@ -560,6 +560,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
             failOn: ci.fail_on,
             failOnRegression: ci.fail_on_regression,
             reference,
+            includeTransitive: ci.include_transitive,
           })
           p.say('cli.ci.verdict', {
             verdict: verdict.fail ? 'FAIL' : 'PASS',

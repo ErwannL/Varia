@@ -5,6 +5,8 @@ export interface CiPolicy {
   failOnRegression: boolean
   /** Identifiants d'issues du run de référence (`fail_on_new_only_against`) ; `null` : toutes comptent. */
   reference: Set<string> | null
+  /** `ci.include_transitive` : les issues transitives comptent aussi (défaut : non, CDC §10.11). */
+  includeTransitive?: boolean
 }
 
 /** Statut de `ci.fail_on` correspondant au type d'une issue. */
@@ -30,6 +32,7 @@ export function ciVerdict(r: Report, p: CiPolicy): CiVerdict {
   for (const i of r.issues) {
     if (i.state === 'ACCEPTED') continue
     if (p.reference !== null && p.reference.has(i.id)) continue
+    if (i.transitive && p.includeTransitive !== true) continue
     const status = STATUS_OF_KIND[i.kind] ?? i.kind
     if (p.failOn.includes(status)) reasons.push(`FAIL_ON:${status}:${i.id}`)
     if (p.failOnRegression && (i.state === 'REGRESSION' || i.state === 'WORSENED'))

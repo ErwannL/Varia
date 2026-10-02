@@ -71,6 +71,8 @@ export function buildReport(reader: Reader, runId: string): Report {
       .map((m) => `${String(m['callSiteId'])}|${String(m['pathStr'])}`),
   )
   const callSites = new Map(reader.callSites(runId).map((c) => [c.callSiteId, c]))
+  const depthOf = new Map(mutations.map((m) => [String(m['id']), Number(m['depth'] ?? 0)]))
+  const depths = (ids: string[]) => ids.map((id) => depthOf.get(id) ?? 0)
   const info = run.info
   const planInfo = info['plan'] as
     | { possible: number; planned: number; sampled: boolean; estimateMs: number }
@@ -145,6 +147,8 @@ export function buildReport(reader: Reader, runId: string): Report {
         count: i.count,
         mutationIds: i.mutationIds,
         replay: `varia replay ${i.mutationIds[0] ?? ''}`,
+        depth: Math.min(...depths(i.mutationIds)),
+        transitive: depths(i.mutationIds).every((d) => d > 0),
       }))
       .sort(
         (a, b) =>

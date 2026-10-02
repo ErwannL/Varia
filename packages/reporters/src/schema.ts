@@ -89,6 +89,11 @@ export const reportSchema = z
         count: z.number().int(),
         mutationIds: z.array(z.string()),
         replay: z.string(),
+        /** Profondeur minimale des mutations de l'issue (0 : appel direct du test). */
+        depth: z.number().int().min(0),
+        /** Toutes ses mutations portent sur des appels transitifs (CDC §10.11) : valeur peut-être
+         * impossible en production ; hors `ci.fail_on` sauf `ci.include_transitive`. */
+        transitive: z.boolean(),
       }),
     ),
     /** Issues connues absentes de ce run : FIXED (cible rejouée) ou UNKNOWN (non rejouée). */

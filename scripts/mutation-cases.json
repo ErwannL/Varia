@@ -159,5 +159,19 @@
     "find": "  if (i.process.outputTruncated)\n",
     "replace": "  if (i.process.outputTruncated && false)\n",
     "tests": ["packages/core/test/oracle.test.ts", "tests/j3/limits.test.ts"]
+  },
+  {
+    "name": "A-04 issues transitives comptées dans fail_on",
+    "file": "packages/reporters/src/policy.ts",
+    "find": "    if (i.transitive && p.includeTransitive !== true) continue\n",
+    "replace": "",
+    "tests": ["packages/reporters/test/formats.test.ts", "tests/j3/transitive.test.ts"]
+  },
+  {
+    "name": "A-04 issue jamais marquée transitive",
+    "file": "packages/reporters/src/build.ts",
+    "find": "        transitive: depths(i.mutationIds).every((d) => d > 0),",
+    "replace": "        transitive: false,",
+    "tests": ["tests/j3/transitive.test.ts"]
   }
 ]

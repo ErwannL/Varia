@@ -38,7 +38,7 @@ export function toHtml(r: Report, locale: Locale, orqeaUrl: string): string {
       : `<table><thead><tr><th>${tr('report.col.severity')}</th><th>${tr('report.col.state')}</th><th>${tr('report.col.issue')}</th><th>${tr('report.col.count')}</th><th>${tr('report.col.replay')}</th></tr></thead><tbody>${r.issues
           .map(
             (i) =>
-              `<tr><td>${tr(`dash.severity.${i.severity}` as MessageKey)}</td><td>${esc(i.state)}</td><td>${esc(issueTitle(locale, i))}</td><td>${String(i.count)}</td><td><code>${esc(i.replay)}</code></td></tr>`,
+              `<tr><td>${tr(`dash.severity.${i.severity}` as MessageKey)}</td><td>${esc(i.state)}</td><td>${esc(issueTitle(locale, i))}${i.transitive ? ` <em>(${tr('report.transitive')})</em>` : ''}</td><td>${String(i.count)}</td><td><code>${esc(i.replay)}</code></td></tr>`,
           )
           .join('')}</tbody></table>`
   const nc = r.notCovered
@@ -156,7 +156,7 @@ export function toMarkdown(r: Report, locale: Locale): string {
   const c = r.counts
   const rows = r.issues.map(
     (i) =>
-      `| ${t(locale, `dash.severity.${i.severity}` as MessageKey)} | ${i.state} | ${issueTitle(locale, i).replace(/\|/g, '\\|')} | ${String(i.count)} | \`${i.replay}\` |`,
+      `| ${t(locale, `dash.severity.${i.severity}` as MessageKey)} | ${i.state} | ${issueTitle(locale, i).replace(/\|/g, '\\|')}${i.transitive ? ` _(${t(locale, 'report.transitive')})_` : ''} | ${String(i.count)} | \`${i.replay}\` |`,
   )
   return [
     `# ${t(locale, 'report.title', { project: r.project.name })}`,

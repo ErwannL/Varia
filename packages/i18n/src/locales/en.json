@@ -223,6 +223,7 @@
   "report.col.count": "Mutations",
   "report.col.replay": "Replay",
   "report.partial": "Partial run: {pending} mutations not executed.",
+  "report.transitive": "transitive (not in fail_on)",
   "cli.cmd.ci": "non-interactive CI mode: test + reports (JSON, JUnit, SARIF, Markdown, HTML) + failure policy",
   "cli.ci.written": "Written: {path}",
   "cli.ci.verdict": "CI policy: {verdict} ({reasons})",

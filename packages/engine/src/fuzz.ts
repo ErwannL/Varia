@@ -296,7 +296,6 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
     }
     return [{ mutation, classification }]
   })
-  const transitive = ctx.config.parsed.ci.include_transitive
   const drafts = groupIssues(results, ctx.root)
   const previous = ctx.reader
     .listRuns(200)
@@ -348,8 +347,7 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
       acceptedMutations: Object.fromEntries(evaluation.accepted),
     },
   })
-  for (const d of drafts)
-    ctx.writer.event(runId, 'ISSUE_CREATED', { issueId: d.fingerprint, transitive })
+  for (const d of drafts) ctx.writer.event(runId, 'ISSUE_CREATED', { issueId: d.fingerprint })
 }
 
 /** Acceptations du projet : `varia.yml` (`store: file`, forme abrégée ou `{ store, items }`) + base. */

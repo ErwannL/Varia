@@ -126,3 +126,25 @@ describe('politique CI (CDC §28)', () => {
     expect(lines[2]).toMatch(/^::warning title=Varia SUSPICIOUS_ACCEPT::/)
   })
 })
+
+describe('issues transitives (A-04, CDC §10.11)', () => {
+  const r = report()
+  const transitive = {
+    ...r,
+    issues: r.issues.map((i) => ({ ...i, transitive: true, depth: 1 })),
+  }
+  it('hors ci.fail_on par défaut ; comptées avec ci.include_transitive', () => {
+    const p = { failOn: ['CRASH', 'TIMEOUT'], failOnRegression: true, reference: null }
+    expect(ciVerdict(transitive, p).fail).toBe(false)
+    expect(ciVerdict(transitive, { ...p, includeTransitive: true }).fail).toBe(true)
+    expect(ciVerdict(r, p).fail).toBe(true)
+  })
+  it('étiquetées dans le Markdown et le HTML ; profondeur dans le JSON', () => {
+    expect(r.issues.every((i) => i.depth === 0 && !i.transitive)).toBe(true)
+    expect(toMarkdown(transitive, 'fr')).toContain('_(transitive (hors fail_on))_')
+    expect(toHtml(transitive, 'en', 'https://o')).toContain(
+      '<em>(transitive (not in fail_on))</em>',
+    )
+    expect(toMarkdown(r, 'fr')).not.toContain('transitive (hors')
+  })
+})
