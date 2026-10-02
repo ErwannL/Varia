@@ -29,7 +29,7 @@ describe('stratégies du §13.2', () => {
     ])
   })
   it('type : familles voisines', () => {
-    expect(values('x', 'string', 'type')).toEqual([123, true, {}, []])
+    expect(values('x', 'string', 'type')).toEqual([123, true, {}, [], '123', 'null', 'true'])
     expect(values(25, 'number', 'type')).toEqual(['25', {}, [], true])
     expect(values(true, 'boolean', 'type')).toEqual([0, 1, 'true', 'false', {}, []])
     expect(values({ a: 1 }, 'object', 'type')).toEqual([[], 'abc', 123])
@@ -75,10 +75,10 @@ describe('stratégies du §13.2', () => {
   it('boundary : longueurs de chaîne et de tableau', () => {
     expect(
       values('abc', 'string', 'boundary', { bounds: { min: 1, max: 3, provenance: 'declared' } }),
-    ).toEqual(['', 'a', '', 'aaaa'])
+    ).toEqual(['', 'aaaa', '', 'a'])
     expect(
       values([7, 8], 'array', 'boundary', { bounds: { min: 2, max: 2, provenance: 'observed' } }),
-    ).toEqual([[], [7], [7, 7, 7]])
+    ).toEqual([[7, 7, 7], [], [7]])
     expect(values({ $t: 'date', v: null }, 'date', 'boundary')).toHaveLength(3)
     expect(values({ $t: 'bigint', v: '1' }, 'bigint', 'boundary')).toHaveLength(3)
   })
@@ -98,6 +98,10 @@ describe('stratégies du §13.2', () => {
     expect(values([1], 'array', 'structure')).toEqual([
       [[1]],
       [1, { $t: 'hole' }, 1],
+      [1, null, {}],
+      [null],
+      [''],
+      [1],
       [1, null, {}],
     ])
   })

@@ -70,7 +70,7 @@ describe('/api/v1 (lecture seule)', () => {
     expect((await get(`/api/v1/runs/${SEED_RUN}/issues?severity=HIGH`)).json?.['total']).toBe(1)
     expect((await get(`/api/v1/runs/${SEED_RUN}/mutations?status=CRASH`)).json?.['total']).toBe(2)
     expect((await get(`/api/v1/runs/${SEED_RUN}/not-covered`)).json).toHaveProperty('limitations')
-    expect((await get(`/api/v1/reports/${SEED_RUN}`)).json?.['schemaVersion']).toBe(1)
+    expect((await get(`/api/v1/reports/${SEED_RUN}`)).json?.['schemaVersion']).toBe(2)
   })
   it('issue, historique, mutation', async () => {
     const issues = (await get(`/api/v1/runs/${SEED_RUN}/issues`)).json?.['items'] as {

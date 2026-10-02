@@ -47,32 +47,32 @@ describe('formats et contrats déclarés (CDC §12.3, §18.4)', () => {
   it('range', () => {
     const h = { path: 'f#arg0', range: [0, 10] as [number, number] }
     expect([
-      violatesHint(h, 5, false),
-      violatesHint(h, 11, false),
-      violatesHint(h, -1, false),
-      violatesHint(h, '5', false),
-      violatesHint(h, 5, true),
-    ]).toEqual([false, true, true, true, true])
+      violatesHint(h, 5),
+      violatesHint(h, 11),
+      violatesHint(h, -1),
+      // A-13 : un autre type n'est pas une violation de `range` (le contrat ne s'applique pas).
+      violatesHint(h, '5'),
+    ]).toEqual([false, true, true, false])
   })
   it('format', () => {
     const h = { path: 'f#arg0', format: 'email' as const }
-    expect([
-      violatesHint(h, 'a@b.co', false),
-      violatesHint(h, 'nope', false),
-      violatesHint(h, 3, false),
-    ]).toEqual([false, true, true])
+    expect([violatesHint(h, 'a@b.co'), violatesHint(h, 'nope'), violatesHint(h, 3)]).toEqual([
+      false,
+      true,
+      false,
+    ])
   })
   it('length (chaîne et tableau)', () => {
     const h = { path: 'f#arg0', length: [1, 3] as [number, number] }
     expect([
-      violatesHint(h, 'ab', false),
-      violatesHint(h, '', false),
-      violatesHint(h, [1, 2, 3, 4], false),
-      violatesHint(h, [1], false),
-      violatesHint(h, 7, false),
-    ]).toEqual([false, true, true, false, true])
+      violatesHint(h, 'ab'),
+      violatesHint(h, ''),
+      violatesHint(h, [1, 2, 3, 4]),
+      violatesHint(h, [1]),
+      violatesHint(h, 7),
+    ]).toEqual([false, true, true, false, false])
   })
-  it('hint sans contrainte', () => expect(violatesHint({ path: 'f#arg0' }, 1, false)).toBe(false))
+  it('hint sans contrainte', () => expect(violatesHint({ path: 'f#arg0' }, 1)).toBe(false))
 })
 
 describe('observation', () => {

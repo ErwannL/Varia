@@ -1,10 +1,15 @@
 import type { Json } from '@varia/probe-protocol'
 import type { InputDescriptor } from '../catalog.js'
 
+/** Origine d'une valeur limite (CDC §12.3) : hint de l'utilisateur, observation, ou borne universelle. */
+export type BoundsProvenance = 'declared' | 'observed' | 'universal'
+
 export interface MutationCandidate {
   strategy: string
   op: 'set' | 'delete'
   value: Json
+  /** Stratégie `boundary` seulement : d'où vient la borne (A-08). */
+  provenance?: BoundsProvenance
 }
 
 /** Interface d'extension (CDC §13.1). */

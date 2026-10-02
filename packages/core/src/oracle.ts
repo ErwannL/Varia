@@ -187,7 +187,7 @@ export function classify(i: OracleInput, cfg: OracleConfig = DEFAULT_ORACLE): Cl
     return { ...base, status: 'UNEXPECTED_FAILURE', reason: 'TARGET_NO_OUTCOME' }
   const m = i.mutation
   if (cfg.suspiciousAccept === 'ignore') return { ...base, status: 'PASSED', outcome: out.kind }
-  if (i.hint !== undefined && violatesHint(i.hint, m.value, m.op === 'delete')) {
+  if (i.hint !== undefined && m.op === 'set' && violatesHint(i.hint, m.value)) {
     return {
       ...base,
       status: 'PASSED',

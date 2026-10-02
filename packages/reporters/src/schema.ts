@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const REPORT_SCHEMA_VERSION = 1
+export const REPORT_SCHEMA_VERSION = 2
 
 const counts = z.object({
   mutations: z.number().int(),
@@ -135,6 +135,10 @@ export const reportSchema = z
         test: z.string(),
         path: z.string(),
         strategy: z.string(),
+        /** Profondeur d'appel du call site muté (0 : appel direct du test, CDC §10.11). */
+        depth: z.number().int().min(0),
+        /** Stratégie `boundary` : provenance de la borne (declared / observed / universal, §12.3). */
+        provenance: z.enum(['declared', 'observed', 'universal']).nullable(),
         original: z.unknown(),
         value: z.unknown(),
         deleted: z.boolean(),

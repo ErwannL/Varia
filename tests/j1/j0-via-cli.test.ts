@@ -1,6 +1,7 @@
 // Acceptation J1-1 : les scénarios J0 restent verts, désormais via le vrai CLI (`varia …`).
 import type { PlannedMutation } from '@varia/core'
 import { diffSnapshots, gitSnapshot, manifestSnapshot, mutationId } from '@varia/core'
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
@@ -136,7 +137,13 @@ describe('plan (J0-7)', () => {
     const a = readFileSync(join(D, 'plan-a.json'))
     expect(a.equals(readFileSync(join(D, 'plan-b.json')))).toBe(true)
     expect(a.equals(readFileSync(join(D, 'plan-c.json')))).toBe(true)
-    expect(a.toString()).not.toMatch(/"r_[0-9a-f]{12}"|timestamp/)
+    expect(a.toString()).not.toMatch(/"r_[0-9a-f]{12}"|timestamp|envHash/)
+    // A-09 : le commit git du projet fait partie du plan (CDC §14.1).
+    const head = execFileSync('git', ['rev-parse', 'HEAD'], {
+      cwd: EXAMPLE,
+      encoding: 'utf8',
+    }).trim()
+    expect((JSON.parse(a.toString()) as { gitCommit: string }).gitCommit).toBe(head)
     expect(plan.mutations.filter((m) => m.export === 'repeat')).toHaveLength(3)
   })
 })

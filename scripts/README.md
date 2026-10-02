@@ -11,3 +11,9 @@ Outils de développement (jamais exécutés par Varia à l'exécution) :
 - `dashboard-check.mjs` — vérification du dashboard dans Chromium.
 - `mutation-check.mjs` + `mutation-cases.json` — preuve que les tests peuvent échouer.
 - `install-examples.mjs` — dépendances des exemples.
+- `check-coverage-ignores.mjs` — échoue sur toute esquive de couverture (`v8/c8/istanbul ignore`, `__coverage__`).
+- `coverage.mjs` + `coverage-lib.mjs` + `vitest-coverage-provider.mjs` — mesure de couverture complète
+  (processus enfants et fichiers `runtime/` reconvertis), `coverage/coverage-exact.json`.
+- `check-coverage-exact.mjs` — porte exacte par fichier contre `coverage-thresholds.json`.
+- `coverage-gaps.mjs`, `coverage-ratchet.mjs` — liste de ce qui manque ; montée des seuils (jamais à la baisse).
+- `write-schemas.ts` — régénère les schémas JSON publiés (configuration, rapport).

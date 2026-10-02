@@ -1,3 +1,5 @@
+import type { Json } from '@varia/probe-protocol'
+import type { Hint } from '../src/hints.js'
 import { describe, expect, it } from 'vitest'
 import type { ObservedCall } from '../src/observe.js'
 import { classify, findEcho, type OracleInput } from '../src/oracle.js'
@@ -290,5 +292,41 @@ describe('erreurs de la sonde et rejets non gérés (A-05, A-02)', () => {
       }),
     )
     expect([awaited.status, awaited.outcome]).toEqual(['HANDLED', 'reject'])
+  })
+})
+
+describe('HINT_VIOLATION strictement range / format / length (A-13)', () => {
+  const ret = call({ kind: 'return', async: false, value: { ok: true } })
+  const hint = { path: 'f#arg0.age', range: [0, 150] as [number, number] }
+  it('un autre type ou un champ supprimé ne violent pas un hint de plage', () => {
+    for (const m of [
+      mutation({ strategy: 'type', value: '20', mutatedType: 'string', originalType: 'number' }),
+      mutation({ strategy: 'undefined', op: 'delete', value: null, mutatedType: 'undefined' }),
+    ]) {
+      const r = classify(input({ mutation: m, mutatedCall: ret, hint }))
+      expect([r.status, r.reason]).toEqual(['PASSED', undefined])
+    }
+  })
+  it('format et longueur : violation seulement sur le bon type', () => {
+    const fmt = { path: 'f#arg0.mail', format: 'email' as const }
+    const len = { path: 'f#arg0.tags', length: [1, 2] as [number, number] }
+    const r = (value: Json, h: Hint, mutatedType: string) =>
+      classify(
+        input({
+          mutation: mutation({
+            strategy: 'boundary',
+            value,
+            mutatedType,
+            originalType: mutatedType,
+          }),
+          mutatedCall: ret,
+          hint: h,
+        }),
+      ).reason
+    expect([r('nope', fmt, 'string'), r(3, fmt, 'number')]).toEqual(['HINT_VIOLATION', undefined])
+    expect([r([1, 2, 3], len, 'array'), r(['a'], len, 'array')]).toEqual([
+      'HINT_VIOLATION',
+      undefined,
+    ])
   })
 })

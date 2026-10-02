@@ -40,6 +40,9 @@
 ## Exclusions (avec raison)
 
 - `packages/dashboard/vite.config.ts` : configuration de build (outil de développement).
+- Générateurs des schémas JSON : déplacés de `packages/*/src/write-schema.ts` vers
+  `scripts/write-schemas.ts` (outil de développement, non livré) ; les schémas eux-mêmes sont vérifiés
+  à jour par des tests.
 - Hors paquets (non livrés) : tests, `*.d.ts`, `examples/` (fixtures), `scripts/` (outillage).
 
 ## Mesure de base J3 (avant correction)

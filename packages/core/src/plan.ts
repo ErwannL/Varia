@@ -6,6 +6,7 @@ import {
   candidatesFor,
   DEFAULT_CONTEXT,
   type MutationCandidate,
+  type BoundsProvenance,
   type MutationContext,
 } from './strategies/index.js'
 
@@ -30,12 +31,17 @@ export interface PlannedMutation {
   value: Json
   originalType: string
   mutatedType: string
+  /** Stratégie `boundary` : provenance de la borne (déclarée, observée, universelle, CDC §12.3). */
+  provenance?: BoundsProvenance
 }
 
 export interface Plan {
   schemaVersion: number
   variaVersion: string
   seed: number
+  /** Commit git du projet (`null` hors dépôt, CDC §14.1). L'empreinte d'environnement, qui varie
+   * d'une machine à l'autre, n'est PAS dans le plan (déterminisme, DECISIONS D-027). */
+  gitCommit: string | null
   /** Empreinte de la configuration résolue (CDC §14.1). */
   configHash: string
   /** Mutations possibles avant budget et mutations retenues (échantillonnage annoncé, §14.4). */
@@ -49,6 +55,7 @@ export interface PlanOptions {
   strategies: string[]
   variaVersion: string
   configHash: string
+  gitCommit?: string | null
   tests: Map<string, { file: string; name: string }>
   /** Plafond par target `module#export`. */
   perTarget?: Record<string, number>
@@ -109,6 +116,7 @@ function candidatesForInput(input: InputDescriptor, o: PlanOptions): PlannedMuta
       value: c.value,
       originalType: input.type,
       mutatedType: c.op === 'delete' ? 'undefined' : typeOfSerialized(c.value),
+      ...(c.provenance !== undefined ? { provenance: c.provenance } : {}),
     }))
 }
 
@@ -171,6 +179,7 @@ export function generatePlan(catalog: InputDescriptor[], o: PlanOptions): Plan {
     schemaVersion: PLAN_SCHEMA_VERSION,
     variaVersion: o.variaVersion,
     seed: o.seed,
+    gitCommit: o.gitCommit ?? null,
     configHash: o.configHash,
     possible,
     mutations,

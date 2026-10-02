@@ -97,6 +97,7 @@ export function planRun(
     strategies: ctx.config.strategies,
     variaVersion: VARIA_VERSION,
     configHash: ctx.config.hash,
+    gitCommit: run.gitCommit,
     tests,
     perTarget: p.mutations.per_target,
     total,

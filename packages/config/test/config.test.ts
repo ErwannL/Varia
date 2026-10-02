@@ -135,6 +135,6 @@ describe('affichage et schéma', () => {
   })
   it('schema/varia.schema.json est à jour', () => {
     const onDisk = readFileSync(new URL('../schema/varia.schema.json', import.meta.url), 'utf8')
-    expect(onDisk).toBe(JSON.stringify(jsonSchema(), null, 2) + '\n')
+    expect(JSON.parse(onDisk)).toEqual(JSON.parse(JSON.stringify(jsonSchema())))
   })
 })

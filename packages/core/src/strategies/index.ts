@@ -5,6 +5,7 @@ import {
   num,
   set,
   UNDEF,
+  type BoundsProvenance,
   type MutationCandidate,
   type MutationContext,
   type MutationStrategy,
@@ -19,12 +20,24 @@ const firstOf = (json: Json): Json =>
 const type: MutationStrategy = {
   id: 'type',
   supports: (i) =>
-    ['string', 'number', 'boolean', 'object', 'array', 'date', 'bigint'].includes(i.type),
+    [
+      'string',
+      'number',
+      'boolean',
+      'object',
+      'array',
+      'date',
+      'bigint',
+      'map',
+      'set',
+      'bytes',
+    ].includes(i.type),
   generate(i) {
     const s = (v: Json) => set('type', v)
     switch (i.type) {
       case 'string':
-        return [s(123), s(true), s({}), s([])]
+        // Autres types, puis chaînes qui se font passer pour un nombre, null ou un booléen (§13.3).
+        return [s(123), s(true), s({}), s([]), s('123'), s('null'), s('true')]
       case 'number':
         return [s(String(typeof i.original === 'number' ? i.original : 0)), s({}), s([]), s(true)]
       case 'boolean':
@@ -35,6 +48,12 @@ const type: MutationStrategy = {
         return [s({}), s('abc'), s(0)]
       case 'date':
         return [s('2020-01-01'), s(0)]
+      case 'map':
+        return [s({}), s([])]
+      case 'set':
+        return [s([]), s({})]
+      case 'bytes':
+        return [s('abc'), s([1, 2, 3])]
       default:
         return [s(1), s('1')]
     }
@@ -56,10 +75,23 @@ const undef: MutationStrategy = {
   ],
 }
 
+/** Vides dédiés aux collections étiquetées (catalogues Map, Set, Buffer, §13.3). */
+const TAGGED_EMPTY: Record<string, Json> = {
+  map: { $t: 'map', entries: [] },
+  set: { $t: 'set', values: [] },
+  bytes: { $t: 'bytes', kind: 'Buffer', base64: '' },
+}
+
 const empty: MutationStrategy = {
   id: 'empty',
   supports: () => true,
-  generate: () => [set('empty', ''), set('empty', ' '), set('empty', []), set('empty', {})],
+  generate: (i) => [
+    set('empty', ''),
+    set('empty', ' '),
+    set('empty', []),
+    set('empty', {}),
+    ...(TAGGED_EMPTY[i.type] !== undefined ? [set('empty', TAGGED_EMPTY[i.type] as Json)] : []),
+  ],
 }
 
 /** `boundary` : -1/0/1, bornes déclarées ou observées ±1, extrêmes numériques, longueurs limites. */
@@ -67,9 +99,22 @@ const boundary: MutationStrategy = {
   id: 'boundary',
   supports: (i) => ['number', 'string', 'array', 'date', 'bigint'].includes(i.type),
   generate(i, ctx) {
-    const b = (v: Json) => set('boundary', v)
+    // Bornes déclarées / observées D'ABORD : une valeur qui coïncide avec une borne universelle garde
+    // la provenance la plus informative (la déduplication conserve la première).
+    const from = i.bounds?.provenance
+    const b = (v: Json, provenance: BoundsProvenance = 'universal'): MutationCandidate => ({
+      ...set('boundary', v),
+      provenance,
+    })
     const out: MutationCandidate[] = []
     if (i.type === 'number') {
+      if (i.bounds && from)
+        out.push(
+          b(num(i.bounds.min - 1), from),
+          b(num(i.bounds.max + 1), from),
+          b(num(i.bounds.min), from),
+          b(num(i.bounds.max), from),
+        )
       for (const v of [
         -1,
         0,
@@ -85,23 +130,16 @@ const boundary: MutationStrategy = {
         Number.MAX_SAFE_INTEGER + 1,
       ])
         out.push(b(num(v)))
-      if (i.bounds)
-        out.push(
-          b(num(i.bounds.min - 1)),
-          b(num(i.bounds.max + 1)),
-          b(num(i.bounds.min)),
-          b(num(i.bounds.max)),
-        )
     } else if (i.type === 'string') {
-      out.push(b(''), b('a'))
-      if (i.bounds) {
+      if (i.bounds && from) {
         for (const n of [i.bounds.min - 1, i.bounds.max + 1])
-          if (n >= 0 && n <= ctx.stringLength) out.push(b('a'.repeat(n)))
+          if (n >= 0 && n <= ctx.stringLength) out.push(b('a'.repeat(n), from))
       }
+      out.push(b(''), b('a'))
     } else if (i.type === 'array') {
+      if (i.bounds && from && i.bounds.max + 1 <= ctx.arrayLength)
+        out.push(b(new Array<Json>(i.bounds.max + 1).fill(firstOf(i.original)), from))
       out.push(b([]), b([firstOf(i.original)]))
-      if (i.bounds && i.bounds.max + 1 <= ctx.arrayLength)
-        out.push(b(new Array<Json>(i.bounds.max + 1).fill(firstOf(i.original))))
     } else if (i.type === 'date') {
       out.push(
         b({ $t: 'date', v: null }),
@@ -144,6 +182,11 @@ const structure: MutationStrategy = {
         set('structure', [[first]]),
         set('structure', [first, { $t: 'hole' }, first]),
         set('structure', [first, null, {}]),
+        // Éléments d'un type inattendu (§13.3) : [null], [""], [1], [1, null, {}].
+        set('structure', [null]),
+        set('structure', ['']),
+        set('structure', [1]),
+        set('structure', [1, null, {}]),
       ]
     }
     const fields = fieldsOf(i.original) ?? {}
@@ -185,8 +228,9 @@ const encoding: MutationStrategy = {
   id: 'encoding',
   supports: (i) => i.type === 'string',
   generate: () =>
-    ['é', '💀', '漢字', 'abc\n', 'abc\u0000', '‮abc', 'é', '\uD800', '"\'<>&'].map((v) =>
-      set('encoding', v),
+    // « é » précomposé (U+00E9) puis décomposé (e + accent combinant U+0301) : deux chaînes distinctes.
+    ['\u00e9', '💀', '漢字', 'abc\n', 'abc\u0000', '\u202eabc', 'e\u0301', '\uD800', '"\'<>&'].map(
+      (v) => set('encoding', v),
     ),
 }
 

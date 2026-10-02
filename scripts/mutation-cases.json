@@ -110,5 +110,40 @@
     "find": "  if (rejection !== undefined) {",
     "replace": "  if (rejection !== undefined && false) {",
     "tests": ["packages/core/test/oracle.test.ts"]
+  },
+  {
+    "name": "A-07 catalogue de chaînes amputé (\"123\")",
+    "file": "packages/core/src/strategies/index.ts",
+    "find": "s('123'), s('null'), s('true')]",
+    "replace": "s('null'), s('true')]",
+    "tests": ["packages/core/test/catalogue-spec.test.ts"]
+  },
+  {
+    "name": "A-07 é décomposé remplacé par un doublon",
+    "file": "packages/core/src/strategies/index.ts",
+    "find": "'e\\u0301'",
+    "replace": "'\\u00e9'",
+    "tests": ["packages/core/test/catalogue-spec.test.ts"]
+  },
+  {
+    "name": "A-08 provenance des bornes perdue",
+    "file": "packages/core/src/plan.ts",
+    "find": "      ...(c.provenance !== undefined ? { provenance: c.provenance } : {}),",
+    "replace": "",
+    "tests": ["packages/core/test/catalogue-spec.test.ts"]
+  },
+  {
+    "name": "A-09 commit absent du plan",
+    "file": "packages/core/src/plan.ts",
+    "find": "    gitCommit: o.gitCommit ?? null,",
+    "replace": "    gitCommit: null,",
+    "tests": ["packages/core/test/catalogue-spec.test.ts", "packages/engine/test/planning.test.ts"]
+  },
+  {
+    "name": "A-13 extension « autre type = violation » réintroduite",
+    "file": "packages/core/src/hints.ts",
+    "find": "  if (hint.range && typeof value === 'number')",
+    "replace": "  if (hint.range && typeof value !== 'number') return true\n  if (hint.range && typeof value === 'number')",
+    "tests": ["packages/core/test/oracle.test.ts", "packages/core/test/observe-hints.test.ts"]
   }
 ]

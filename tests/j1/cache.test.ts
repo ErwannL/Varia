@@ -19,7 +19,9 @@ describe('cache de résultats', () => {
     cpSync(join(EXAMPLE, 'varia.yml'), join(d, 'varia.yml'))
     appendFileSync(
       join(d, 'varia.yml'),
-      'cache: { enabled: true }\nintegrity: { ignore_for_integrity: [] }\n',
+      // Deux baselines : le test non déterministe (stamp) est FLAKY et exclu ; sinon, en --quick, ses
+      // arguments changent d'un run à l'autre et ses mutations manquent (à juste titre) le cache.
+      'cache: { enabled: true }\nintegrity: { ignore_for_integrity: [] }\nbaseline: { stability_runs: 2 }\n',
     )
     const D = newDataDir()
     const run = async (...extra: string[]) =>

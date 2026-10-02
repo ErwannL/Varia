@@ -34,7 +34,6 @@ export function limitationsOf(
     'CLASS_METHODS_NOT_TARGETED',
     ...(depth === 'direct' ? ['TRANSITIVE_CALLS_NOT_MUTATED'] : []),
     'NO_DATABASE_OR_FILESYSTEM_RESET',
-    'UNHANDLED_REJECTION_NOT_DETECTED',
   ]
 }
 
@@ -181,6 +180,8 @@ export function buildReport(reader: Reader, runId: string): Report {
         test: testName.get(String(m['testId'])) ?? String(m['testName'] ?? ''),
         path: String(m['pathStr']),
         strategy: String(m['strategy']),
+        depth: Number(m['depth'] ?? 0),
+        provenance: (m['provenance'] ?? null) as Report['mutations'][number]['provenance'],
         original: summarizeValue(m['original']),
         value: summarizeValue(m['value']),
         deleted: m['op'] === 'delete',

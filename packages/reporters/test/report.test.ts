@@ -22,7 +22,7 @@ describe('rapport JSON (CDC §31)', () => {
   it('valide contre son schéma versionné', () => {
     const r = report()
     expect(reportSchema.safeParse(r).success).toBe(true)
-    expect(r.schemaVersion).toBe(1)
+    expect(r.schemaVersion).toBe(2)
   })
   it('comptes bruts, en attente, run partiel', () => {
     const r = report()
@@ -74,8 +74,7 @@ describe('rapport JSON (CDC §31)', () => {
     o.close()
   })
   it('schema/report.schema.json est à jour', () => {
-    expect(readFileSync(new URL('../schema/report.schema.json', import.meta.url), 'utf8')).toBe(
-      JSON.stringify(reportJsonSchema(), null, 2) + '\n',
-    )
+    const onDisk = readFileSync(new URL('../schema/report.schema.json', import.meta.url), 'utf8')
+    expect(JSON.parse(onDisk)).toEqual(JSON.parse(JSON.stringify(reportJsonSchema())))
   })
 })

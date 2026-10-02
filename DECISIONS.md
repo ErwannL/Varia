@@ -232,3 +232,28 @@ image par image dans Chromium en `<img>` comme dans le README.
   contient `"boom"` ; couvert par J0-9 (même fichier).
 - G-04 : le premier commit du dépôt n'est pas `docs/SPEC.md` seul précédé de rien (D-001 : `.gitattributes`
   d'abord). Non corrigeable sans réécrire l'historique (interdit) : constaté, laissé tel quel.
+
+## D-027 — 2026-10-02 — Plan, catalogues, hints, tests non déterministes (A-07, A-08, A-09, A-13, A-14)
+
+- **Plan (A-09)** : `gitCommit` ajouté au plan (`null` hors dépôt). L'empreinte d'environnement n'y est
+  PAS : elle varie d'une machine à l'autre et casserait « mêmes (projet, commit, config, graine,
+  version) ⇒ même plan, octet pour octet » (§14.3). Déviation motivée du §14.1 : elle reste dans le run,
+  le rapport (`reproducibility.envHash`) et la clé de cache. Testé : deux runs d'empreintes
+  d'environnement différentes donnent des plans identiques (`packages/engine/test/planning.test.ts`).
+- **Catalogues (A-07)** : chaînes `"123"`, `"null"`, `"true"` (stratégie `type`) ; tableaux `[null]`,
+  `[""]`, `[1]`, `[1,null,{}]` (stratégie `structure`) ; Map, Set, Buffer : vides et types voisins
+  dédiés ; le doublon « é » de `encoding` devient la forme DÉCOMPOSÉE (e + U+0301). Test exhaustif par
+  type contre la liste du §13.3 (`packages/core/test/catalogue-spec.test.ts`). Effet : plans plus grands
+  pour les chaînes et tableaux (budgets inchangés).
+- **Provenance des bornes (A-08)** : chaque mutation `boundary` porte `provenance` (declared / observed /
+  universal), jusque dans le plan, la base (données de la mutation) et le rapport. Les bornes
+  déclarées/observées sont générées avant les universelles : une valeur commune garde la provenance la
+  plus informative.
+- **Hints (A-13)** : aligné strictement sur §12.3/§18.4 — `range` ne juge qu'un nombre, `format` qu'une
+  chaîne, `length` qu'une chaîne ou un tableau ; un autre type ou un champ supprimé n'est plus une
+  `HINT_VIOLATION` (extension J1 retirée ; tests positifs et négatifs).
+- **Tests non déterministes (A-14)** : conflit §8.4 (« mutation possible mais fragile ») / J0-2 (« écart
+  d'empreinte ⇒ FLAKY »). Choix : J0-2 (normatif, partie C prime) — un test dont les empreintes
+  d'arguments diffèrent entre baselines est `FLAKY` (raison `NON_DETERMINISTIC_INPUT`), exclu du fuzz et
+  listé dans « non couvert » (tests instables). Muter un appel dont l'empreinte change d'une exécution à
+  l'autre donnerait `AMBIGUOUS_CALL_SITE` à coup sûr (J0-13) : la mutation serait de toute façon inopérante.
