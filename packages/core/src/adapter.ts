@@ -27,6 +27,10 @@ export interface DetectResult {
 
 export interface PrepareContext {
   root: string
+  /** Répertoire de travail des processus de test (`test.cwd`, résolu dans le projet). */
+  cwd?: string
+  /** Variables d'environnement des processus de test (`test.env`). */
+  env?: Record<string, string>
   tmpDir: string
   runId: string
   include: string[]
@@ -61,6 +65,8 @@ export interface AdapterRunOptions {
   maxOutputBytes?: number
   /** Collecter la couverture (baseline seulement, CDC §23). */
   coverage?: boolean
+  /** Variables propres à CETTE exécution (ex. répertoire jetable `reset.filesystem: tmpdir`). */
+  env?: Record<string, string>
 }
 
 export interface TestResult {

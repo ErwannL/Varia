@@ -51,6 +51,7 @@ npm test             # vitest
 ## Notes durables
 
 - `docs/notes/fichiers-longs.md` — exemptions de la limite de 1000 lignes (lockfiles, SPEC).
-- `docs/notes/couverture.md` — seuils de couverture par fichier (jamais abaissés), fichiers non mesurables.
+- `docs/notes/couverture.md` — couverture 100 % par fichier (porte exacte), processus enfants, fichiers `runtime/` testés par `createRequire`.
 - `docs/notes/chemins.md` — racine canonique (macOS `/private/var`, noms courts Windows), chemins POSIX dans les tests.
-- `docs/notes/sonde-jest.md` — pièges de la sonde sous Jest (instanceof, resetModules, preset, cache, ESM, mocks).
+- `docs/notes/sonde-jest.md` — pièges de la sonde sous Jest (instanceof, resetModules, preset, cache, ESM, mocks, `process` vm, sonde défensive).
+- `docs/notes/configuration.md` — accepté = implémenté : valeur non implémentée refusée (code `UNSUPPORTED_*`).

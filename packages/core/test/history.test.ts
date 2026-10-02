@@ -32,6 +32,25 @@ describe('états d’issues (CDC §20.4)', () => {
       { issueId: 'b', state: 'UNKNOWN' },
     ])
   })
+  it('run partiel : FIXED seulement si une mutation de l’issue a été rejouée (C-02)', () => {
+    const r = issueStates({
+      current: [],
+      previous: [
+        { ...c('a', 1, 'x'), mutationIds: ['m1'] },
+        { ...c('b', 1, 'x'), mutationIds: ['m2'] },
+        c('c', 1, 'x'),
+      ],
+      everSeen: new Set(),
+      executedTargets: new Set(['x']),
+      executedMutations: new Set(['m1']),
+      partial: true,
+    })
+    expect(r.absent).toEqual([
+      { issueId: 'a', state: 'FIXED' },
+      { issueId: 'b', state: 'UNKNOWN' },
+      { issueId: 'c', state: 'UNKNOWN' },
+    ])
+  })
   it('premier run : tout est NEW', () => {
     expect([
       ...issueStates({

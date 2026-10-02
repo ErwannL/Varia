@@ -192,6 +192,8 @@ export class JestAdapter implements TestAdapter {
     if (o.testName !== undefined) args.push('--testNamePattern', `^${escapeRegExp(o.testName)}$`)
     const env: NodeJS.ProcessEnv = { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1' }
     for (const k of Object.keys(env)) if (k.startsWith('VARIA_')) Reflect.deleteProperty(env, k)
+    // Environnement de test du projet (`test.env`), puis celui de l'exécution (reset), puis la sonde.
+    Object.assign(env, ctx.env ?? {}, o.env ?? {})
     const nodeOptions = testNodeOptions(env['NODE_OPTIONS'], ctx)
     if (nodeOptions !== undefined) env['NODE_OPTIONS'] = nodeOptions
     Object.assign(env, {
@@ -203,7 +205,7 @@ export class JestAdapter implements TestAdapter {
       ...(o.mutationId !== undefined ? { [PROBE_ENV.mutationId]: o.mutationId } : {}),
     })
     const proc = await runSupervised(process.execPath, args, {
-      cwd: ctx.root,
+      cwd: ctx.cwd ?? ctx.root,
       env,
       timeoutMs: o.timeoutMs,
       statusFile: statusFileIn(o.runDir),

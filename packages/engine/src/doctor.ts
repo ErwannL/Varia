@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { join } from 'node:path'
 import { newRunId, prepareContext } from './baseline.js'
 import type { EngineContext } from './context.js'
+import { guardProject } from './integrity.js'
 import { VARIA_VERSION } from './version.js'
 
 export type CapabilityStatus = 'VERIFIED' | 'NOT_VERIFIED' | 'UNSUPPORTED'
@@ -31,7 +32,16 @@ export interface DoctorReport {
  * `varia doctor` (CDC §9.2) : capacités EFFECTIVEMENT vérifiées par un test de fumée sur le projet
  * (une baseline observée + une mutation réelle), jamais seulement déclarées.
  */
-export async function doctor(ctx: EngineContext): Promise<DoctorReport> {
+export function doctor(ctx: EngineContext): Promise<DoctorReport> {
+  // Le test de fumée lance le projet : vérifié inchangé avant/après (B-01).
+  return guardProject(
+    ctx,
+    () => null,
+    () => doctorOf(ctx),
+  )
+}
+
+async function doctorOf(ctx: EngineContext): Promise<DoctorReport> {
   const detect = await ctx.adapter.detect(ctx.root)
   const declared = ctx.adapter.capabilities()
   const verified = Object.fromEntries(

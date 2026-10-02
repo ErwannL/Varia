@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { issueTitle, messages, orqeaUrl, resolveLocale, t } from '../src/index.js'
+import { configIssue, issueTitle, messages, orqeaUrl, resolveLocale, t } from '../src/index.js'
 
 describe('signature (prompt §4.1)', () => {
   it.each([
@@ -90,5 +90,17 @@ describe('titres d’issues traduits au rendu', () => {
   })
   it('type inconnu : titre d’origine', () => {
     expect(issueTitle('en', { ...base, kind: 'OTHER', title: 'brut' })).toBe('brut')
+  })
+})
+
+describe('détails d’erreur de configuration (A-06)', () => {
+  it('code connu traduit, détail inconnu rendu tel quel', () => {
+    expect(configIssue('fr', 'mutations.combine : UNSUPPORTED_COMBINE')).toMatch(
+      /^mutations\.combine : non supporté : les combinaisons/,
+    )
+    expect(configIssue('en', 'mutations.combine : UNSUPPORTED_COMBINE')).toMatch(/not supported/)
+    expect(configIssue('fr', 'version : Invalid input')).toBe('version : Invalid input')
+    expect(configIssue('fr', 'x : UNKNOWN_CODE')).toBe('x : UNKNOWN_CODE')
+    expect(configIssue('fr', 'texte libre')).toBe('texte libre')
   })
 })

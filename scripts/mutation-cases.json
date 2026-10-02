@@ -180,5 +180,82 @@
     "find": "  return isSlow(i, cfg) ? { ...c, flags: ['SLOW'] } : c",
     "replace": "  return c",
     "tests": ["packages/core/test/oracle.test.ts", "tests/j3/limits.test.ts"]
+  },
+  {
+    "name": "B-01 -uall retiré (dossier non suivi replié)",
+    "file": "packages/core/src/integrity.ts",
+    "find": "'--porcelain=v1', '-z', '-uall', '--', '.'",
+    "replace": "'--porcelain=v1', '-z', '--', '.'",
+    "tests": ["packages/engine/test/integrity.test.ts"]
+  },
+  {
+    "name": "B-01 ignore_for_integrity ignoré en mode git",
+    "file": "packages/core/src/integrity.ts",
+    "find": "    if (isIgnored(relative(root, abs).split(sep).join('/'), ignore)) continue\n",
+    "replace": "",
+    "tests": ["packages/engine/test/integrity.test.ts"]
+  },
+  {
+    "name": "B-01 stockage interne non exclu du manifeste",
+    "file": "packages/engine/src/integrity.ts",
+    "find": "ignore: [...i.ignore_for_integrity, ...(inside ? [data] : [])]",
+    "replace": "ignore: [...i.ignore_for_integrity]",
+    "tests": ["packages/engine/test/integrity.test.ts"]
+  },
+  {
+    "name": "B-01 run non marqué PROJECT_MUTATED",
+    "file": "packages/engine/src/integrity.ts",
+    "find": "    if (id !== null) {",
+    "replace": "    if (id !== null && false) {",
+    "tests": ["packages/engine/test/integrity.test.ts"]
+  },
+  {
+    "name": "B-01 baseline non gardée",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "  return guardProject(\n    ctx,\n    () => runId,\n    () =>\n      baselineOf(ctx, o, (id) => {\n        runId = id\n      }),\n  )",
+    "replace": "  return baselineOf(ctx, o, (id) => {\n    runId = id\n  })",
+    "tests": ["packages/engine/test/integrity.test.ts"]
+  },
+  {
+    "name": "C-02 référence = dernier run même partiel",
+    "file": "packages/engine/src/fuzz.ts",
+    "find": "r.id !== runId && r.state === 'COMPLETED' && !r.partial,",
+    "replace": "r.id !== runId && r.state === 'COMPLETED',",
+    "tests": ["packages/engine/test/history.test.ts"]
+  },
+  {
+    "name": "C-02 FIXED conclu par un run partiel",
+    "file": "packages/core/src/history.ts",
+    "find": "(i.partial !== true && i.executedTargets.has(p.target))",
+    "replace": "i.executedTargets.has(p.target)",
+    "tests": ["packages/core/test/history.test.ts", "packages/engine/test/history.test.ts"]
+  },
+  {
+    "name": "A-06 commande de reset jamais exécutée",
+    "file": "packages/engine/src/reset.ts",
+    "find": "  if (reset.database !== 'command') return null",
+    "replace": "  if (reset.database !== 'command' || true) return null",
+    "tests": ["packages/engine/test/reset.test.ts", "tests/j3/reset.test.ts"]
+  },
+  {
+    "name": "A-06 répertoire jetable non fourni",
+    "file": "packages/engine/src/fuzz.ts",
+    "find": "      env: filesystemEnv(ctx, runDir),\n",
+    "replace": "",
+    "tests": ["packages/engine/test/reset.test.ts"]
+  },
+  {
+    "name": "A-06 test.env non transmis",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "    env: p.test.env,\n",
+    "replace": "",
+    "tests": ["packages/engine/test/reset.test.ts", "tests/j3/reset.test.ts"]
+  },
+  {
+    "name": "A-06 valeur non implémentée acceptée (filesystem: copy)",
+    "file": "packages/config/src/schema.ts",
+    "find": "              .enum(['none', 'tmpdir'], {",
+    "replace": "              .enum(['none', 'tmpdir', 'copy'], {",
+    "tests": ["packages/config/test/config.test.ts"]
   }
 ]

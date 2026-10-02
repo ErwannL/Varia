@@ -5,6 +5,7 @@ import { prepareContext } from './baseline.js'
 import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
 import { executeMutation, type ExecutedCall } from './fuzz.js'
+import { guardProject } from './integrity.js'
 import { readPlan } from './planning.js'
 
 export interface ReplayResult {
@@ -19,11 +20,19 @@ export interface ReplayResult {
   calls: ExecutedCall[]
 }
 
-/** `varia replay <mutation-id>` : rejoue la mutation exacte du plan sauvegardé (CDC §42). */
-export async function replayMutation(
-  ctx: EngineContext,
-  mutationId: string,
-): Promise<ReplayResult> {
+/**
+ * `varia replay <mutation-id>` : rejoue la mutation exacte du plan sauvegardé (CDC §42). Le projet est
+ * vérifié inchangé avant/après (B-01) ; le run d'origine n'est pas modifié (seul un événement est noté).
+ */
+export function replayMutation(ctx: EngineContext, mutationId: string): Promise<ReplayResult> {
+  return guardProject(
+    ctx,
+    () => null,
+    () => replayOf(ctx, mutationId),
+  )
+}
+
+async function replayOf(ctx: EngineContext, mutationId: string): Promise<ReplayResult> {
   const runId = ctx.reader.runOfMutation(mutationId)
   const run = runId === null ? null : ctx.reader.getRun(runId)
   if (run === null || run.planPath === null)

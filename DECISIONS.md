@@ -257,3 +257,20 @@ image par image dans Chromium en `<img>` comme dans le README.
   d'arguments diffèrent entre baselines est `FLAKY` (raison `NON_DETERMINISTIC_INPUT`), exclu du fuzz et
   listé dans « non couvert » (tests instables). Muter un appel dont l'empreinte change d'une exécution à
   l'autre donnerait `AMBIGUOUS_CALL_SITE` à coup sûr (J0-13) : la mutation serait de toute façon inopérante.
+
+## D-028 — 2026-10-02 — Configuration, intégrité, référence de comparaison (A-06, B-01, C-02)
+
+- **A-06** : règle « accepté = implémenté » (`docs/notes/configuration.md`). `reset.environment` et
+  `reset.mocks` ne valent que `true` (un processus neuf par mutation les réinitialise toujours : `false`
+  est refusé plutôt que prétendu) ; `database: command` et `filesystem: tmpdir` implémentés ;
+  `filesystem: copy`, `combine: true`, `parallelism ≠ 1`, `isolation ≠ process`,
+  `store_raw_values: true` refusés par code (exit 3). `test.env` et `test.cwd`, acceptés mais jamais lus
+  jusqu'ici, sont appliqués aux processus de test. `test.command` n'est pas exécutée (Varia lance le
+  runner pour injecter la sonde, §5) : elle désigne le framework si `test.framework` est absent.
+- **B-01** : `guardProject` encadre baseline, fuzz, rejeu et doctor ; un run qui a modifié le projet est
+  marqué `PROJECT_MUTATED` (avec la liste des fichiers) avant l'erreur et n'est plus jamais une référence
+  ni une source d'historique (« déjà vue ») ; `-uall` ; `ignore_for_integrity` en mode git ; le stockage
+  de Varia dans le projet est exclu de la surveillance. Le rejeu ne modifie pas l'état du run d'origine.
+- **C-02** : référence = dernier run `COMPLETED` non partiel ; une issue absente n'est `FIXED` que si
+  une de ses mutations a été rejouée, ou si (run complet) sa cible l'a été ; sinon `UNKNOWN`. Même
+  exigence de run complet pour la référence de `fail_on_new_only_against`.

@@ -8,14 +8,16 @@ import {
   type Plan,
   type PlannedMutation,
 } from '@varia/core'
+import type { RunRecord } from '@varia/database'
 import { mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { prepareContext } from './baseline.js'
 import { cacheKey, projectContentHash } from './cache.js'
 import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
-import { snapshotProject, assertUnchanged } from './integrity.js'
+import { guardProject } from './integrity.js'
 import { readPlan } from './planning.js'
+import { filesystemEnv, resetDatabase, resetSucceeded } from './reset.js'
 import { probeErrorCount } from './signals.js'
 
 export interface FuzzOptions {
@@ -83,6 +85,19 @@ export async function executeMutation(
   const runDir = join(tmpDir, m.id)
   mkdirSync(runDir, { recursive: true })
   try {
+    // Reset de base avant la mutation (CDC §16.4) : un échec n'est jamais imputé à la cible.
+    const reset = await resetDatabase(ctx, join(runDir, 'reset'))
+    if (reset !== null && !resetSucceeded(reset)) {
+      return {
+        classification: { status: 'INFRA_ERROR', reason: 'RESET_FAILED', testStatus: null },
+        testDurationMs: null,
+        durationMs: reset.durationMs,
+        exitCode: reset.exitCode,
+        signal: reset.signal,
+        timedOut: reset.timedOut,
+        calls: [],
+      }
+    }
     const run = await ctx.adapter.run({
       mode: 'fuzz',
       runDir,
@@ -92,6 +107,7 @@ export async function executeMutation(
       planPath,
       mutationId: m.id,
       maxOutputBytes: ctx.config.parsed.execution.max_output_bytes,
+      env: filesystemEnv(ctx, runDir),
     })
     const mutateEvents = run.events.filter((e) => e.type === 'MUTATE_CALL' && e.mutationId === m.id)
     const appliedCall = mutateEvents.find((e) => e.applied === true)?.callId
@@ -187,12 +203,24 @@ export async function runFuzz(
   const run = ctx.reader.getRun(runId)
   if (run === null || run.planPath === null)
     throw new VariaError('PROJECT_FAILURE', `run ${runId} sans plan`)
-  const plan: Plan = readPlan(run.planPath)
-  const integrity = {
-    watchIgnored: ctx.config.parsed.integrity.watch_ignored,
-    ignore: ctx.config.parsed.integrity.ignore_for_integrity,
-  }
-  const before = snapshotProject(ctx.root, integrity)
+  const planPath = run.planPath
+  const plan: Plan = readPlan(planPath)
+  // Projet vérifié inchangé avant/après ; un run qui l'a modifié est marqué PROJECT_MUTATED (B-01).
+  return guardProject(
+    ctx,
+    () => runId,
+    () => fuzzRun(ctx, run, planPath, plan, o),
+  )
+}
+
+async function fuzzRun(
+  ctx: EngineContext,
+  run: RunRecord,
+  planPath: string,
+  plan: Plan,
+  o: FuzzOptions,
+): Promise<FuzzSummary> {
+  const runId = run.id
   const done = ctx.reader.resultIds(runId)
   const invocation = String(ctx.reader.events(runId, 'FUZZ_STARTED').length + 1)
   const tmpDir = join(ctx.dataDir, 'tmp', `${runId}-fuzz-${invocation}`)
@@ -230,13 +258,7 @@ export async function runFuzz(
         cacheMisses++
       }
       ctx.writer.event(runId, 'MUTATION_STARTED', { mutationId: m.id, invocation })
-      const r = await executeMutation(
-        ctx,
-        m,
-        run.planPath,
-        tmpDir,
-        baselineMs.get(m.testId) ?? null,
-      )
+      const r = await executeMutation(ctx, m, planPath, tmpDir, baselineMs.get(m.testId) ?? null)
       const c = r.classification
       const record = {
         mutationId: m.id,
@@ -286,7 +308,6 @@ export async function runFuzz(
       },
     })
   ctx.writer.event(runId, 'RUN_COMPLETED', { executed, pending, partial })
-  assertUnchanged(before, snapshotProject(ctx.root, integrity))
   return {
     runId,
     executed,
@@ -317,11 +338,22 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
     return [{ mutation, classification }]
   })
   const drafts = groupIssues(results, ctx.root)
+  const run = ctx.reader.getRun(runId)
+  // Référence (C-02) : dernier run COMPLET (ni partiel, ni ayant modifié le projet) de ce projet.
   const previous = ctx.reader
     .listRuns(200)
-    .find((r) => r.projectId === ctx.projectId && r.id !== runId && r.state === 'COMPLETED')
+    .find(
+      (r) =>
+        r.projectId === ctx.projectId && r.id !== runId && r.state === 'COMPLETED' && !r.partial,
+    )
+  // « Déjà vue » : dans un run valide seulement (un run PROJECT_MUTATED ne fait pas d'historique).
+  const valid = (id: string) => ctx.reader.getRun(id)?.state !== 'PROJECT_MUTATED'
   const everSeen = new Set(
-    drafts.map((d) => d.fingerprint).filter((id) => ctx.reader.issue(id) !== null),
+    drafts
+      .map((d) => d.fingerprint)
+      .filter((id) =>
+        ctx.reader.issueHistory(id).some((h) => h.runId !== runId && h.count > 0 && valid(h.runId)),
+      ),
   )
   const states = issueStates({
     current: drafts.map((d) => ({
@@ -335,9 +367,16 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
         : ctx.reader
             .issues(previous.id)
             .filter((i) => i.count > 0)
-            .map((i) => ({ id: i.id, target: i.target, count: i.count })),
+            .map((i) => ({
+              id: i.id,
+              target: i.target,
+              count: i.count,
+              mutationIds: i.mutationIds,
+            })),
     everSeen,
     executedTargets: new Set(results.map((r) => `${r.mutation.module}#${r.mutation.export}`)),
+    executedMutations: new Set(results.map((r) => r.mutation.id)),
+    partial: (run?.partial ?? false) || results.length < plan.mutations.length,
   })
   const evaluation = evaluateAcceptances(
     loadAcceptances(ctx),

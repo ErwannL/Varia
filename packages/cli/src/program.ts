@@ -22,7 +22,7 @@ import {
   VariaError,
   type ProgressEvent,
 } from '@varia/engine'
-import { orqeaUrl, resolveLocale, t, type Locale, type MessageKey } from '@varia/i18n'
+import { configIssue, orqeaUrl, resolveLocale, t, type Locale, type MessageKey } from '@varia/i18n'
 import {
   buildReport,
   ciVerdict,
@@ -41,12 +41,21 @@ import { join, resolve } from 'node:path'
 import { printer, type Io, type Printer } from './io.js'
 import { printSummary, resilienceExit } from './summary.js'
 
+/** Framework désigné par une commande de test (`npx vitest run` → vitest, `jest --ci` → jest). */
+export function frameworkOfCommand(command: string | undefined): 'jest' | 'vitest' | undefined {
+  if (command === undefined) return undefined
+  if (/\bvitest\b/.test(command)) return 'vitest'
+  return /\bjest\b/.test(command) ? 'jest' : undefined
+}
+
 /** Choix de l'adapter (le moteur n'en connaît aucun) : `test.framework`, sinon détection par dépendances. */
 export function adapterFor(root: string, configFile?: string): TestAdapter {
   let framework: string | undefined
   try {
-    framework = loadConfig(root, configFile !== undefined ? { file: configFile } : {}).parsed.test
-      .framework
+    const test = loadConfig(root, configFile !== undefined ? { file: configFile } : {}).parsed.test
+    // `test.command` n'est pas exécutée (Varia lance le runner lui-même pour injecter la sonde, §5) :
+    // elle sert à reconnaître le framework quand `test.framework` est absent.
+    framework = test.framework ?? frameworkOfCommand(test.command)
   } catch {
     framework = undefined
   }
@@ -158,6 +167,19 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
     if (p.json) p.data(report)
     else printSummary(p, report, code)
     return code
+  }
+  /** Fuzz ; si le projet a été modifié, le résumé du run (marqué PROJECT_MUTATED) est imprimé avant l'erreur. */
+  const fuzzWithSummary = async (
+    ctx: EngineContext,
+    runId: string,
+    opts: Parameters<typeof runFuzz>[2],
+  ) => {
+    try {
+      return await runFuzz(ctx, runId, opts)
+    } catch (e) {
+      if (e instanceof VariaError && e.kind === 'PROJECT_MUTATED') finishRun(ctx, runId)
+      throw e
+    }
   }
   const withCtx = async (
     mode: 'quick' | 'normal' | 'full' | undefined,
@@ -348,7 +370,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
               printPlan(savePlan(ctx, runId, readPlan(resolve(cli.cwd, o.plan))))
             else if (base.state !== 'PLANNED') printPlan(planRun(ctx, runId))
           }
-          const s = await runFuzz(ctx, runId, fuzzOpts(o, sig.signal))
+          const s = await fuzzWithSummary(ctx, runId, fuzzOpts(o, sig.signal))
           if (s.partial) p.warn('cli.fuzz.partial', { pending: s.pending })
           const code = finishRun(ctx, runId)
           return s.aborted ? EXIT.INTERRUPTED : code
@@ -396,7 +418,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
                   : {}),
               }),
             )
-            const s = await runFuzz(ctx, runId, fuzzOpts(o, sig.signal))
+            const s = await fuzzWithSummary(ctx, runId, fuzzOpts(o, sig.signal))
             if (s.partial) p.warn('cli.fuzz.partial', { pending: s.pending })
             const code = finishRun(ctx, runId)
             return s.aborted ? EXIT.INTERRUPTED : code
@@ -522,7 +544,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
               ? { changed: typeof o.changed === 'string' ? o.changed : 'HEAD' }
               : {}),
           })
-          await runFuzz(ctx, b.runId, o.cache === false ? { noCache: true } : {})
+          await fuzzWithSummary(ctx, b.runId, o.cache === false ? { noCache: true } : {})
           const report = writeOutputs(ctx, b.runId, {
             ...(o.jsonOut !== undefined ? { json: o.jsonOut } : {}),
             ...(o.junit !== undefined ? { junit: o.junit } : {}),
@@ -540,6 +562,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
                   r.projectId === ctx.projectId &&
                   r.id !== b.runId &&
                   r.state === 'COMPLETED' &&
+                  !r.partial &&
                   r.gitBranch === ci.fail_on_new_only_against,
               )
             if (ref === undefined)
@@ -683,7 +706,8 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
       const kind = e instanceof VariaError ? e.kind : 'CONFIG_FAILURE'
       p.warn('cli.error', { kind, message: t(p.locale, `err.${kind}` as MessageKey) })
       const details = e instanceof VariaError ? e.details : e.issues
-      for (const d of details.slice(0, 20)) p.warn('cli.error.detail', { detail: d })
+      for (const d of details.slice(0, 20))
+        p.warn('cli.error.detail', { detail: configIssue(p.locale, d) })
       return e instanceof VariaError ? e.exitCode : EXIT.CONFIG
     }
     p.warn('cli.error', {

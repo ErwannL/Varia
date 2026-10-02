@@ -3,10 +3,10 @@
   "thresholds": [
     {
       "pattern": "packages/adapters/jest/src/adapter.ts",
-      "statements": 95,
-      "branches": 82,
+      "statements": 96,
+      "branches": 83,
       "functions": 91,
-      "lines": 97
+      "lines": 98
     },
     {
       "pattern": "packages/adapters/jest/src/config.ts",
@@ -17,10 +17,10 @@
     },
     {
       "pattern": "packages/adapters/vitest/src/adapter.ts",
-      "statements": 92,
-      "branches": 78,
+      "statements": 95,
+      "branches": 81,
       "functions": 100,
-      "lines": 94
+      "lines": 95
     },
     {
       "pattern": "packages/api/src/server.ts",
@@ -46,8 +46,8 @@
     {
       "pattern": "packages/cli/src/program.ts",
       "statements": 84,
-      "branches": 76,
-      "functions": 87,
+      "branches": 77,
+      "functions": 88,
       "lines": 88
     },
     {
@@ -66,36 +66,36 @@
     },
     {
       "pattern": "packages/core/src/catalog.ts",
-      "statements": 94,
-      "branches": 93,
+      "statements": 95,
+      "branches": 96,
       "functions": 100,
       "lines": 98
     },
     {
       "pattern": "packages/core/src/exec/proc.ts",
       "statements": 95,
-      "branches": 90,
+      "branches": 92,
       "functions": 92,
       "lines": 96
     },
     {
       "pattern": "packages/core/src/history.ts",
       "statements": 96,
-      "branches": 83,
+      "branches": 86,
       "functions": 94,
       "lines": 95
     },
     {
       "pattern": "packages/core/src/integrity.ts",
       "statements": 100,
-      "branches": 84,
+      "branches": 87,
       "functions": 100,
       "lines": 100
     },
     {
       "pattern": "packages/core/src/issues.ts",
       "statements": 100,
-      "branches": 91,
+      "branches": 94,
       "functions": 100,
       "lines": 100
     },
@@ -109,7 +109,7 @@
     {
       "pattern": "packages/core/src/oracle.ts",
       "statements": 93,
-      "branches": 92,
+      "branches": 94,
       "functions": 100,
       "lines": 97
     },
@@ -123,7 +123,7 @@
     {
       "pattern": "packages/core/src/strategies/index.ts",
       "statements": 100,
-      "branches": 85,
+      "branches": 91,
       "functions": 100,
       "lines": 100
     },
@@ -241,31 +241,31 @@
     },
     {
       "pattern": "packages/engine/src/baseline.ts",
-      "statements": 89,
-      "branches": 74,
-      "functions": 84,
-      "lines": 94
+      "statements": 93,
+      "branches": 81,
+      "functions": 94,
+      "lines": 95
     },
     {
       "pattern": "packages/engine/src/context.ts",
-      "statements": 90,
-      "branches": 75,
-      "functions": 88,
-      "lines": 94
+      "statements": 95,
+      "branches": 83,
+      "functions": 100,
+      "lines": 95
     },
     {
       "pattern": "packages/engine/src/doctor.ts",
       "statements": 95,
-      "branches": 79,
+      "branches": 81,
       "functions": 100,
       "lines": 94
     },
     {
       "pattern": "packages/engine/src/fuzz.ts",
-      "statements": 95,
-      "branches": 76,
-      "functions": 96,
-      "lines": 97
+      "statements": 97,
+      "branches": 80,
+      "functions": 97,
+      "lines": 99
     },
     {
       "pattern": "packages/engine/src/incremental.ts",
@@ -276,10 +276,10 @@
     },
     {
       "pattern": "packages/engine/src/integrity.ts",
-      "statements": 85,
-      "branches": 83,
+      "statements": 88,
+      "branches": 84,
       "functions": 100,
-      "lines": 85
+      "lines": 88
     },
     {
       "pattern": "packages/engine/src/planning.ts",
@@ -290,14 +290,14 @@
     },
     {
       "pattern": "packages/engine/src/replay.ts",
-      "statements": 94,
+      "statements": 95,
       "branches": 61,
       "functions": 100,
-      "lines": 94
+      "lines": 95
     },
     {
       "pattern": "packages/reporters/src/build.ts",
-      "statements": 96,
+      "statements": 97,
       "branches": 77,
       "functions": 94,
       "lines": 98
@@ -305,14 +305,14 @@
     {
       "pattern": "packages/reporters/src/formats.ts",
       "statements": 100,
-      "branches": 88,
+      "branches": 89,
       "functions": 100,
       "lines": 100
     },
     {
       "pattern": "packages/reporters/src/policy.ts",
       "statements": 100,
-      "branches": 89,
+      "branches": 90,
       "functions": 100,
       "lines": 100
     },

@@ -12,6 +12,8 @@ export interface IssueCount {
   id: string
   target: string
   count: number
+  /** Mutations qui produisaient l'issue (référence) : une issue n'est FIXED que si on les a rejouées. */
+  mutationIds?: string[]
 }
 
 export interface StateInput {
@@ -22,13 +24,18 @@ export interface StateInput {
   everSeen: Set<string>
   /** Targets effectivement rejouées dans le run courant. */
   executedTargets: Set<string>
+  /** Mutations effectivement exécutées dans le run courant. */
+  executedMutations?: Set<string>
+  /** Run courant partiel (incrémental, budget, interruption) : périmètre réduit. */
+  partial?: boolean
 }
 
 /**
  * - présente maintenant : NEW (jamais vue), REGRESSION (vue jadis, absente du run de référence),
  *   UNCHANGED / IMPROVED / WORSENED (comparaison du nombre de mutations) ;
- * - absente maintenant mais présente avant : FIXED si la target a été rejouée, sinon UNKNOWN
- *   (jamais une fausse certitude).
+ * - absente maintenant mais présente avant : FIXED si une de ses mutations a été rejouée sans la
+ *   reproduire, ou (run COMPLET seulement) si sa target a été rejouée ; sinon UNKNOWN — un run partiel
+ *   ne conclut jamais FIXED hors de ce qu'il a réellement exécuté (C-02).
  */
 export function issueStates(i: StateInput): {
   present: Map<string, IssueState>
@@ -48,10 +55,11 @@ export function issueStates(i: StateInput): {
   const currentIds = new Set(i.current.map((c) => c.id))
   const absent = [...prev.values()]
     .filter((p) => !currentIds.has(p.id))
-    .map((p) => ({
-      issueId: p.id,
-      state: (i.executedTargets.has(p.target) ? 'FIXED' : 'UNKNOWN') as IssueState,
-    }))
+    .map((p) => {
+      const replayed = (p.mutationIds ?? []).some((id) => i.executedMutations?.has(id) === true)
+      const fixed = replayed || (i.partial !== true && i.executedTargets.has(p.target))
+      return { issueId: p.id, state: (fixed ? 'FIXED' : 'UNKNOWN') as IssueState }
+    })
   return { present, absent }
 }
 

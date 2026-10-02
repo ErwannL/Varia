@@ -239,6 +239,7 @@
           "environment": true,
           "mocks": true,
           "database": "none",
+          "database_command": "",
           "filesystem": "none"
         }
       },
@@ -273,21 +274,27 @@
             "environment": true,
             "mocks": true,
             "database": "none",
+            "database_command": "",
             "filesystem": "none"
           },
           "type": "object",
           "properties": {
-            "environment": { "default": true, "type": "boolean" },
-            "mocks": { "default": true, "type": "boolean" },
+            "environment": {
+              "default": true,
+              "type": "boolean",
+              "const": true
+            },
+            "mocks": { "default": true, "type": "boolean", "const": true },
             "database": {
               "default": "none",
               "type": "string",
-              "enum": ["none"]
+              "enum": ["none", "command"]
             },
+            "database_command": { "default": "", "type": "string" },
             "filesystem": {
               "default": "none",
               "type": "string",
-              "enum": ["none"]
+              "enum": ["none", "tmpdir"]
             }
           },
           "additionalProperties": false

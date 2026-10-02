@@ -138,3 +138,63 @@ describe('affichage et schéma', () => {
     expect(JSON.parse(onDisk)).toEqual(JSON.parse(JSON.stringify(jsonSchema())))
   })
 })
+
+describe('accepté = implémenté (A-06)', () => {
+  const issues = (raw: object) => {
+    try {
+      resolveConfig({ version: 1, ...raw }, '/p', null)
+      return []
+    } catch (e) {
+      return (e as ConfigError).issues
+    }
+  }
+  it.each([
+    [{ mutations: { combine: true } }, 'mutations.combine : UNSUPPORTED_COMBINE'],
+    [{ execution: { parallelism: 2 } }, 'execution.parallelism : UNSUPPORTED_PARALLELISM'],
+    [{ execution: { isolation: 'batch' } }, 'execution.isolation : UNSUPPORTED_ISOLATION'],
+    [
+      { execution: { reset: { environment: false } } },
+      'execution.reset.environment : UNSUPPORTED_RESET_ENVIRONMENT',
+    ],
+    [{ execution: { reset: { mocks: false } } }, 'execution.reset.mocks : UNSUPPORTED_RESET_MOCKS'],
+    [
+      { execution: { reset: { filesystem: 'copy' } } },
+      'execution.reset.filesystem : UNSUPPORTED_RESET_FILESYSTEM_COPY',
+    ],
+    [
+      { execution: { reset: { database: 'command' } } },
+      'execution.reset.database_command : DATABASE_COMMAND_REQUIRED',
+    ],
+    [
+      { execution: { reset: { database: 'command', database_command: '  ' } } },
+      'DATABASE_COMMAND_REQUIRED',
+    ],
+    [
+      { redaction: { store_raw_values: true } },
+      'redaction.store_raw_values : UNSUPPORTED_STORE_RAW_VALUES',
+    ],
+  ])('%j refusé avec un code explicite', (raw, issue) => {
+    expect(issues(raw).join('\n')).toContain(issue)
+  })
+  it('valeurs implémentées acceptées', () => {
+    expect(
+      issues({ execution: { reset: { environment: true, mocks: true, filesystem: 'tmpdir' } } }),
+    ).toEqual([])
+    expect(issues({ execution: { reset: { filesystem: 'none', database: 'none' } } })).toEqual([])
+    const c = resolveConfig(
+      { version: 1, execution: { reset: { database: 'command', database_command: 'make reset' } } },
+      '/p',
+      null,
+    )
+    expect(c.parsed.execution.reset).toEqual({
+      environment: true,
+      mocks: true,
+      database: 'command',
+      database_command: 'make reset',
+      filesystem: 'none',
+    })
+    expect(issues({ execution: { reset: { filesystem: 'other' } } }).join('\n')).toContain(
+      'execution.reset.filesystem : Invalid option',
+    )
+  })
+})

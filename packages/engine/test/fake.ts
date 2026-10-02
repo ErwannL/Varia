@@ -3,12 +3,13 @@ import type {
   AdapterCapabilities,
   AdapterRun,
   AdapterRunOptions,
+  PlannedMutation,
   PrepareContext,
   TestAdapter,
 } from '@varia/core'
 import type { ProbeEvent } from '@varia/probe-protocol'
 import { callSiteIdOf, fingerprint, serializeArgs, testIdOf } from '@varia/probe-runtime'
-import { mkdtempSync, realpathSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { EngineContext } from '../src/index.js'
@@ -76,7 +77,7 @@ export const proc = (over: Partial<AdapterRun['process']> = {}): AdapterRun['pro
   ...over,
 })
 
-const ev = (type: string, fields: Partial<ProbeEvent> = {}): ProbeEvent =>
+export const ev = (type: string, fields: Partial<ProbeEvent> = {}): ProbeEvent =>
   ({ protocolVersion: 1, runId: 'r', type, testId: null, timestamp: 'T', ...fields }) as ProbeEvent
 
 export interface FakeCall {
@@ -168,4 +169,74 @@ export function observeRun(tests: FakeTest[], over: Partial<AdapterRun> = {}): A
     invalidLines: 0,
     ...over,
   }
+}
+
+/** Comportement simulé de la cible face à une mutation. */
+export type Behavior = (m: PlannedMutation) => {
+  returns?: unknown
+  throws?: { name: string; message?: string; chain?: string[] }
+  process?: Partial<AdapterRun['process']>
+  extra?: ProbeEvent[]
+  testDurationMs?: number
+}
+
+/** Exécution d'une mutation simulée : la sonde applique la mutation du plan et rapporte l'issue. */
+export function fuzzRun(
+  o: AdapterRunOptions,
+  behave: Behavior = () => ({ returns: null }),
+): AdapterRun {
+  const plan = JSON.parse(readFileSync(o.planPath ?? '', 'utf8')) as {
+    mutations: PlannedMutation[]
+  }
+  const m = plan.mutations.find((x) => x.id === o.mutationId) as PlannedMutation
+  const b = behave(m)
+  const base = { testId: m.testId, callId: 1, callSiteId: m.callSiteId }
+  return {
+    process: proc(b.process),
+    tests: [
+      {
+        testId: m.testId,
+        file: m.testFile,
+        name: m.testName,
+        status: b.throws ? 'failed' : 'passed',
+        durationMs: b.testDurationMs ?? 5,
+      },
+    ],
+    events: [
+      ev('HELLO', { mode: 'fuzz', pid: 1 }),
+      ev('MUTATE_CALL', { ...base, mutationId: m.id, applied: true }),
+      ev('OBSERVE_CALL', {
+        ...base,
+        module: m.module,
+        export: m.export,
+        depth: m.depth,
+        sequence: m.sequence,
+        argsFingerprint: m.argsFingerprint,
+        mutated: true,
+      }),
+      b.throws !== undefined
+        ? ev('TARGET_THROW', {
+            ...base,
+            error: {
+              name: b.throws.name,
+              message: b.throws.message ?? '',
+              stack: '',
+              constructorChain: b.throws.chain ?? [b.throws.name, 'Error'],
+            },
+          })
+        : ev('TARGET_RETURN', {
+            ...base,
+            async: false,
+            value: (b.returns ?? null) as ProbeEvent['value'],
+          }),
+      ...(b.extra ?? []),
+    ],
+    truncatedLines: 0,
+    invalidLines: 0,
+  }
+}
+
+/** Adapter complet : observation (baseline) puis mutations selon `behave`. */
+export function scripted(tests: FakeTest[], behave?: Behavior): FakeAdapter {
+  return new FakeAdapter((o) => (o.mode === 'observe' ? observeRun(tests) : fuzzRun(o, behave)))
 }

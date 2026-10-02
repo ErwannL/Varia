@@ -278,5 +278,13 @@
   "dash.coverage.col.functions": "Fonctions",
   "dash.caps.title": "Capacités déclarées de l'adapter {adapter}",
   "dash.caps.yes": "oui",
-  "dash.caps.no": "non"
+  "dash.caps.no": "non",
+  "config.issue.UNSUPPORTED_COMBINE": "non supporté : les combinaisons de mutations (mutations.combine) ne sont pas implémentées ; une mutation porte sur un seul chemin",
+  "config.issue.UNSUPPORTED_PARALLELISM": "non supporté : exécution séquentielle seulement (parallelism: 1) ; aucun adapter n'est vérifié parallelSafe",
+  "config.issue.UNSUPPORTED_ISOLATION": "non supporté : seule l'isolation par processus (isolation: process) existe",
+  "config.issue.UNSUPPORTED_RESET_ENVIRONMENT": "non supporté : chaque mutation s'exécute dans un processus neuf, l'environnement est toujours réinitialisé (environment: true)",
+  "config.issue.UNSUPPORTED_RESET_MOCKS": "non supporté : chaque mutation s'exécute dans un processus neuf, les mocks sont toujours réinitialisés (mocks: true)",
+  "config.issue.UNSUPPORTED_RESET_FILESYSTEM_COPY": "non supporté : filesystem: copy (copie du projet) n'est pas implémenté ; utiliser none ou tmpdir",
+  "config.issue.UNSUPPORTED_STORE_RAW_VALUES": "non supporté : les valeurs brutes ne sont jamais stockées (store_raw_values: false)",
+  "config.issue.DATABASE_COMMAND_REQUIRED": "obligatoire quand reset.database vaut command"
 }

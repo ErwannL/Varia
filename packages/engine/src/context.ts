@@ -12,7 +12,7 @@ import {
   realpathSync,
   writeFileSync,
 } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { join, relative, resolve } from 'node:path'
 import pino, { type Logger } from 'pino'
 import { VariaError } from './errors.js'
 import { VARIA_VERSION } from './version.js'
@@ -46,6 +46,8 @@ export class EngineContext {
   readonly reader: Reader
   readonly log: Logger
   readonly emit: (e: ProgressEvent) => void
+  /** Répertoire de travail des processus de test (`test.cwd`, dans le projet). */
+  readonly testCwd: string
 
   constructor(o: EngineOptions) {
     try {
@@ -59,6 +61,9 @@ export class EngineContext {
     }
     this.root = this.config.root
     this.adapter = o.adapter
+    this.testCwd = resolve(this.root, this.config.parsed.test.cwd)
+    if (!existsSync(this.testCwd) || relative(this.root, this.testCwd).startsWith('..'))
+      throw new VariaError('CONFIG_FAILURE', 'test.cwd absent ou hors du projet', [this.testCwd])
     const storage = this.config.parsed.storage
     this.dataDir =
       o.dataDir !== undefined

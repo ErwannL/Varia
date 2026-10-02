@@ -51,3 +51,13 @@ export function issueTitle(
     path: i.message ?? '',
   })
 }
+
+/**
+ * Détail d'une erreur de configuration (« chemin : CODE ») : un code connu (`config.issue.<CODE>`) est
+ * traduit au rendu ; tout autre détail (message de validation) est rendu tel quel.
+ */
+export function configIssue(locale: Locale, detail: string): string {
+  const m = /^(.*) : ([A-Z][A-Z0-9_]+)$/.exec(detail)
+  const key = `config.issue.${m?.[2] ?? ''}` as MessageKey
+  return m !== null && key in messages[locale] ? `${m[1] ?? ''} : ${t(locale, key)}` : detail
+}

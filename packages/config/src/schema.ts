@@ -41,6 +41,12 @@ export const STRATEGY_NAMES = [
 
 const pair = z.tuple([z.number(), z.number()])
 
+/**
+ * Valeur acceptée par la spécification mais NON implémentée : refusée à la validation (exit 3) avec un
+ * code stable, traduit à l'affichage (`config.issue.<CODE>`). Règle J3 : accepté = implémenté.
+ */
+const unsupported = (code: string) => ({ error: code })
+
 const handledRule = z
   .object({
     name: z.string().optional(),
@@ -134,7 +140,7 @@ export const configSchema = z
         per_input: z.number().int().min(1).max(100).optional(),
         strategies: z.array(z.enum(STRATEGY_NAMES)).min(1).optional(),
         seed: z.union([z.literal('auto'), z.number().int().min(0).max(0xffffffff)]).default('auto'),
-        combine: z.literal(false).default(false),
+        combine: z.literal(false, unsupported('UNSUPPORTED_COMBINE')).default(false),
         per_target: z.record(z.string(), z.number().int().min(0)).default({}),
         limits: z
           .object({
@@ -175,8 +181,8 @@ export const configSchema = z
     execution: z
       .object({
         timeout_ms: z.number().int().min(100).max(HARD_LIMITS.timeoutMs).default(5000),
-        parallelism: z.literal(1).default(1),
-        isolation: z.literal('process').default('process'),
+        parallelism: z.literal(1, unsupported('UNSUPPORTED_PARALLELISM')).default(1),
+        isolation: z.literal('process', unsupported('UNSUPPORTED_ISOLATION')).default('process'),
         warn_after_ms: z
           .number()
           .int()
@@ -189,13 +195,35 @@ export const configSchema = z
           .default(8 * 1024 * 1024),
         reset: z
           .object({
-            environment: z.boolean().default(true),
-            mocks: z.boolean().default(true),
-            database: z.enum(['none']).default('none'),
-            filesystem: z.enum(['none']).default('none'),
+            // Une mutation = un processus neuf : environnement et mocks sont TOUJOURS réinitialisés ;
+            // les désactiver n'est pas possible (refusé plutôt que prétendu).
+            environment: z
+              .literal(true, unsupported('UNSUPPORTED_RESET_ENVIRONMENT'))
+              .default(true),
+            mocks: z.literal(true, unsupported('UNSUPPORTED_RESET_MOCKS')).default(true),
+            /** `command` : `database_command` exécutée avant chaque mutation (échec ⇒ INFRA_ERROR). */
+            database: z.enum(['none', 'command']).default('none'),
+            database_command: z.string().default(''),
+            /** `tmpdir` : répertoire jetable par mutation (`VARIA_TMPDIR`, `TMPDIR`), supprimé ensuite. */
+            filesystem: z
+              .enum(['none', 'tmpdir'], {
+                error: (i) =>
+                  i.input === 'copy' ? 'UNSUPPORTED_RESET_FILESYSTEM_COPY' : undefined,
+              })
+              .default('none'),
           })
           .strict()
-          .default({ environment: true, mocks: true, database: 'none', filesystem: 'none' }),
+          .refine((r) => r.database !== 'command' || r.database_command.trim() !== '', {
+            error: 'DATABASE_COMMAND_REQUIRED',
+            path: ['database_command'],
+          })
+          .default({
+            environment: true,
+            mocks: true,
+            database: 'none',
+            database_command: '',
+            filesystem: 'none',
+          }),
       })
       .strict()
       .default({
@@ -204,7 +232,13 @@ export const configSchema = z
         isolation: 'process',
         warn_after_ms: 30 * 60_000,
         max_output_bytes: 8 * 1024 * 1024,
-        reset: { environment: true, mocks: true, database: 'none', filesystem: 'none' },
+        reset: {
+          environment: true,
+          mocks: true,
+          database: 'none',
+          database_command: '',
+          filesystem: 'none',
+        },
       }),
     oracle: z
       .object({
@@ -228,7 +262,9 @@ export const configSchema = z
       .object({
         fields: z.array(z.string()).default(DEFAULT_REDACTION_FIELDS),
         patterns: z.array(z.string()).default([]),
-        store_raw_values: z.literal(false).default(false),
+        store_raw_values: z
+          .literal(false, unsupported('UNSUPPORTED_STORE_RAW_VALUES'))
+          .default(false),
       })
       .strict()
       .default({ fields: DEFAULT_REDACTION_FIELDS, patterns: [], store_raw_values: false }),

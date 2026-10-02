@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { runCli, type Io } from '../src/index.js'
+import { adapterFor, frameworkOfCommand, runCli, type Io } from '../src/index.js'
 
 function io() {
   const out: string[] = []
@@ -101,5 +101,24 @@ describe('erreurs de Varia (codes de sortie §27)', () => {
       verdict: 'RUNNER_NOT_FOUND',
       reasons: ['RUNNER_NOT_FOUND'],
     })
+  })
+})
+
+describe('configuration : test.command, codes non supportés (A-06)', () => {
+  it('test.command désigne le framework quand test.framework est absent', () => {
+    expect(frameworkOfCommand(undefined)).toBeUndefined()
+    expect(frameworkOfCommand('npx vitest run')).toBe('vitest')
+    expect(frameworkOfCommand('jest --ci')).toBe('jest')
+    expect(frameworkOfCommand('npm test')).toBeUndefined()
+    const d = project({ 'varia.yml': 'version: 1\ntest: { command: npx vitest run }\n' })
+    expect(adapterFor(d).id).toBe('vitest')
+  })
+  it('valeur non supportée : code de sortie 3 et message traduit', async () => {
+    const d = project({ 'varia.yml': 'version: 1\nexecution: { parallelism: 4 }\n' })
+    const r = await run(['config', '--check'], d)
+    expect(r.code).toBe(3)
+    expect(r.err.join('\n')).toContain(
+      'execution.parallelism : non supporté : exécution séquentielle',
+    )
   })
 })

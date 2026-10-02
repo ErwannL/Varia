@@ -13,6 +13,7 @@ import { join } from 'node:path'
 import { printableConfig } from '@varia/config'
 import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
+import { guardProject } from './integrity.js'
 import { probeErrorCount } from './signals.js'
 import { VARIA_VERSION } from './version.js'
 
@@ -40,6 +41,8 @@ export function prepareContext(ctx: EngineContext, runId: string, tmpDir: string
   const p = ctx.config.parsed
   return {
     root: ctx.root,
+    cwd: ctx.testCwd,
+    env: p.test.env,
     tmpDir,
     runId,
     include: p.targets.include,
@@ -76,10 +79,29 @@ export function catalogFromCalls(ctx: EngineContext, calls: ObservedCall[]): Inp
   })
 }
 
-/** Baseline + stabilité (CDC §8) : observe, compare, persiste ; aucune mutation. */
+/**
+ * Baseline + stabilité (CDC §8) : observe, compare, persiste ; aucune mutation. Le projet est vérifié
+ * inchangé avant/après (CDC §5, B-01).
+ */
 export async function runBaseline(
   ctx: EngineContext,
   o: BaselineOptions = {},
+): Promise<BaselineSummary> {
+  let runId: string | null = null
+  return guardProject(
+    ctx,
+    () => runId,
+    () =>
+      baselineOf(ctx, o, (id) => {
+        runId = id
+      }),
+  )
+}
+
+async function baselineOf(
+  ctx: EngineContext,
+  o: BaselineOptions,
+  onRun: (id: string) => void,
 ): Promise<BaselineSummary> {
   const detect = await ctx.adapter.detect(ctx.root)
   if (!detect.detected)
@@ -91,6 +113,7 @@ export async function runBaseline(
       detect.reasons,
     )
   const runId = newRunId()
+  onRun(runId)
   const git = ctx.git()
   ctx.writer.upsertProject({
     id: ctx.projectId,
