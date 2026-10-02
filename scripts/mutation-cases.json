@@ -54,5 +54,12 @@
     "find": "!BANAL.has(stableStringify(m.value)) &&",
     "replace": "",
     "tests": ["packages/core/test/oracle.test.ts"]
+  },
+  {
+    "name": "F-01 contrôle des esquives de couverture coupé",
+    "file": "scripts/check-coverage-ignores.mjs",
+    "find": "if (patterns.some((p) => p.test(line)))",
+    "replace": "if (false)",
+    "tests": ["tests/quality-scripts.test.ts"]
   }
 ]

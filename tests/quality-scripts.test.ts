@@ -55,3 +55,22 @@ describe('check-readmes', () => {
     expect(run('check-readmes.mjs', repo({ 'src/a.ts': '', 'src/README.md': '' }))).toBe(0)
   })
 })
+
+describe('check-coverage-ignores', () => {
+  const ign = (tool: string) => `/* ${tool} ${'ignore'} next */\nconst a = 1\n`
+  it.each(['v8', 'c8', 'istanbul'])('échoue sur un commentaire %s', (tool) => {
+    expect(run('check-coverage-ignores.mjs', repo({ 'src/a.ts': ign(tool) }))).toBe(1)
+  })
+  it('échoue sur un contact avec le compteur global', () => {
+    const code = `globalThis.${'__cov' + 'erage__'} = {}\n`
+    expect(run('check-coverage-ignores.mjs', repo({ 'src/a.js': code }))).toBe(1)
+  })
+  it('passe sur du code propre et ignore la documentation', () => {
+    expect(
+      run(
+        'check-coverage-ignores.mjs',
+        repo({ 'src/a.ts': 'export const a = 1\n', 'n.md': ign('v8') }),
+      ),
+    ).toBe(0)
+  })
+})

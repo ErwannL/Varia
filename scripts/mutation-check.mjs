@@ -1,10 +1,13 @@
 // Preuve que les tests peuvent échouer (règle qualité n°2, acceptation J1-6) : applique une à une des
 // mutations manuelles du code de Varia, lance les tests concernés, exige au moins un échec, restaure.
-// Usage : node scripts/mutation-check.mjs <fichier-de-cas.json>
+// Usage : node scripts/mutation-check.mjs <fichier-de-cas.json> [filtre sur le nom des cas]
 import { spawnSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 
-const cases = JSON.parse(readFileSync(process.argv[2] ?? 'scripts/mutation-cases.json', 'utf8'))
+const filter = process.argv[3]
+const cases = JSON.parse(
+  readFileSync(process.argv[2] ?? 'scripts/mutation-cases.json', 'utf8'),
+).filter((c) => filter === undefined || c.name.includes(filter))
 let ok = true
 for (const c of cases) {
   const original = readFileSync(c.file, 'utf8')
