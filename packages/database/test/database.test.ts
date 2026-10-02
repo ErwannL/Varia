@@ -4,8 +4,10 @@ import { copyFileSync, readdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { SEED_PROJECT, SEED_RUN, SEED_RUN_2, seedDatabase } from '@varia/testkit'
 import {
   MIGRATIONS_DIR,
+  backupDatabase,
   checkDatabase,
   migrate,
   openReader,
@@ -109,6 +111,41 @@ describe('migrations', () => {
 })
 
 describe('écrivaine et lectrice', () => {
+  it('run créé partiel ; site d’appel sans arguments enregistrés', () => {
+    const { w, r } = seeded()
+    w.createRun({
+      id: 'r2',
+      projectId: 'p',
+      state: 'CREATED',
+      mode: 'quick',
+      seed: 1,
+      gitCommit: null,
+      gitBranch: null,
+      variaVersion: '0.1.0',
+      configHash: 'c',
+      envHash: 'e',
+      planPath: null,
+      partial: true,
+      info: {},
+    })
+    expect(r.getRun('r2')?.partial).toBe(true)
+    expect(r.countRuns()).toBe(2)
+    w.saveCallSites('r2', [
+      {
+        callSiteId: 'c0',
+        testId: 't',
+        module: 'm',
+        export: 'f',
+        depth: 0,
+        sequence: 0,
+        argsFingerprint: 'fp',
+        args: null,
+        outcome: { kind: 'return' },
+        nonDeterministic: false,
+      },
+    ])
+    expect(r.callSites('r2')[0]?.args).toBeNull()
+  })
   it('run : création, mise à jour, lecture', () => {
     const { w, r } = seeded()
     w.updateRun('r1', {
@@ -361,5 +398,62 @@ describe('écrivaine et lectrice', () => {
     const ro = openReader(path)
     expect(() => new Writer(ro.db).event('r1', 'X')).toThrow(/readonly/i)
     ro.close()
+  })
+})
+
+describe('rétention et sauvegarde (B-03, CDC §24)', () => {
+  it('prune : garde les N runs récents ; issues et acceptations conservées ; aucun orphelin', () => {
+    const { dbPath } = seedDatabase(undefined, { second: true })
+    const o = openWriter(dbPath)
+    const w = new Writer(o.db)
+    w.addAcceptance({
+      id: 'a_1',
+      projectId: SEED_PROJECT,
+      function: 'f',
+      path: null,
+      strategy: null,
+      reason: 'r',
+      owner: null,
+      expires: null,
+    })
+    w.event(SEED_RUN, 'X')
+    const issuesBefore = o.sqlite.prepare('SELECT COUNT(*) AS n FROM issues').get()
+    expect(w.prune(SEED_PROJECT, 1)).toEqual([SEED_RUN])
+    const r = new Reader(o.db)
+    expect(r.listRuns().map((x) => x.id)).toEqual([SEED_RUN_2])
+    expect(o.sqlite.prepare('SELECT COUNT(*) AS n FROM issues').get()).toEqual(issuesBefore)
+    expect(r.acceptances(SEED_PROJECT).map((a) => a.id)).toEqual(['a_1'])
+    for (const table of [
+      'config_snapshots',
+      'tests',
+      'call_sites',
+      'inputs',
+      'targets',
+      'mutations',
+      'mutation_results',
+      'issue_occurrences',
+      'events',
+      'coverage',
+    ])
+      expect(
+        o.sqlite
+          .prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE run_id NOT IN (SELECT id FROM runs)`)
+          .get(),
+        table,
+      ).toEqual({ n: 0 })
+    expect(w.prune(SEED_PROJECT, 5)).toEqual([])
+    expect(w.prune('autre', 0)).toEqual([])
+    expect(checkDatabase(o.sqlite)).toEqual(['ok'])
+    o.close()
+  })
+  it('sauvegarde cohérente, relisible', async () => {
+    const { dbPath } = seedDatabase()
+    const o = openWriter(dbPath)
+    const dest = join(mkdtempSync(join(tmpdir(), 'varia-bak-')), 'sub', 'backup.db')
+    await backupDatabase(o.sqlite, dest)
+    o.close()
+    const copy = openReader(dest)
+    expect(new Reader(copy.db).listRuns().map((x) => x.id)).toEqual([SEED_RUN])
+    copy.close()
   })
 })

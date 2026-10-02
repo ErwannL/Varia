@@ -10,6 +10,7 @@ import {
   mkdirSync,
   readFileSync,
   realpathSync,
+  rmSync,
   writeFileSync,
 } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
@@ -31,6 +32,8 @@ export interface EngineOptions {
   mode?: 'quick' | 'normal' | 'full'
   /** Configuration hors du projet (`varia --config`). */
   configFile?: string
+  /** `--keep-tmp` : conserver les fichiers temporaires (journaux JSONL redigés, plans) (§10.6). */
+  keepTmp?: boolean
   onProgress?: (e: ProgressEvent) => void
 }
 
@@ -48,6 +51,7 @@ export class EngineContext {
   readonly emit: (e: ProgressEvent) => void
   /** Répertoire de travail des processus de test (`test.cwd`, dans le projet). */
   readonly testCwd: string
+  readonly keepTmp: boolean
 
   constructor(o: EngineOptions) {
     try {
@@ -86,6 +90,18 @@ export class EngineContext {
       pino.destination({ dest: join(this.dataDir, 'logs', 'varia.log'), sync: true, append: true }),
     )
     this.emit = o.onProgress ?? (() => undefined)
+    this.keepTmp = o.keepTmp === true
+    // Clés inconnues de la configuration : annoncées au lancement, sans bloquer (B-05).
+    for (const w of this.config.warnings) this.emit({ type: 'warning', message: `CONFIG:${w}` })
+  }
+
+  /**
+   * Supprime un dossier temporaire de run (journaux de la sonde, déjà redigés) — sauf `--keep-tmp`,
+   * qui le conserve pour diagnostic et l'annonce (CDC §10.6).
+   */
+  discardTmp(dir: string): void {
+    if (this.keepTmp) this.emit({ type: 'warning', message: `TMP_KEPT:${dir}` })
+    else rmSync(dir, { recursive: true, force: true })
   }
 
   /** Clé HMAC par projet, stockée hors du projet, stable entre runs (empreintes comparables). */

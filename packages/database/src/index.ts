@@ -1,3 +1,5 @@
 export * from './open.js'
 export * as tables from './schema.js'
-export * from './store.js'
+export * from './records.js'
+export * from './reader.js'
+export * from './writer.js'

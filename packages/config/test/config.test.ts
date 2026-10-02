@@ -79,7 +79,6 @@ describe('chargement', () => {
 describe('erreurs (code de sortie 3)', () => {
   it.each([
     [{ version: 2 }, 'version'],
-    [{ version: 1, unknown: 1 }, '(racine)'],
     [{ version: 1, execution: { timeout_ms: 10 ** 9 } }, 'execution.timeout_ms'],
     [
       { version: 1, mutations: { limits: { string_length: 10 ** 8 } } },
@@ -176,6 +175,14 @@ describe('accepté = implémenté (A-06)', () => {
   ])('%j refusé avec un code explicite', (raw, issue) => {
     expect(issues(raw).join('\n')).toContain(issue)
   })
+  it('document qui n’est pas une table : erreur à la racine', () => {
+    expect(() => resolveConfig([1] as never, '/p', null)).toThrow(ConfigError)
+    try {
+      resolveConfig([1] as never, '/p', null)
+    } catch (e) {
+      expect((e as ConfigError).issues[0]).toMatch(/^\(racine\) : /)
+    }
+  })
   it('valeurs implémentées acceptées', () => {
     expect(
       issues({ execution: { reset: { environment: true, mocks: true, filesystem: 'tmpdir' } } }),
@@ -196,5 +203,30 @@ describe('accepté = implémenté (A-06)', () => {
     expect(issues({ execution: { reset: { filesystem: 'other' } } }).join('\n')).toContain(
       'execution.reset.filesystem : Invalid option',
     )
+  })
+})
+
+describe('clés inconnues : avertissement, pas erreur (B-05, CDC §5.3)', () => {
+  it('ignorées et listées ; la configuration reste valide', () => {
+    const c = resolveConfig(
+      { version: 1, extra: 1, execution: { timeout_ms: 1000, bidule: true }, test: { truc: 'x' } },
+      '/p',
+      null,
+    )
+    expect(c.warnings).toEqual([
+      'execution.bidule : UNKNOWN_KEY',
+      'extra : UNKNOWN_KEY',
+      'test.truc : UNKNOWN_KEY',
+    ])
+    expect(c.parsed.execution.timeout_ms).toBe(1000)
+    expect(c.hash).toBe(
+      resolveConfig({ version: 1, execution: { timeout_ms: 1000 } }, '/p', null).hash,
+    )
+    expect(resolveConfig({ version: 1 }, '/p', null).warnings).toEqual([])
+  })
+  it('une valeur invalide reste une erreur (exit 3), même avec une clé inconnue', () => {
+    expect(() =>
+      resolveConfig({ version: 1, extra: 1, execution: { timeout_ms: 1 } }, '/p', null),
+    ).toThrow(ConfigError)
   })
 })

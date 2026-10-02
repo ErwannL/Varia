@@ -1,4 +1,11 @@
-import { generatePlan, serializePlan, type ObservedCall, type Plan } from '@varia/core'
+import {
+  generatePlan,
+  globToRegExpSource,
+  serializePlan,
+  type ObservedCall,
+  type Plan,
+} from '@varia/core'
+import { STRATEGY_NAMES } from '@varia/config'
 import type { Json } from '@varia/probe-protocol'
 import { randomBytes } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -57,12 +64,41 @@ export function estimateMs(baselineMs: number, _testFiles: number, mutations: nu
   return Math.round(mutations * baselineMs)
 }
 
+/**
+ * Ciblage (CDC §27, B-02) : `--test` (sous-chaîne du nom complet du test), `--file` (fichier de test
+ * ou module de la cible : chemin ou glob), `--function` (`export` ou `module#export`), `--strategy`.
+ * Toujours appliqué à la PLANIFICATION ; un ciblage qui réduit le périmètre rend le run partiel.
+ */
+export interface PlanFilters {
+  tests?: string[]
+  files?: string[]
+  functions?: string[]
+  strategies?: string[]
+}
+
+export interface PlanRunOptions {
+  seed?: number
+  maxMutations?: number
+  changed?: string
+  filters?: PlanFilters
+}
+
+const some = (list: string[] | undefined) => list !== undefined && list.length > 0
+
+/** Prédicat du ciblage sur un appel observé (nom et fichier de son test, module et export). */
+export function callFilter(
+  f: PlanFilters,
+): (c: { module: string; export: string; testName: string; testFile: string }) => boolean {
+  const files = (f.files ?? []).map((g) => new RegExp(`^${globToRegExpSource(g)}$`))
+  return (c) =>
+    (!some(f.tests) || (f.tests ?? []).some((t) => c.testName.includes(t))) &&
+    (!some(f.functions) ||
+      (f.functions ?? []).some((x) => x === c.export || x === `${c.module}#${c.export}`)) &&
+    (!some(f.files) || files.some((r) => r.test(c.testFile) || r.test(c.module)))
+}
+
 /** Génère, enregistre et persiste le plan d'un run issu d'une baseline (déterministe par graine). */
-export function planRun(
-  ctx: EngineContext,
-  runId: string,
-  o: { seed?: number; maxMutations?: number; changed?: string } = {},
-): PlanSummary {
+export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {}): PlanSummary {
   const run = ctx.reader.getRun(runId)
   if (run === null || !PLANNABLE.includes(run.state))
     throw new VariaError(
@@ -76,7 +112,26 @@ export function planRun(
     ctx.reader.tests(runId).map((t) => [t.testId, { file: t.file, name: t.name }]),
   )
   const total = Math.min(p.mutations.limits.total_mutations, o.maxMutations ?? Infinity)
-  let calls = eligibleCalls(ctx, runId)
+  const f = o.filters ?? {}
+  const unknown = (f.strategies ?? []).filter(
+    (x) => !(STRATEGY_NAMES as readonly string[]).includes(x),
+  )
+  if (unknown.length > 0) throw new VariaError('CONFIG_FAILURE', 'stratégie inconnue', unknown)
+  const all = eligibleCalls(ctx, runId)
+  const keepCall = callFilter(f)
+  let calls = all.filter((c) => {
+    const t = tests.get(c.testId)
+    return keepCall({
+      module: c.module,
+      export: c.export,
+      testName: t?.name ?? '',
+      testFile: t?.file ?? '',
+    })
+  })
+  const strategies = some(f.strategies)
+    ? ctx.config.strategies.filter((x) => (f.strategies ?? []).includes(x))
+    : ctx.config.strategies
+  const targeted = calls.length < all.length || strategies.length < ctx.config.strategies.length
   let incremental: Record<string, unknown> | null = null
   let reduced = false
   if (o.changed !== undefined) {
@@ -97,7 +152,7 @@ export function planRun(
   const plan = generatePlan(catalogFromCalls(ctx, calls), {
     seed,
     perInput: ctx.config.perInput,
-    strategies: ctx.config.strategies,
+    strategies,
     variaVersion: VARIA_VERSION,
     configHash: ctx.config.hash,
     gitCommit: run.gitCommit,
@@ -112,11 +167,18 @@ export function planRun(
     },
   })
   const summary = savePlan(ctx, runId, plan)
+  if (targeted) {
+    const info = ctx.reader.getRun(runId)?.info ?? {}
+    ctx.writer.updateRun(runId, { partial: true, info: { ...info, filters: f } })
+  }
   if (incremental !== null) {
     // Partiel seulement si le périmètre est RÉELLEMENT réduit (CDC §29, B-10) : un repli complet ou un
     // filtre qui garde tout exécute le périmètre entier ; l'étiquette suit le fait, pas l'intention.
     const info = ctx.reader.getRun(runId)?.info ?? {}
-    ctx.writer.updateRun(runId, { partial: run.partial || reduced, info: { ...info, incremental } })
+    ctx.writer.updateRun(runId, {
+      partial: run.partial || targeted || reduced,
+      info: { ...info, incremental },
+    })
   }
   return summary
 }

@@ -1,5 +1,5 @@
 import type { Classification, PlannedMutation } from '@varia/core'
-import { mkdirSync, rmSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { prepareContext } from './baseline.js'
 import type { EngineContext } from './context.js'
@@ -77,6 +77,6 @@ async function replayOf(ctx: EngineContext, mutationId: string): Promise<ReplayR
       calls,
     }
   } finally {
-    rmSync(tmpDir, { recursive: true, force: true })
+    ctx.discardTmp(tmpDir)
   }
 }

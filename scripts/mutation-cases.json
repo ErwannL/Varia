@@ -292,5 +292,47 @@
     "find": "['.git', '.varia', ...integrityOptions(ctx).ignore]",
     "replace": "['.git', '.varia']",
     "tests": ["packages/engine/test/fuzz.test.ts"]
+  },
+  {
+    "name": "oracle suggest : handled_errors écrit en table au lieu de liste",
+    "file": "packages/config/src/load.ts",
+    "find": "if (added.length > 0) doc.setIn(['oracle', 'handled_errors'], [...(handled ?? []), ...added])",
+    "replace": "for (const a of added) doc.addIn(['oracle', 'handled_errors'], a)",
+    "tests": ["packages/config/test/oracle-choices.test.ts", "packages/cli/test/commands.test.ts"]
+  },
+  {
+    "name": "oracle suggest : statuts autres que UNEXPECTED_FAILURE proposés",
+    "file": "packages/engine/src/suggest.ts",
+    "find": "if (r.status !== 'UNEXPECTED_FAILURE') continue",
+    "replace": "if (r.status === 'PASSED') continue",
+    "tests": ["packages/engine/test/suggest.test.ts"]
+  },
+  {
+    "name": "--quick et --full acceptés ensemble",
+    "file": "packages/cli/src/shared.ts",
+    "find": ".addOption(new Option('--quick').conflicts('full'))",
+    "replace": ".addOption(new Option('--quick'))",
+    "tests": ["packages/cli/test/commands.test.ts"]
+  },
+  {
+    "name": "prune --keep négatif accepté",
+    "file": "packages/cli/src/commands/admin.ts",
+    "find": "if (!Number.isInteger(keep) || keep < 0)",
+    "replace": "if (Number.isNaN(keep))",
+    "tests": ["packages/cli/test/commands.test.ts"]
+  },
+  {
+    "name": "Ctrl+C annoncé sans run à reprendre",
+    "file": "packages/cli/src/commands/run.ts",
+    "find": "if (id !== null) p().warn('cli.interrupted', { runId: id })",
+    "replace": "p().warn('cli.interrupted', { runId: String(id) })",
+    "tests": ["packages/cli/test/run-commands.test.ts"]
+  },
+  {
+    "name": ".git/info/exclude complété sans saut de ligne",
+    "file": "packages/engine/src/context.ts",
+    "find": "content.endsWith('\\n') || content === '' ? '' : '\\n'",
+    "replace": "''",
+    "tests": ["packages/engine/test/context.test.ts"]
   }
 ]

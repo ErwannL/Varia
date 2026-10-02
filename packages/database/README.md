@@ -6,7 +6,7 @@ Base SQLite locale (`better-sqlite3`, WAL) et schéma **Drizzle** (CDC §24, par
 - `src/schema.ts` — tables Drizzle (miroir exact des migrations, vérifié par un test).
 - `src/open.ts` — `openWriter` (orchestrateur, **écrivaine unique**), `openReader` (lecture seule :
   API, dashboard, rapports), `checkDatabase`.
-- `src/store.ts` — `Writer` (écritures idempotentes) et `Reader` (requêtes).
+- `src/writer.ts` — `Writer` (écritures idempotentes, purge `prune`) ; `src/reader.ts` — `Reader` (requêtes) ; `src/records.ts` — enregistrements partagés.
 - `test/` — tests.
 
 Les valeurs stockées sont déjà redigées par la sonde (`redaction.store_raw_values: false`) ; les

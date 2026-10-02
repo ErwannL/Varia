@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { mutationTimeoutMs, planRun, runBaseline, runFuzz } from '../src/index.js'
-import { context, FakeAdapter, fuzzRun, observeRun } from './fake.js'
+import { mutationTimeoutMs, planRun, runBaseline, runFuzz, type PlanFilters } from '../src/index.js'
+import { context, FakeAdapter, fuzzRun, observeRun, scripted } from './fake.js'
 
 const TESTS = [{ name: 'crée', calls: [{ args: [{ name: 'Ada', age: 3 }] }] }]
 
@@ -47,5 +47,61 @@ describe('délai d’une mutation (D-029)', () => {
     expect(fuzz.every((r) => r.timeoutMs === 3235)).toBe(true)
     expect(mutationTimeoutMs(ctx, 0)).toBe(2000)
     ctx.close()
+  })
+})
+
+describe('ciblage (B-02 : --test, --file, --function, --strategy)', () => {
+  const MANY = [
+    {
+      name: 'crée Ada',
+      file: 'tests/users.test.js',
+      calls: [{ module: 'src/users.js', export: 'createUser', args: [{ n: 'a' }] }],
+    },
+    {
+      name: 'lit',
+      file: 'tests/read.test.js',
+      calls: [{ module: 'src/read.js', export: 'read', args: [1] }],
+    },
+  ]
+  async function plan(filters: PlanFilters | undefined) {
+    const ctx = context(
+      scripted(MANY),
+      "version: 1\nmutations: { seed: 1, per_input: 3, strategies: [type, 'null'] }\n",
+    )
+    const b = await runBaseline(ctx)
+    const s = planRun(ctx, b.runId, filters === undefined ? {} : { filters })
+    const p = JSON.parse(readFileSync(s.planPath, 'utf8')) as {
+      mutations: { export: string; strategy: string }[]
+    }
+    const run = ctx.reader.getRun(b.runId)
+    ctx.close()
+    return { mutations: p.mutations, run }
+  }
+  it('sans ciblage : tout, run non partiel', async () => {
+    const r = await plan(undefined)
+    expect(new Set(r.mutations.map((m) => m.export))).toEqual(new Set(['createUser', 'read']))
+    expect([r.run?.partial, r.run?.info['filters']]).toEqual([false, undefined])
+  })
+  it.each([
+    [{ tests: ['Ada'] }, ['createUser']],
+    [{ files: ['tests/read.test.js'] }, ['read']],
+    [{ files: ['src/users.*'] }, ['createUser']],
+    [{ functions: ['read'] }, ['read']],
+    [{ functions: ['src/users.js#createUser'] }, ['createUser']],
+  ])('%j ⇒ %j, run partiel, ciblage enregistré', async (filters, exports) => {
+    const r = await plan(filters)
+    expect([...new Set(r.mutations.map((m) => m.export))]).toEqual(exports)
+    expect([r.run?.partial, r.run?.info['filters']]).toEqual([true, filters])
+  })
+  it('--strategy restreint les stratégies ; inconnue ⇒ CONFIG_FAILURE', async () => {
+    const r = await plan({ strategies: ['null'] })
+    expect(new Set(r.mutations.map((m) => m.strategy))).toEqual(new Set(['null']))
+    expect(r.run?.partial).toBe(true)
+    await expect(plan({ strategies: ['semantic'] })).rejects.toMatchObject({
+      kind: 'CONFIG_FAILURE',
+      details: ['semantic'],
+    })
+    const all = await plan({ strategies: ['type', 'null'], tests: [] })
+    expect(all.run?.partial).toBe(false)
   })
 })

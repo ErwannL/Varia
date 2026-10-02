@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { basename, join, resolve } from 'node:path'
 import { sha256, stableStringify } from '@varia/probe-runtime'
-import { parse as parseYaml, stringify as toYaml } from 'yaml'
+import { parse as parseYaml, parseDocument, stringify as toYaml } from 'yaml'
 import { z } from 'zod'
 import { configSchema, DEFAULT_HANDLED, STRATEGY_NAMES, type ParsedConfig } from './schema.js'
 
@@ -26,6 +26,8 @@ export interface HandledRuleResolved {
 }
 
 export interface ResolvedConfig {
+  /** Avertissements de validation (clés inconnues ignorées, CDC §5.3, B-05) : « chemin : CODE ». */
+  warnings: string[]
   file: string | null
   root: string
   projectName: string
@@ -60,13 +62,40 @@ function formatIssues(error: z.ZodError): string[] {
   )
 }
 
+/**
+ * Clés inconnues (CDC §5.3, B-05) : un AVERTISSEMENT, pas une erreur. Elles sont retirées (copie) et
+ * listées ; toute autre erreur (valeur invalide) reste une erreur (exit 3).
+ */
+export function withoutUnknownKeys(raw: unknown): { raw: unknown; warnings: string[] } {
+  const warnings: string[] = []
+  const current: unknown = structuredClone(raw)
+  for (;;) {
+    const result = configSchema.safeParse(current)
+    const unknown = result.success
+      ? []
+      : result.error.issues.filter((i) => i.code === 'unrecognized_keys')
+    if (unknown.length === 0) return { raw: current, warnings }
+    for (const issue of unknown) {
+      const parent = issue.path.reduce<unknown>(
+        (o, k) => (o as Record<PropertyKey, unknown>)[k],
+        current,
+      ) as Record<string, unknown>
+      for (const key of issue.keys) {
+        Reflect.deleteProperty(parent, key)
+        warnings.push(`${[...issue.path, key].join('.')} : UNKNOWN_KEY`)
+      }
+    }
+  }
+}
+
 /** Valide un objet de configuration et le résout (modes, valeurs par défaut, empreinte). */
 export function resolveConfig(
-  raw: unknown,
+  input: unknown,
   root: string,
   file: string | null,
   overrides: { mode?: 'quick' | 'normal' | 'full' } = {},
 ): ResolvedConfig {
+  const { raw, warnings } = withoutUnknownKeys(input)
   const result = configSchema.safeParse(raw)
   if (!result.success) throw new ConfigError('configuration invalide', formatIssues(result.error))
   const parsed = result.data
@@ -87,6 +116,7 @@ export function resolveConfig(
     }))
   const absRoot = resolve(root, parsed.project.path ?? '.')
   return {
+    warnings: warnings.sort(),
     file,
     root: absRoot,
     projectName: parsed.project.name ?? basename(absRoot),
@@ -139,4 +169,32 @@ export function printableConfig(config: ResolvedConfig): string {
 /** JSON Schema publié pour l'autocomplétion (CDC §4.2). */
 export function jsonSchema(): unknown {
   return z.toJSONSchema(configSchema, { io: 'input', target: 'draft-2020-12' })
+}
+
+/**
+ * `varia oracle suggest` (CDC §18.7) : ajoute à `varia.yml` les noms d'erreurs classés par
+ * l'utilisateur (HANDLED → `oracle.handled_errors`, CRASH → `oracle.crash_errors`), en conservant le
+ * reste du document (commentaires compris). Ne fait qu'ÉDITER un texte ; l'écriture, après
+ * confirmation, revient à l'appelant.
+ */
+export function applyOracleChoices(
+  text: string,
+  choices: { handled: string[]; crash: string[] },
+): string {
+  const doc = parseDocument(text.trim() === '' ? 'version: 1\n' : text)
+  const handled = (
+    doc.getIn(['oracle', 'handled_errors']) as { toJSON(): unknown } | undefined
+  )?.toJSON() as { name?: string }[] | undefined
+  const known = new Set((handled ?? []).map((h) => h.name))
+  const added = choices.handled.filter((name) => !known.has(name)).map((name) => ({ name }))
+  // `addIn` sur un chemin absent crée une table, pas une liste : la liste est réécrite entière.
+  if (added.length > 0) doc.setIn(['oracle', 'handled_errors'], [...(handled ?? []), ...added])
+  if (choices.crash.length > 0) {
+    const current = (
+      doc.getIn(['oracle', 'crash_errors']) as { toJSON(): unknown } | undefined
+    )?.toJSON() as string[] | undefined
+    const base = current ?? ['TypeError', 'ReferenceError', 'RangeError']
+    doc.setIn(['oracle', 'crash_errors'], [...new Set([...base, ...choices.crash])])
+  }
+  return doc.toString()
 }

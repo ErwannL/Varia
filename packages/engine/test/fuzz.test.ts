@@ -1,16 +1,19 @@
 // Fuzz en processus (adapter scripté) : persistance, reprise, budget, interruption, cache, acceptations.
 import { describe, expect, it } from 'vitest'
+import { existsSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   acceptanceStore,
+  EngineContext,
+  pruneRuns,
   analyze,
   loadAcceptances,
   planRun,
   readPlan,
   runBaseline,
   runFuzz,
-  type EngineContext,
 } from '../src/index.js'
-import { context, scripted } from './fake.js'
+import { context, FakeAdapter, observeRun, project, scripted } from './fake.js'
 
 const TESTS = [
   { name: 'a', calls: [{ export: 'f', args: [{ name: 'Ada' }] }] },
@@ -162,6 +165,53 @@ describe('acceptations (B-06)', () => {
     })
     analyze(ctx, id, readPlan(ctx.reader.getRun(id)?.planPath ?? ''))
     expect(ctx.reader.issues(id)).toEqual([])
+    ctx.close()
+  })
+})
+
+describe('rétention (B-03) et dossiers temporaires (B-04, A-12)', () => {
+  it('en fin de run, seuls les retention_runs derniers runs restent ; purge journalisée', async () => {
+    const ctx = context(crashF, `${YML}storage: { retention_runs: 2 }\n`)
+    const ids: string[] = []
+    for (let i = 0; i < 3; i++) {
+      const id = await planned(ctx)
+      await runFuzz(ctx, id)
+      ids.push(id)
+    }
+    expect(
+      ctx.reader
+        .listRuns()
+        .map((r) => r.id)
+        .sort(),
+    ).toEqual([ids[1], ids[2]].sort())
+    expect(ctx.reader.events(ids[2] ?? '', 'RUNS_PRUNED')[0]?.data).toEqual({ runs: [ids[0]] })
+    expect(existsSync(join(ctx.dataDir, 'plans', `${ids[0] ?? ''}.json`))).toBe(false)
+    expect(pruneRuns(ctx, 1)).toEqual([ids[1]])
+    ctx.close()
+  })
+  it('baseline en échec : dossier temporaire supprimé quand même', async () => {
+    const failing = new FakeAdapter(() => ({ ...observeRun([]), tests: null }))
+    const ctx = context(failing, YML)
+    await expect(runBaseline(ctx)).rejects.toMatchObject({ kind: 'RUNNER_FAILURE' })
+    expect(readdirSync(join(ctx.dataDir, 'tmp'))).toEqual([])
+    ctx.close()
+  })
+  it('--keep-tmp : temporaires conservés et annoncés', async () => {
+    const warnings: string[] = []
+    const root = project(YML)
+    const ctx = new EngineContext({
+      root,
+      adapter: crashF,
+      dataDir: join(root, '.data'),
+      keepTmp: true,
+      onProgress: (e) => {
+        if (e.type === 'warning') warnings.push(e.message)
+      },
+    })
+    const id = await planned(ctx)
+    await runFuzz(ctx, id)
+    expect(readdirSync(join(ctx.dataDir, 'tmp')).length).toBeGreaterThan(0)
+    expect(warnings.some((w) => w.startsWith('TMP_KEPT:'))).toBe(true)
     ctx.close()
   })
 })

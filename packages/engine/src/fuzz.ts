@@ -10,7 +10,7 @@ import {
   type PlannedMutation,
 } from '@varia/core'
 import type { RunRecord } from '@varia/database'
-import { mkdirSync, rmSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { prepareContext } from './baseline.js'
 import { cacheKey, projectContentHash } from './cache.js'
@@ -19,6 +19,7 @@ import { VariaError } from './errors.js'
 import { guardProject } from './integrity.js'
 import { readPlan } from './planning.js'
 import { filesystemEnv, resetDatabase, resetSucceeded } from './reset.js'
+import { pruneRuns } from './retention.js'
 import { probeErrorCount } from './signals.js'
 
 export interface FuzzOptions {
@@ -171,7 +172,7 @@ export async function executeMutation(
       calls,
     }
   } finally {
-    rmSync(runDir, { recursive: true, force: true })
+    ctx.discardTmp(runDir)
   }
 }
 
@@ -278,7 +279,7 @@ async function fuzzRun(
       })
     }
   } finally {
-    rmSync(tmpDir, { recursive: true, force: true })
+    ctx.discardTmp(tmpDir)
   }
   analyze(ctx, runId, plan)
   const results = ctx.reader.results(runId)
@@ -296,6 +297,7 @@ async function fuzzRun(
       },
     })
   ctx.writer.event(runId, 'RUN_COMPLETED', { executed, pending, partial })
+  pruneRuns(ctx, undefined, runId)
   return {
     runId,
     executed,

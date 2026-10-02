@@ -30,13 +30,6 @@
       "lines": 94
     },
     {
-      "pattern": "packages/cli/src/io.ts",
-      "statements": 83,
-      "branches": 100,
-      "functions": 75,
-      "lines": 77
-    },
-    {
       "pattern": "packages/cli/src/main.ts",
       "statements": 0,
       "branches": 100,
@@ -45,10 +38,10 @@
     },
     {
       "pattern": "packages/cli/src/program.ts",
-      "statements": 85,
-      "branches": 78,
-      "functions": 88,
-      "lines": 88
+      "statements": 95,
+      "branches": 90,
+      "functions": 100,
+      "lines": 95
     },
     {
       "pattern": "packages/config/src/write-schema.ts",
@@ -102,7 +95,7 @@
     {
       "pattern": "packages/core/src/observe.ts",
       "statements": 100,
-      "branches": 90,
+      "branches": 92,
       "functions": 100,
       "lines": 100
     },
@@ -241,17 +234,17 @@
     },
     {
       "pattern": "packages/engine/src/baseline.ts",
-      "statements": 93,
-      "branches": 81,
-      "functions": 94,
-      "lines": 95
+      "statements": 96,
+      "branches": 91,
+      "functions": 97,
+      "lines": 98
     },
     {
       "pattern": "packages/engine/src/context.ts",
-      "statements": 95,
-      "branches": 83,
+      "statements": 100,
+      "branches": 94,
       "functions": 100,
-      "lines": 95
+      "lines": 100
     },
     {
       "pattern": "packages/engine/src/doctor.ts",
@@ -276,10 +269,10 @@
     },
     {
       "pattern": "packages/engine/src/planning.ts",
-      "statements": 94,
-      "branches": 76,
+      "statements": 96,
+      "branches": 81,
       "functions": 100,
-      "lines": 96
+      "lines": 97
     },
     {
       "pattern": "packages/reporters/src/build.ts",

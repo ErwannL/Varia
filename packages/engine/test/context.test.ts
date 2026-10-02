@@ -4,6 +4,7 @@ import { existsSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } fr
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { canonicalRoot } from '../src/context.js'
 import { EngineContext, VariaError, EXIT, replayMutation } from '../src/index.js'
 
 const fakeAdapter: TestAdapter = {
@@ -94,5 +95,24 @@ describe('contexte du moteur', () => {
       kind: 'PROJECT_FAILURE',
     })
     ctx.close()
+  })
+  it('erreur de lecture hors ConfigError : propagée telle quelle', () => {
+    const d = project('version: 1\n')
+    expect(() => new EngineContext({ root: d, adapter: fakeAdapter, configFile: d })).toThrow(
+      /EISDIR/,
+    )
+  })
+  it('avertissements sans écouteur, empreinte sans version, racine inexistante', () => {
+    const d = project('version: 1\nbidule: 1\n')
+    const ctx = new EngineContext({ root: d, adapter: fakeAdapter, dataDir: join(d, 'data') })
+    expect(ctx.envHash(null)).toBe(ctx.envHash(''))
+    ctx.close()
+    expect(canonicalRoot(join(d, 'absent'))).toBe(join(d, 'absent'))
+  })
+  it('.git/info/exclude existant sans fin de ligne : complété sur une nouvelle ligne', () => {
+    const d = project('version: 1\nstorage: { location: project }\n', true)
+    writeFileSync(join(d, '.git', 'info', 'exclude'), '*.log')
+    new EngineContext({ root: d, adapter: fakeAdapter }).close()
+    expect(readFileSync(join(d, '.git', 'info', 'exclude'), 'utf8')).toBe('*.log\n.varia/\n')
   })
 })

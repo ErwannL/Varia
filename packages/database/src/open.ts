@@ -67,3 +67,12 @@ export function checkDatabase(sqlite: Database.Database): string[] {
     (r) => r.integrity_check,
   )
 }
+
+/** Sauvegarde cohérente de la base, même ouverte en WAL (`varia db backup`, CDC §24). */
+export async function backupDatabase(
+  sqlite: Database.Database,
+  destination: string,
+): Promise<void> {
+  mkdirSync(dirname(destination), { recursive: true })
+  await sqlite.backup(destination)
+}

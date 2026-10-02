@@ -17,8 +17,10 @@
   (branché dans `npm run check`). Fichiers `runtime/` (sonde, transform, superviseur, plugin et lanceur
   Vitest) à 100 % ; seuils par fichier restants dans `coverage-thresholds.json` (cliquet :
   `node scripts/coverage-ratchet.mjs`).
-- Fait : F-01 (outillage), F-03 (sonde en processus), A-01…A-10, A-13, B-01, C-02.
-- À faire : A-11, A-12, A-14 (affichage), A-15 (vérif), B-02…B-10, C-01, D, E, F-02, F-04 (cas
+- Fait : F-01 (outillage), F-03 (sonde en processus), A-01…A-10, A-13, B-01, B-02 (CLI découpé en
+  `commands/`, adapter injectable pour les tests, `prune`, `db check|backup`, `list`, `version`,
+  `oracle suggest`, ciblage, `--keep-tmp`), B-04, B-05 (clés inconnues = avertissement), B-06, C-02.
+- À faire : A-11, A-12, A-14 (affichage), A-15 (vérif), B-03, B-07…B-10, C-01, D, E, F-02, F-04 (cas
   restants), G, couverture 100 % des `src/` (cliquet dans `coverage-thresholds.json`).
 - Avant chaque commit touchant `packages/` : `npm run build && npm run test:coverage &&
 npm run check:coverage-exact` (la porte exacte fait partie de `npm run check`).

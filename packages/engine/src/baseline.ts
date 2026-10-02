@@ -8,7 +8,7 @@ import {
   type CoverageRow,
 } from '@varia/core'
 import { randomBytes } from 'node:crypto'
-import { mkdirSync, rmSync } from 'node:fs'
+import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { printableConfig } from '@varia/config'
 import type { EngineContext } from './context.js'
@@ -147,55 +147,9 @@ async function baselineOf(
   ctx.writer.event(runId, 'RUN_STARTED')
   ctx.writer.event(runId, 'BASELINE_STARTED')
   const tmpDir = join(ctx.dataDir, 'tmp', runId)
-  mkdirSync(tmpDir, { recursive: true })
-  await ctx.adapter.prepare(prepareContext(ctx, runId, tmpDir))
-  const observations: Observation[] = []
-  // Erreurs de la sonde et rejets non gérés pendant la baseline : comptés et rapportés (A-02, A-05).
-  let probeErrors = 0
-  let unhandledRejections = 0
-  let coverageRows: CoverageRow[] | null = null
-  const started = performance.now()
-  let firstDuration = 0
-  const timeoutMs = Math.max(120_000, ctx.config.parsed.execution.timeout_ms * 20)
-  for (let i = 0; i < ctx.config.stabilityRuns; i++) {
-    const runDir = join(tmpDir, `baseline-${i}`)
-    mkdirSync(runDir, { recursive: true })
-    const run = await ctx.adapter.run({ mode: 'observe', runDir, timeoutMs })
-    rmSync(runDir, { recursive: true, force: true })
-    if (run.tests === null) {
-      ctx.writer.updateRun(runId, { state: 'FAILED' })
-      throw new VariaError(
-        'RUNNER_FAILURE',
-        `le runner n'a produit aucun résultat (code ${String(run.process.exitCode)}${run.process.timedOut ? ', timeout' : ''})`,
-        [run.process.stderr.slice(-2000)],
-      )
-    }
-    probeErrors += probeErrorCount(run)
-    unhandledRejections += run.events.filter((e) => e.type === 'UNHANDLED_REJECTION').length
-    const obs = observationOf(run)
-    if (obs.helloCount === 0) {
-      ctx.writer.updateRun(runId, { state: 'FAILED' })
-      throw new VariaError('UNSUPPORTED_PROBE', 'la sonde ne s’est pas chargée dans le runner')
-    }
-    if (i === 0) firstDuration = run.process.durationMs
-    observations.push(obs)
-    ctx.emit({
-      type: 'baseline',
-      run: i + 1,
-      of: ctx.config.stabilityRuns,
-      passed: obs.tests.filter((t) => t.status === 'passed').length,
-      total: obs.tests.length,
-      durationMs: run.process.durationMs,
-    })
-  }
-  if (ctx.config.parsed.coverage.baseline) {
-    // Exécution séparée : l'instrumentation ne perturbe ni les durées ni la stabilité mesurées.
-    const runDir = join(tmpDir, 'coverage-run')
-    mkdirSync(runDir, { recursive: true })
-    const cov = await ctx.adapter.run({ mode: 'observe', runDir, timeoutMs, coverage: true })
-    coverageRows = cov.coverage ?? null
-  }
-  rmSync(tmpDir, { recursive: true, force: true })
+  // Dossier temporaire toujours nettoyé, même si la baseline échoue (B-04), sauf --keep-tmp.
+  const { observations, coverageRows, firstDuration, probeErrors, unhandledRejections, started } =
+    await observe(ctx, runId, tmpDir).finally(() => ctx.discardTmp(tmpDir))
   const first = observations[0] as Observation
   const stability = compareBaselines(observations)
   const flakyById = new Map(stability.flaky.map((f) => [f.testId, f.reasons]))
@@ -329,4 +283,56 @@ export function targetStatuses(
     for (const exp of d.unsupported) out.push({ module, export: exp, status: 'UNSUPPORTED' })
   }
   return out.sort((a, b) => (`${a.module}#${a.export}` < `${b.module}#${b.export}` ? -1 : 1))
+}
+
+/** Exécutions d'observation (stabilité) et couverture de baseline, dans `tmpDir`. */
+async function observe(ctx: EngineContext, runId: string, tmpDir: string) {
+  mkdirSync(tmpDir, { recursive: true })
+  await ctx.adapter.prepare(prepareContext(ctx, runId, tmpDir))
+  const observations: Observation[] = []
+  // Erreurs de la sonde et rejets non gérés pendant la baseline : comptés et rapportés (A-02, A-05).
+  let probeErrors = 0
+  let unhandledRejections = 0
+  let coverageRows: CoverageRow[] | null = null
+  const started = performance.now()
+  let firstDuration = 0
+  const timeoutMs = Math.max(120_000, ctx.config.parsed.execution.timeout_ms * 20)
+  for (let i = 0; i < ctx.config.stabilityRuns; i++) {
+    const runDir = join(tmpDir, `baseline-${i}`)
+    mkdirSync(runDir, { recursive: true })
+    const run = await ctx.adapter.run({ mode: 'observe', runDir, timeoutMs })
+    if (run.tests === null) {
+      ctx.writer.updateRun(runId, { state: 'FAILED' })
+      throw new VariaError(
+        'RUNNER_FAILURE',
+        `le runner n'a produit aucun résultat (code ${String(run.process.exitCode)}${run.process.timedOut ? ', timeout' : ''})`,
+        [run.process.stderr.slice(-2000)],
+      )
+    }
+    probeErrors += probeErrorCount(run)
+    unhandledRejections += run.events.filter((e) => e.type === 'UNHANDLED_REJECTION').length
+    const obs = observationOf(run)
+    if (obs.helloCount === 0) {
+      ctx.writer.updateRun(runId, { state: 'FAILED' })
+      throw new VariaError('UNSUPPORTED_PROBE', 'la sonde ne s’est pas chargée dans le runner')
+    }
+    if (i === 0) firstDuration = run.process.durationMs
+    observations.push(obs)
+    ctx.emit({
+      type: 'baseline',
+      run: i + 1,
+      of: ctx.config.stabilityRuns,
+      passed: obs.tests.filter((t) => t.status === 'passed').length,
+      total: obs.tests.length,
+      durationMs: run.process.durationMs,
+    })
+  }
+  if (ctx.config.parsed.coverage.baseline) {
+    // Exécution séparée : l'instrumentation ne perturbe ni les durées ni la stabilité mesurées.
+    const runDir = join(tmpDir, 'coverage-run')
+    mkdirSync(runDir, { recursive: true })
+    const cov = await ctx.adapter.run({ mode: 'observe', runDir, timeoutMs, coverage: true })
+    coverageRows = cov.coverage ?? null
+  }
+  return { observations, coverageRows, firstDuration, probeErrors, unhandledRejections, started }
 }

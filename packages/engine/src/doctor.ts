@@ -5,7 +5,7 @@ import {
   serializePlan,
   buildCatalog,
 } from '@varia/core'
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { newRunId, prepareContext } from './baseline.js'
 import type { EngineContext } from './context.js'
@@ -128,7 +128,7 @@ async function doctorOf(ctx: EngineContext): Promise<DoctorReport> {
     }
     return { ...base, verdict: 'OK' }
   } finally {
-    rmSync(tmpDir, { recursive: true, force: true })
+    ctx.discardTmp(tmpDir)
   }
 }
 
