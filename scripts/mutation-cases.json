@@ -488,5 +488,40 @@
     "find": ": s === 'MEDIUM' ? 'warning' : 'note'",
     "replace": ": 'warning'",
     "tests": ["packages/reporters/test/edge.test.ts"]
+  },
+  {
+    "name": "plan accepte un run sans baseline valide",
+    "file": "packages/engine/src/planning.ts",
+    "find": "if (run === null || !PLANNABLE.includes(run.state))",
+    "replace": "if (run === null)",
+    "tests": ["packages/engine/test/planning.test.ts"]
+  },
+  {
+    "name": "targets hybrid : retrait inversé",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "return (m, e) => !matches(t.remove, m, e)",
+    "replace": "return (m, e) => matches(t.remove, m, e)",
+    "tests": ["packages/engine/test/baseline.test.ts"]
+  },
+  {
+    "name": "doctor : sélection par test vérifiée sans contrôle",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "f.tests !== null && ran.length === 1",
+    "replace": "f.tests !== null",
+    "tests": ["packages/engine/test/doctor.test.ts"]
+  },
+  {
+    "name": "erreur interne non-Error perdue",
+    "file": "packages/cli/src/program.ts",
+    "find": "(e as Error).stack ?? String(e)",
+    "replace": "(e as Error).stack ?? ''",
+    "tests": ["packages/cli/test/program.test.ts"]
+  },
+  {
+    "name": "incrémental : on_unknown abort ignoré",
+    "file": "packages/engine/src/incremental.ts",
+    "find": "on_unknown === 'abort'",
+    "replace": "on_unknown === 'full'",
+    "tests": ["packages/engine/test/incremental.test.ts"]
   }
 ]

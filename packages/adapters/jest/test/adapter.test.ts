@@ -1,5 +1,5 @@
 // Tests unitaires de l'adapter Jest : configuration, détection, rapport et lancement (runner simulé).
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, realpathSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -87,6 +87,37 @@ describe('configuration Jest du projet', () => {
     const entry = (c['transform'] as Record<string, [string, Record<string, unknown>]>)['x']
     expect(entry?.[1]['originalConfig']).toEqual({})
     expect(entry?.[1]['original']).toBe(join(d, 'tr.cjs'))
+  })
+  it('transformeur introuvable depuis le projet : résolu depuis jest-config (babel-jest implicite)', () => {
+    const d = dir({
+      'package.json': '{}',
+      'node_modules/jest-config/package.json': '{"name":"jest-config","main":"index.js"}',
+      'node_modules/jest-config/index.js': '',
+      'node_modules/jest-config/node_modules/tr-interne/package.json':
+        '{"name":"tr-interne","main":"index.js"}',
+      'node_modules/jest-config/node_modules/tr-interne/index.js': '',
+    })
+    const c = generateJestConfig({
+      root: d,
+      project: { transform: { x: 'tr-interne' } },
+      transformPath: '/t.cjs',
+      probePath: '/probe.cjs',
+      include: [],
+      exclude: [],
+      cacheDirectory: '/c',
+      salt: 's',
+    })
+    const entry = (c['transform'] as Record<string, [string, Record<string, unknown>]>)['x']
+    expect(entry?.[1]['original']).toBe(
+      join(
+        realpathSync(d),
+        'node_modules',
+        'jest-config',
+        'node_modules',
+        'tr-interne',
+        'index.js',
+      ),
+    )
   })
 })
 

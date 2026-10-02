@@ -6,6 +6,7 @@ import {
   type Plan,
 } from '@varia/core'
 import { STRATEGY_NAMES } from '@varia/config'
+import type { RunRecord } from '@varia/database'
 import type { Json } from '@varia/probe-protocol'
 import { randomBytes } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -111,6 +112,8 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
   const tests = new Map(
     ctx.reader.tests(runId).map((t) => [t.testId, { file: t.file, name: t.name }]),
   )
+  // Appels éligibles = appels de tests verts DE CE RUN : leur test est toujours connu.
+  const testOf = (c: ObservedCall) => tests.get(c.testId) as { file: string; name: string }
   const total = Math.min(p.mutations.limits.total_mutations, o.maxMutations ?? Infinity)
   const f = o.filters ?? {}
   const unknown = (f.strategies ?? []).filter(
@@ -119,17 +122,17 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
   if (unknown.length > 0) throw new VariaError('CONFIG_FAILURE', 'stratégie inconnue', unknown)
   const all = eligibleCalls(ctx, runId)
   const keepCall = callFilter(f)
-  let calls = all.filter((c) => {
-    const t = tests.get(c.testId)
-    return keepCall({
+  let calls = all.filter((c) =>
+    keepCall({
       module: c.module,
       export: c.export,
-      testName: t?.name ?? '',
-      testFile: t?.file ?? '',
-    })
-  })
-  const strategies = some(f.strategies)
-    ? ctx.config.strategies.filter((x) => (f.strategies ?? []).includes(x))
+      testName: testOf(c).name,
+      testFile: testOf(c).file,
+    }),
+  )
+  const wanted = f.strategies ?? []
+  const strategies = some(wanted)
+    ? ctx.config.strategies.filter((x) => wanted.includes(x))
     : ctx.config.strategies
   const targeted = calls.length < all.length || strategies.length < ctx.config.strategies.length
   let incremental: Record<string, unknown> | null = null
@@ -138,9 +141,8 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
     const scope = changedFiles(ctx.root, o.changed)
     const keep = incrementalFilter(ctx, scope)
     if (keep !== null) {
-      const fileOf = new Map(ctx.reader.tests(runId).map((t) => [t.testId, t.file]))
       const before = calls.length
-      calls = calls.filter((c) => keep({ module: c.module, testFile: fileOf.get(c.testId) ?? '' }))
+      calls = calls.filter((c) => keep({ module: c.module, testFile: testOf(c).file }))
       reduced = calls.length < before
     }
     incremental = {
@@ -167,17 +169,17 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
     },
   })
   const summary = savePlan(ctx, runId, plan)
+  // Run vérifié existant à l'entrée : son `info` est relu après `savePlan`, qui l'a enrichi.
+  const info = () => (ctx.reader.getRun(runId) as RunRecord).info
   if (targeted) {
-    const info = ctx.reader.getRun(runId)?.info ?? {}
-    ctx.writer.updateRun(runId, { partial: true, info: { ...info, filters: f } })
+    ctx.writer.updateRun(runId, { partial: true, info: { ...info(), filters: f } })
   }
   if (incremental !== null) {
     // Partiel seulement si le périmètre est RÉELLEMENT réduit (CDC §29, B-10) : un repli complet ou un
     // filtre qui garde tout exécute le périmètre entier ; l'étiquette suit le fait, pas l'intention.
-    const info = ctx.reader.getRun(runId)?.info ?? {}
     ctx.writer.updateRun(runId, {
       partial: run.partial || targeted || reduced,
-      info: { ...info, incremental },
+      info: { ...info(), incremental },
     })
   }
   return summary
@@ -185,13 +187,14 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
 
 /** Enregistre un plan (généré ou importé par `--plan`) pour un run ; il REMPLACE le plan précédent. */
 export function savePlan(ctx: EngineContext, runId: string, plan: Plan): PlanSummary {
-  const run = ctx.reader.getRun(runId)
+  // Toujours un run existant (issu d'une baseline) : `planRun` ou `varia fuzz --plan`.
+  const run = ctx.reader.getRun(runId) as RunRecord
   const planPath = join(ctx.dataDir, 'plans', `${runId}.json`)
   mkdirSync(join(ctx.dataDir, 'plans'), { recursive: true })
   writeFileSync(planPath, serializePlan(plan))
   ctx.writer.clearPlan(runId)
   ctx.writer.saveMutations(runId, plan.mutations)
-  const info = run?.info ?? {}
+  const info = run.info
   const estimate = estimateMs(
     Number(info['baselineDurationMs'] ?? 0),
     Number(info['testFiles'] ?? 1),

@@ -6,6 +6,7 @@ import {
   evaluateAcceptances,
   type Acceptance,
   type Classification,
+  type IssueState,
   type Plan,
   type PlannedMutation,
 } from '@varia/core'
@@ -292,7 +293,7 @@ async function fuzzRun(
   if (useCache)
     ctx.writer.updateRun(runId, {
       info: {
-        ...(ctx.reader.getRun(runId)?.info ?? {}),
+        ...(ctx.reader.getRun(runId) as RunRecord).info,
         cache: { hits: cacheHits, misses: cacheMisses, contentHash },
       },
     })
@@ -323,12 +324,14 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
         : {}),
       ...(r.reason !== null ? { reason: r.reason } : {}),
       ...(r.error !== null ? { error: r.error as NonNullable<Classification['error']> } : {}),
-      ...((r.flags ?? []).length > 0 ? { flags: r.flags } : {}),
+      // Relu de la base : `flags` y est toujours un tableau (colonne non nulle, `[]` par défaut).
+      ...((r.flags as string[]).length > 0 ? { flags: r.flags } : {}),
     }
     return [{ mutation, classification }]
   })
   const drafts = groupIssues(results, ctx.root)
-  const run = ctx.reader.getRun(runId)
+  // `analyze` suit toujours un fuzz : le run existe.
+  const run = ctx.reader.getRun(runId) as RunRecord
   // Référence (C-02) : dernier run COMPLET (ni partiel, ni ayant modifié le projet) de ce projet.
   const previous = ctx.reader
     .listRuns(200)
@@ -366,7 +369,7 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
     everSeen,
     executedTargets: new Set(results.map((r) => `${r.mutation.module}#${r.mutation.export}`)),
     executedMutations: new Set(results.map((r) => r.mutation.id)),
-    partial: (run?.partial ?? false) || results.length < plan.mutations.length,
+    partial: run.partial || results.length < plan.mutations.length,
   })
   const evaluation = evaluateAcceptances(
     loadAcceptances(ctx),
@@ -380,13 +383,14 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
     ctx.projectId,
     drafts.map((d) => ({
       ...d,
-      state: fullyAccepted(d) ? 'ACCEPTED' : (states.present.get(d.fingerprint) ?? 'NEW'),
+      // `issueStates` donne un état à CHAQUE issue courante.
+      state: fullyAccepted(d) ? 'ACCEPTED' : (states.present.get(d.fingerprint) as IssueState),
     })),
   )
   ctx.writer.saveAbsentIssues(runId, states.absent)
   ctx.writer.updateRun(runId, {
     info: {
-      ...(ctx.reader.getRun(runId)?.info ?? {}),
+      ...(ctx.reader.getRun(runId) as RunRecord).info,
       ...(previous !== undefined ? { comparedTo: previous.id } : {}),
       acceptances: evaluation.statuses.map((x) => ({
         ...x.acceptance,

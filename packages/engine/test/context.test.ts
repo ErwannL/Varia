@@ -1,9 +1,10 @@
 import type { TestAdapter } from '@varia/core'
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { projectDataDir } from '@varia/core'
 import { canonicalRoot } from '../src/context.js'
 import { EngineContext, VariaError, EXIT, replayMutation } from '../src/index.js'
 
@@ -114,5 +115,26 @@ describe('contexte du moteur', () => {
     writeFileSync(join(d, '.git', 'info', 'exclude'), '*.log')
     new EngineContext({ root: d, adapter: fakeAdapter }).close()
     expect(readFileSync(join(d, '.git', 'info', 'exclude'), 'utf8')).toBe('*.log\n.varia/\n')
+  })
+  it('.git sans info/exclude : fichier créé avec la seule ligne .varia/', () => {
+    const d = project('version: 1\nstorage: { location: project }\n', true)
+    rmSync(join(d, '.git', 'info'), { recursive: true, force: true })
+    new EngineContext({ root: d, adapter: fakeAdapter }).close()
+    expect(readFileSync(join(d, '.git', 'info', 'exclude'), 'utf8')).toBe('.varia/\n')
+  })
+  it('stockage par défaut : répertoire de données utilisateur, hors du projet', () => {
+    const home = realpathSync.native(mkdtempSync(join(tmpdir(), 'varia-home-')))
+    vi.stubEnv('XDG_DATA_HOME', home)
+    vi.stubEnv('LOCALAPPDATA', home)
+    try {
+      const d = project('version: 1\n')
+      const ctx = new EngineContext({ root: d, adapter: fakeAdapter })
+      ctx.close()
+      expect(ctx.dataDir).toBe(projectDataDir(d))
+      expect(existsSync(join(d, '.varia'))).toBe(false)
+      rmSync(ctx.dataDir, { recursive: true, force: true })
+    } finally {
+      vi.unstubAllEnvs()
+    }
   })
 })

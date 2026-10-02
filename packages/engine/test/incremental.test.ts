@@ -63,4 +63,16 @@ describe('--changed (CDC §29, B-10)', () => {
     })
     expect(run?.partial).toBe(false)
   })
+  it('sans git et on_unknown: abort : arrêt INFRA_FAILURE, aucun plan', async () => {
+    const root = project(
+      "version: 1\nmutations: { seed: 1, per_input: 1, strategies: ['null'] }\nincremental: { on_unknown: abort }\n",
+    )
+    const ctx = context(scripted(TESTS), undefined, root)
+    const b = await runBaseline(ctx)
+    expect(() => planRun(ctx, b.runId, { changed: 'HEAD' })).toThrow(
+      expect.objectContaining({ kind: 'INFRA_FAILURE' }),
+    )
+    expect(ctx.reader.getRun(b.runId)?.planPath).toBeNull()
+    ctx.close()
+  })
 })

@@ -1,6 +1,14 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { mutationTimeoutMs, planRun, runBaseline, runFuzz, type PlanFilters } from '../src/index.js'
+import {
+  mutationTimeoutMs,
+  planRun,
+  readPlan,
+  runBaseline,
+  runFuzz,
+  type PlanFilters,
+} from '../src/index.js'
 import { context, FakeAdapter, fuzzRun, observeRun, scripted } from './fake.js'
 
 const TESTS = [{ name: 'crée', calls: [{ args: [{ name: 'Ada', age: 3 }] }] }]
@@ -103,5 +111,35 @@ describe('ciblage (B-02 : --test, --file, --function, --strategy)', () => {
     })
     const all = await plan({ strategies: ['type', 'null'], tests: [] })
     expect(all.run?.partial).toBe(false)
+  })
+})
+
+describe('plan : refus explicites et robustesse', () => {
+  it('run inconnu ou sans baseline valide ⇒ PROJECT_FAILURE qui nomme l’état', async () => {
+    const ctx = context(scripted([{ name: 'rouge', status: 'failed', calls: [] }]))
+    const b = await runBaseline(ctx, { allowFailing: true })
+    expect(() => planRun(ctx, 'absent')).toThrow(/run absent sans baseline valide \(inconnu\)/)
+    expect(() => planRun(ctx, b.runId)).toThrow(/\(BASELINE_FAILED\)/)
+    ctx.close()
+  })
+  it('estimation sans durée de baseline enregistrée : 0, sans avertissement', async () => {
+    const ctx = context(scripted(TESTS), 'version: 1\nexecution: { warn_after_ms: 0 }\n')
+    const b = await runBaseline(ctx)
+    expect(planRun(ctx, b.runId).warn).toBe(true)
+    ctx.writer.updateRun(b.runId, { info: {} })
+    const s = planRun(ctx, b.runId)
+    expect([s.estimateMs, s.warn]).toEqual([0, false])
+    expect(s.planned).toBeGreaterThan(0)
+    ctx.close()
+  })
+  it('readPlan : fichier absent ⇒ INFRA_FAILURE ; schéma inconnu ⇒ CONFIG_FAILURE', () => {
+    const ctx = context(scripted(TESTS))
+    const path = join(ctx.dataDir, 'plan.json')
+    expect(() => readPlan(path)).toThrow(expect.objectContaining({ kind: 'INFRA_FAILURE' }))
+    for (const bad of [{ schemaVersion: 2, mutations: [] }, { schemaVersion: 1 }]) {
+      writeFileSync(path, JSON.stringify(bad))
+      expect(() => readPlan(path)).toThrow(expect.objectContaining({ kind: 'CONFIG_FAILURE' }))
+    }
+    ctx.close()
   })
 })
