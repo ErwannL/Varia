@@ -117,3 +117,68 @@ describe('signature hors application (prompt §4.2)', () => {
     expect(pkg.homepage).toBe('https://orqea.dev')
   })
 })
+
+// E-06 : lisibilité RÉELLE du logo à 16 px (rastérisé par resvg, comme le favicon), fonds clair et
+// sombre du tableau de bord. Mesures sur les pixels rendus, pas sur les couleurs déclarées.
+describe('logo à 16 px', () => {
+  const lum = ([r, g, b]: number[]) => {
+    const c = [r, g, b].map((v) => {
+      const s = (v ?? 0) / 255
+      return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+    })
+    return 0.2126 * (c[0] ?? 0) + 0.7152 * (c[1] ?? 0) + 0.0722 * (c[2] ?? 0)
+  }
+  const ratio = (a: number[], b: number[]) => {
+    const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p)
+    return ((x ?? 0) + 0.05) / ((y ?? 0) + 0.05)
+  }
+  const render = async (bg: string) => {
+    const { Resvg } = await import('@resvg/resvg-js')
+    const img = new Resvg(fixed, { fitTo: { mode: 'width', value: 16 }, background: bg }).render()
+    const at = (x: number, y: number) => {
+      const i = (y * img.width + x) * 4
+      return [img.pixels[i] ?? 0, img.pixels[i + 1] ?? 0, img.pixels[i + 2] ?? 0]
+    }
+    return { img, at }
+  }
+  const hex = (h: string) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16))
+
+  it.each([
+    ['#ffffff', 'clair'],
+    ['#0e0c1d', 'sombre'],
+  ])(
+    'fond %s (%s) : tuile distincte du fond ou glyphe lisible seul, glyphe présent',
+    async (bg) => {
+      const { img, at } = await render(bg)
+      expect([img.width, img.height]).toEqual([16, 16])
+      // Couleur de tuile mesurée au bord intérieur (hors tracés), coin du fond mesuré en (0, 0).
+      const tile = at(8, 1)
+      const back = at(0, 0)
+      expect(ratio(back, hex(bg))).toBeLessThan(1.1)
+      // Glyphe : pixels clairs (accolades blanches) et jaunes (éclair) DANS la tuile.
+      let light = 0
+      let bolt = 0
+      for (let y = 2; y < 14; y++)
+        for (let x = 2; x < 14; x++) {
+          const p = at(x, y)
+          if (ratio(p, tile) >= 3) light++
+          if ((p[0] ?? 0) > 180 && (p[1] ?? 0) > 140 && (p[2] ?? 0) < 140) bolt++
+        }
+      expect(light).toBeGreaterThanOrEqual(12)
+      expect(bolt).toBeGreaterThanOrEqual(4)
+      // Lisible : la tuile se détache du fond (≥ 3:1, WCAG 1.4.11) ; sinon le glyphe blanc doit se
+      // détacher seul du fond (≥ 4.5:1).
+      const tileVsBack = ratio(tile, back)
+      if (tileVsBack < 3) expect(ratio([255, 255, 255], back)).toBeGreaterThanOrEqual(4.5)
+      else expect(tileVsBack).toBeGreaterThanOrEqual(3)
+    },
+  )
+  it('mesures consignées : tuile/fond clair ≥ 3:1 ; fond sombre : tuile < 3:1, glyphe porteur', async () => {
+    const light = await render('#ffffff')
+    const dark = await render('#0e0c1d')
+    expect(ratio(light.at(8, 1), light.at(0, 0))).toBeGreaterThanOrEqual(3)
+    // Constat (pas un objectif) : sur fond sombre, la tuile violette contraste peu ; c'est le glyphe
+    // blanc et jaune qui porte la lisibilité. Ce test échouera si la palette change ce constat.
+    expect(ratio(dark.at(8, 1), dark.at(0, 0))).toBeLessThan(3)
+  })
+})

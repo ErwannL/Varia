@@ -544,5 +544,12 @@
     "find": "        opts.redactFields?.has(key.toLowerCase()) ||\n        opts.redactPaths?.has(childPath) ||\n        opts.redactPatterns?.some((re) => re.test(key))\n",
     "replace": "        false\n",
     "tests": ["tests/j3/secrets.test.ts"]
+  },
+  {
+    "name": "E-06 : tuile du logo illisible à 16 px",
+    "file": "brand/varia.svg",
+    "find": "<rect x=\"2\" y=\"2\" width=\"60\" height=\"60\" rx=\"15\" fill=\"#4B32D6\"/>",
+    "replace": "<rect x=\"2\" y=\"2\" width=\"60\" height=\"60\" rx=\"15\" fill=\"#F4F4F8\"/>",
+    "tests": ["tests/brand.test.ts"]
   }
 ]
