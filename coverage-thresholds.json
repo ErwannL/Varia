@@ -44,13 +44,6 @@
       "lines": 95
     },
     {
-      "pattern": "packages/config/src/write-schema.ts",
-      "statements": 0,
-      "branches": 100,
-      "functions": 100,
-      "lines": 0
-    },
-    {
       "pattern": "packages/core/src/acceptances.ts",
       "statements": 100,
       "branches": 94,
@@ -226,13 +219,6 @@
       "lines": 93
     },
     {
-      "pattern": "packages/database/src/store.ts",
-      "statements": 100,
-      "branches": 94,
-      "functions": 100,
-      "lines": 100
-    },
-    {
       "pattern": "packages/engine/src/baseline.ts",
       "statements": 96,
       "branches": 91,
@@ -294,13 +280,6 @@
       "branches": 90,
       "functions": 100,
       "lines": 100
-    },
-    {
-      "pattern": "packages/reporters/src/write-schema.ts",
-      "statements": 0,
-      "branches": 100,
-      "functions": 100,
-      "lines": 0
     },
     {
       "pattern": "packages/**",

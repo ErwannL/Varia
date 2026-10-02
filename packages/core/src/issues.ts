@@ -42,10 +42,10 @@ export function firstProjectFrame(stack: string, root: string): string | null {
     if (!line.startsWith('at ') || line.includes('node_modules') || line.includes('node:')) continue
     const m = /^at (?:(.+?) \()?(.+?):(\d+):\d+\)?$/.exec(line)
     if (!m) continue
-    const file = (m[2] ?? '').startsWith(rootSlash)
-      ? (m[2] ?? '').slice(rootSlash.length)
-      : (m[2] ?? '')
-    return `${m[1] ?? '<anonymous>'} (${file}:${m[3] ?? ''})`
+    // Groupes 2 et 3 obligatoires dans le motif : toujours présents quand `m` l'est.
+    const path = m[2] as string
+    const file = path.startsWith(rootSlash) ? path.slice(rootSlash.length) : path
+    return `${m[1] ?? '<anonymous>'} (${file}:${m[3] as string})`
   }
   return null
 }

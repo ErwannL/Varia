@@ -59,7 +59,7 @@ export function StatusBadge({
     <span className={`badge badge-${key.toLowerCase()}`} data-status={key}>
       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
         <path
-          d={STATUS_ICON[key] ?? STATUS_ICON['PENDING']}
+          d={STATUS_ICON[key]}
           fill="none"
           stroke="currentColor"
           strokeWidth="2.2"
@@ -84,7 +84,7 @@ export function SeverityBadge({ severity }: { severity: string }) {
   return (
     <span className={`badge sev-${severity.toLowerCase()}`} data-severity={severity}>
       <span aria-hidden="true" className="sev-mark">
-        {marks[severity] ?? '?'}
+        {marks[severity]}
       </span>
       <span>{t(`dash.severity.${severity}` as MessageKey)}</span>
     </span>

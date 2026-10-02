@@ -60,7 +60,7 @@ export function Compare({ a, b }: { a: string | null; b: string | null }) {
               <ul className="plain">
                 {d.diff.added.map((id) => (
                   <li key={id}>
-                    + <a href={href(['issues', id], { run: b ?? undefined })}>{id}</a>
+                    + <a href={href(['issues', id], { run: b })}>{id}</a>
                   </li>
                 ))}
               </ul>

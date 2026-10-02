@@ -79,8 +79,12 @@ export function diffIssues(a: IssueCount[], b: IssueCount[]): RunDiff {
     added: sort(b.filter((x) => !ma.has(x.id)).map((x) => x.id)),
     removed: sort(a.filter((x) => !mb.has(x.id)).map((x) => x.id)),
     changed: b
-      .filter((x) => ma.has(x.id) && ma.get(x.id) !== x.count)
-      .map((x) => ({ id: x.id, before: ma.get(x.id) ?? 0, after: x.count }))
+      .flatMap((x) => {
+        const before = ma.get(x.id)
+        return before !== undefined && before !== x.count
+          ? [{ id: x.id, before, after: x.count }]
+          : []
+      })
       .sort((x, y) => (x.id < y.id ? -1 : 1)),
     unchanged: sort(b.filter((x) => ma.get(x.id) === x.count).map((x) => x.id)),
   }

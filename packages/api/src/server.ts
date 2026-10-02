@@ -1,8 +1,9 @@
 import fastifyStatic from '@fastify/static'
 import { openReader, openWriter, Reader, Writer, type Opened } from '@varia/database'
 import { orqeaUrl } from '@varia/i18n'
-import { buildReport } from '@varia/reporters'
+import { buildReport, byId } from '@varia/reporters'
 import { diffIssues } from '@varia/core'
+import { VARIA_VERSION } from '@varia/engine'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
@@ -10,7 +11,8 @@ import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const API_VERSION = 'v1'
-export const VARIA_VERSION = '0.1.0'
+/** Version unique, définie par `@varia/engine` (aucune copie locale). */
+export { VARIA_VERSION }
 export const DASHBOARD_DIST = resolve(
   dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -29,8 +31,8 @@ export interface ServerOptions {
 }
 
 const page = (q: { limit?: string; offset?: string }) => ({
-  limit: Math.min(Math.max(Number(q.limit ?? 50) || 50, 1), 200),
-  offset: Math.max(Number(q.offset ?? 0) || 0, 0),
+  limit: Math.min(Math.max(Number(q.limit) || 50, 1), 200),
+  offset: Math.max(Number(q.offset) || 0, 0),
 })
 
 /**
@@ -58,6 +60,19 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
     )
   })
   app.addHook('onClose', async () => db?.close())
+
+  // Anti « DNS rebinding » : seul un en-tête Host de boucle locale (et, en écoute, le port lié) passe.
+  const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'])
+  app.addHook('onRequest', async (req, reply) => {
+    const m = /^(\[[^\]]*\]|[^:]*)(?::(\d+))?$/.exec(req.headers.host ?? '')
+    const address = app.server.address()
+    const bound = typeof address === 'object' && address !== null ? address.port : null
+    const ok =
+      m !== null &&
+      LOCAL_HOSTS.has(String(m[1]).toLowerCase()) &&
+      (bound === null || Number(m[2]) === bound)
+    if (!ok) return reply.code(403).send({ error: 'FORBIDDEN_HOST' })
+  })
 
   // Écritures publiques limitées aux acceptations (CDC §25.1), avec un jeton local par démarrage.
   const token = randomBytes(24).toString('hex')
@@ -100,17 +115,19 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
     const str = (v: unknown) =>
       typeof v === 'string' && v.trim() !== '' ? v.trim().slice(0, 500) : null
     const project = need().listRuns(1)[0]?.projectId
-    if (str(b.function) === null || str(b.reason) === null || project === undefined)
+    const fn = str(b.function)
+    const reason = str(b.reason)
+    if (fn === null || reason === null || project === undefined)
       return reply.code(400).send({ error: 'INVALID_ACCEPTANCE' })
     if (str(b.expires) !== null && !/^\d{4}-\d{2}-\d{2}$/.test(String(b.expires)))
       return reply.code(400).send({ error: 'INVALID_EXPIRES' })
     const a = {
       id: `a_${randomBytes(5).toString('hex')}`,
       projectId: project,
-      function: str(b.function) ?? '',
+      function: fn,
       path: str(b.path),
       strategy: str(b.strategy),
-      reason: str(b.reason) ?? '',
+      reason,
       owner: str(b.owner),
       expires: str(b.expires),
     }
@@ -168,16 +185,16 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
   app.get<{
     Params: { id: string }
     Querystring: { severity?: string; limit?: string; offset?: string }
-  }>('/api/v1/runs/:id/issues', async (req) => {
+  }>('/api/v1/runs/:id/issues', async (req, reply) => {
+    if (need().getRun(req.params.id) === null)
+      return reply.code(404).send({ error: 'RUN_NOT_FOUND' })
     const { limit, offset } = page(req.query)
     const order = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']
     const all = need()
       .issues(req.params.id)
       .filter((i) => i.count > 0)
       .filter((i) => req.query.severity === undefined || i.severity === req.query.severity)
-      .sort(
-        (a, b) => order.indexOf(a.severity) - order.indexOf(b.severity) || (a.id < b.id ? -1 : 1),
-      )
+      .sort((a, b) => order.indexOf(a.severity) - order.indexOf(b.severity) || byId(a, b))
     return { total: all.length, limit, offset, items: all.slice(offset, offset + limit) }
   })
   app.get<{
@@ -277,6 +294,8 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
       if (issue === null) return reply.code(404).send({ error: 'ISSUE_NOT_FOUND' })
       const history = r.issueHistory(req.params.id)
       const runId = req.query.run ?? history[history.length - 1]?.runId
+      if (runId !== undefined && r.getRun(runId) === null)
+        return reply.code(404).send({ error: 'RUN_NOT_FOUND' })
       const occurrence = history.find((h) => h.runId === runId) ?? null
       const muts =
         runId === undefined
@@ -285,9 +304,11 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
       return { issue, occurrence, mutations: muts }
     },
   )
-  app.get<{ Params: { id: string } }>('/api/v1/issues/:id/history', async (req) =>
-    need().issueHistory(req.params.id),
-  )
+  app.get<{ Params: { id: string } }>('/api/v1/issues/:id/history', async (req, reply) => {
+    const r = need()
+    if (r.issue(req.params.id) === null) return reply.code(404).send({ error: 'ISSUE_NOT_FOUND' })
+    return r.issueHistory(req.params.id)
+  })
   app.get<{ Params: { id: string }; Querystring: { run?: string } }>(
     '/api/v1/mutations/:id',
     async (req, reply) => {
@@ -302,13 +323,14 @@ export function buildServer(o: ServerOptions): { app: FastifyInstance; db: Opene
   )
 
   const dashboardDir = o.dashboardDir ?? DASHBOARD_DIST
-  if (existsSync(dashboardDir)) {
-    void app.register(fastifyStatic, { root: dashboardDir, index: ['index.html'] })
-    app.setNotFoundHandler((req, reply) => {
-      if (req.url.startsWith('/api/')) return reply.code(404).send({ error: 'NOT_FOUND' })
-      return reply.type('text/html').sendFile('index.html')
-    })
-  }
+  const dashboard = existsSync(dashboardDir)
+  if (dashboard) void app.register(fastifyStatic, { root: dashboardDir, index: ['index.html'] })
+  // Route inconnue : JSON 404 sous /api (et sans dashboard), sinon index.html (routage client).
+  app.setNotFoundHandler((req, reply) => {
+    if (!dashboard || req.url.startsWith('/api/'))
+      return reply.code(404).send({ error: 'NOT_FOUND' })
+    return reply.type('text/html').sendFile('index.html')
+  })
   return { app, db }
 }
 

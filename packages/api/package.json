@@ -14,6 +14,7 @@
   "dependencies": {
     "@fastify/static": "8.3.0",
     "@varia/database": "0.1.0",
+    "@varia/engine": "0.1.0",
     "@varia/i18n": "0.1.0",
     "@varia/reporters": "0.1.0",
     "fastify": "5.6.1",

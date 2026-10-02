@@ -9,6 +9,10 @@ import { REPORT_SCHEMA_VERSION, type Report } from './schema.js'
 
 const MAX_VALUE_CHARS = 200
 
+/** Ordre total par identifiant (ordre des unités de code), sans dépendre de l'ordre d'entrée. */
+export const byId = (a: { id: string }, b: { id: string }): number =>
+  Number(a.id > b.id) - Number(a.id < b.id)
+
 /** Valeur affichable : les grandes valeurs sont résumées (type + longueur), jamais recopiées. */
 export function summarizeValue(v: unknown): unknown {
   const s = JSON.stringify(v) ?? 'undefined'
@@ -146,21 +150,20 @@ export function buildReport(reader: Reader, runId: string): Report {
         frame: i.frame,
         count: i.count,
         mutationIds: i.mutationIds,
-        replay: `varia replay ${i.mutationIds[0] ?? ''}`,
+        replay: `varia replay ${String(i.mutationIds[0])}`,
         depth: Math.min(...depths(i.mutationIds)),
         transitive: depths(i.mutationIds).every((d) => d > 0),
       }))
       .sort(
         (a, b) =>
           ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].indexOf(a.severity) -
-            ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].indexOf(b.severity) ||
-          (a.id < b.id ? -1 : 1),
+            ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].indexOf(b.severity) || byId(a, b),
       ),
     resolvedIssues: reader
       .issues(runId)
       .filter((i) => i.count === 0)
       .map((i) => ({ id: i.id, state: i.state, target: i.target, title: i.title }))
-      .sort((a, b) => (a.id < b.id ? -1 : 1)),
+      .sort(byId),
     comparedTo: typeof info['comparedTo'] === 'string' ? info['comparedTo'] : null,
     baselineCoverage: {
       status: (info['coverage'] ?? 'DISABLED') as Report['baselineCoverage']['status'],

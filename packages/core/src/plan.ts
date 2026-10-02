@@ -174,7 +174,8 @@ export function generatePlan(catalog: InputDescriptor[], o: PlanOptions): Plan {
   }
   if (o.total !== undefined && mutations.length > o.total)
     mutations = shuffle(mutations, next).slice(0, o.total)
-  mutations.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+  // Identifiants uniques (dédupliqués par entrée) : jamais d'égalité à départager.
+  mutations.sort((a, b) => (a.id < b.id ? -1 : 1))
   return {
     schemaVersion: PLAN_SCHEMA_VERSION,
     variaVersion: o.variaVersion,

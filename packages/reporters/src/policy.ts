@@ -45,7 +45,7 @@ export function ciVerdict(r: Report, p: CiPolicy): CiVerdict {
 export function githubAnnotations(r: Report): string[] {
   return r.issues.map((i) => {
     const m = i.frame === null ? null : /\(([^():]+):(\d+)\)$/.exec(i.frame)
-    const where = m ? ` file=${m[1] ?? ''},line=${m[2] ?? ''}` : ''
+    const where = m ? ` file=${String(m[1])},line=${String(m[2])}` : ''
     const level = i.severity === 'CRITICAL' || i.severity === 'HIGH' ? 'error' : 'warning'
     const text = `${i.title} (${String(i.count)} mutations) — ${i.replay}`
       .replace(/%/g, '%25')

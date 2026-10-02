@@ -36,7 +36,7 @@ export function Acceptances() {
   const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const form = new FormData(e.currentTarget)
-    const body = Object.fromEntries(FIELDS.map((f) => [f, String(form.get(f) ?? '')]))
+    const body = Object.fromEntries(FIELDS.map((f) => [f, String(form.get(f))]))
     const res = await send('POST', '/api/v1/acceptances', body)
     setMessage(res.ok ? 'saved' : 'invalid')
     if (res.ok) setVersion((v) => v + 1)

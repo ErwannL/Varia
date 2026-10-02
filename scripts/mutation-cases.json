@@ -334,5 +334,159 @@
     "find": "content.endsWith('\\n') || content === '' ? '' : '\\n'",
     "replace": "''",
     "tests": ["packages/engine/test/context.test.ts"]
+  },
+  {
+    "name": "jest : preset introuvable ignoré",
+    "file": "packages/adapters/jest/src/config.ts",
+    "find": "if (file === null) throw new Error(`preset Jest introuvable : ${preset}`)",
+    "replace": "if (file === null) return config",
+    "tests": ["packages/adapters/jest/test/adapter.test.ts"]
+  },
+  {
+    "name": "jest : config fonction non appelée",
+    "file": "packages/adapters/jest/src/config.ts",
+    "find": "typeof mod.default === 'function' ? await (mod.default as () => unknown)() : mod.default",
+    "replace": "mod.default",
+    "tests": ["packages/adapters/jest/test/adapter.test.ts"]
+  },
+  {
+    "name": "jest : ordre d'environnement inversé",
+    "file": "packages/adapters/jest/src/adapter.ts",
+    "find": "Object.assign(env, ctx.env ?? {}, o.env ?? {})",
+    "replace": "Object.assign(env, o.env ?? {}, ctx.env ?? {})",
+    "tests": ["packages/adapters/jest/test/adapter.test.ts"]
+  },
+  {
+    "name": "jest : pending non compté sauté",
+    "file": "packages/adapters/jest/src/adapter.ts",
+    "find": "a.status === 'pending' || a.status === 'skipped'",
+    "replace": "a.status === 'skipped'",
+    "tests": ["packages/adapters/jest/test/adapter.test.ts"]
+  },
+  {
+    "name": "vitest : rapport lu malgré le timeout",
+    "file": "packages/adapters/vitest/src/adapter.ts",
+    "find": "tests: proc.timedOut ? null : parseVitestReport(proc.stdout, ctx.root)",
+    "replace": "tests: parseVitestReport(proc.stdout, ctx.root)",
+    "tests": ["packages/adapters/vitest/test/adapter.test.ts"]
+  },
+  {
+    "name": "vitest : test.cwd ignoré",
+    "file": "packages/adapters/vitest/src/adapter.ts",
+    "find": "cwd: ctx.cwd ?? ctx.root,",
+    "replace": "cwd: ctx.root,",
+    "tests": ["packages/adapters/vitest/test/adapter.test.ts"]
+  },
+  {
+    "name": "oracle : critère code ignoré",
+    "file": "packages/core/src/oracle.ts",
+    "find": "if (r.code !== undefined && e.code !== r.code) return false",
+    "replace": "",
+    "tests": ["packages/core/test/couverture-noyau.test.ts"]
+  },
+  {
+    "name": "acceptation : la dernière écrase la première",
+    "file": "packages/core/src/acceptances.ts",
+    "find": "if (!accepted.has(m.id)) accepted.set(m.id, a.id)",
+    "replace": "accepted.set(m.id, a.id)",
+    "tests": ["packages/core/test/couverture-noyau.test.ts"]
+  },
+  {
+    "name": "plan : fichier de test inconnu inventé",
+    "file": "packages/core/src/plan.ts",
+    "find": "testFile: test?.file ?? ''",
+    "replace": "testFile: test?.file ?? 'inconnu'",
+    "tests": ["packages/core/test/couverture-noyau.test.ts"]
+  },
+  {
+    "name": "catalogue : valeur tronquée mutable",
+    "file": "packages/core/src/catalog.ts",
+    "find": "if (t === 'truncated' || ",
+    "replace": "if (",
+    "tests": ["packages/core/test/couverture-noyau.test.ts"]
+  },
+  {
+    "name": "dashboard : locale fr mémorisée ignorée",
+    "file": "packages/dashboard/src/i18n.tsx",
+    "find": "if (stored === 'fr' || stored === 'en') return stored",
+    "replace": "if (stored === 'en') return stored",
+    "tests": ["packages/dashboard/test/cas-limites.test.tsx"]
+  },
+  {
+    "name": "dashboard : lien Orqea par défaut perdu",
+    "file": "packages/dashboard/src/App.tsx",
+    "find": "health.state === 'ready' ? health.data.orqeaUrl : DEFAULT_ORQEA_URL",
+    "replace": "health.state === 'ready' ? health.data.orqeaUrl : ''",
+    "tests": ["packages/dashboard/test/cas-limites.test.tsx"]
+  },
+  {
+    "name": "dashboard : cadre inaccessible jugé non embarqué",
+    "file": "packages/dashboard/src/router.ts",
+    "find": "  } catch {\n    return true",
+    "replace": "  } catch {\n    return false",
+    "tests": ["packages/dashboard/test/cas-limites.test.tsx"]
+  },
+  {
+    "name": "dashboard : pagination suivante immobile",
+    "file": "packages/dashboard/src/components/Common.tsx",
+    "find": "onClick={() => onChange(offset + limit)}",
+    "replace": "onClick={() => onChange(offset)}",
+    "tests": ["packages/dashboard/test/cas-limites.test.tsx"]
+  },
+  {
+    "name": "dashboard : suppression non affichée",
+    "file": "packages/dashboard/src/pages/Mutations.tsx",
+    "find": "d.mutation.op === 'delete'",
+    "replace": "d.mutation.op === 'remove'",
+    "tests": ["packages/dashboard/test/cas-limites.test.tsx"]
+  },
+  {
+    "name": "API : hôte forgé accepté (rebinding DNS)",
+    "file": "packages/api/src/server.ts",
+    "find": "if (!ok) return reply.code(403).send({ error: 'FORBIDDEN_HOST' })",
+    "replace": "if (ok === null) return reply.code(403).send({ error: 'FORBIDDEN_HOST' })",
+    "tests": ["packages/api/test/b08.test.ts"]
+  },
+  {
+    "name": "API : port de l'hôte non vérifié",
+    "file": "packages/api/src/server.ts",
+    "find": "(bound === null || Number(m[2]) === bound)",
+    "replace": "true",
+    "tests": ["packages/api/test/b08.test.ts"]
+  },
+  {
+    "name": "API : route inconnue sans 404 JSON",
+    "file": "packages/api/src/server.ts",
+    "find": "if (!dashboard || req.url.startsWith('/api/'))",
+    "replace": "if (req.url.startsWith('/api/v1/'))",
+    "tests": ["packages/api/test/b08.test.ts"]
+  },
+  {
+    "name": "API : historique d'issue inconnue sans 404",
+    "file": "packages/api/src/server.ts",
+    "find": "if (r.issue(req.params.id) === null) return reply.code(404).send({ error: 'ISSUE_NOT_FOUND' })",
+    "replace": "",
+    "tests": ["packages/api/test/b08.test.ts"]
+  },
+  {
+    "name": "API : version dupliquée",
+    "file": "packages/api/src/server.ts",
+    "find": "import { VARIA_VERSION } from '@varia/engine'",
+    "replace": "const VARIA_VERSION = '0.0.9'",
+    "tests": ["packages/api/test/b08.test.ts", "packages/api/test/api.test.ts"]
+  },
+  {
+    "name": "rapport : tests en échec inversés",
+    "file": "packages/reporters/src/build.ts",
+    "find": "failing: tests.filter((t) => t.status === 'failed')",
+    "replace": "failing: tests.filter((t) => t.status === 'passed')",
+    "tests": ["packages/reporters/test/build-minimal.test.ts"]
+  },
+  {
+    "name": "SARIF : gravité note perdue",
+    "file": "packages/reporters/src/formats.ts",
+    "find": ": s === 'MEDIUM' ? 'warning' : 'note'",
+    "replace": ": 'warning'",
+    "tests": ["packages/reporters/test/edge.test.ts"]
   }
 ]

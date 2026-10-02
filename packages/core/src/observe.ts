@@ -135,12 +135,9 @@ export function compareBaselines(runs: Observation[]): StabilityResult {
       if (r.size > 0) reasons.set(t.testId, r)
     }
   }
-  const flaky = first.tests
-    .filter((t) => reasons.has(t.testId))
-    .map((t) => ({
-      testId: t.testId,
-      name: t.name,
-      reasons: [...(reasons.get(t.testId) ?? [])].sort(),
-    }))
+  const flaky = first.tests.flatMap((t) => {
+    const r = reasons.get(t.testId)
+    return r === undefined ? [] : [{ testId: t.testId, name: t.name, reasons: [...r].sort() }]
+  })
   return { flaky, nonDeterministicCallSites: [...nd].sort() }
 }

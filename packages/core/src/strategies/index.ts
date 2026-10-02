@@ -13,8 +13,9 @@ import {
 
 export * from './types.js'
 
+// Un tableau sérialisé ne contient jamais `undefined` (les trous sont `{ $t: 'hole' }`).
 const firstOf = (json: Json): Json =>
-  Array.isArray(json) && json.length > 0 ? (json[0] ?? null) : 1
+  Array.isArray(json) && json.length > 0 ? (json[0] as Json) : 1
 
 /** `type` : type d'une famille voisine (CDC §13.2-13.3). */
 const type: MutationStrategy = {
@@ -190,15 +191,13 @@ const structure: MutationStrategy = {
       ]
     }
     const fields = fieldsOf(i.original) ?? {}
-    const keys = Object.keys(fields)
     const out: MutationCandidate[] = [
       set('structure', { ...fields, __varia_extra__: 'unexpected' }),
       set('structure', { $t: 'object', v: { ...fields, ['__proto__']: { polluted: true } } }),
       set('structure', { ...fields, constructor: 'not-a-function' }),
     ]
-    const first = keys[0]
-    if (first !== undefined)
-      out.push(set('structure', { ...fields, [first]: [fields[first] ?? null] }))
+    const first = Object.entries(fields)[0]
+    if (first !== undefined) out.push(set('structure', { ...fields, [first[0]]: [first[1]] }))
     return out
   },
 }

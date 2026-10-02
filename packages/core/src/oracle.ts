@@ -102,8 +102,8 @@ export function findEcho(haystack: Json, needle: Json, path = 'return'): string 
   if (stableStringify(haystack) === stableStringify(needle)) return path
   if (haystack === null || typeof haystack !== 'object') return null
   if (Array.isArray(haystack)) {
-    for (let i = 0; i < haystack.length; i++) {
-      const found = findEcho(haystack[i] ?? null, needle, `${path}[${i}]`)
+    for (const [i, item] of haystack.entries()) {
+      const found = findEcho(item, needle, `${path}[${i}]`)
       if (found !== null) return found
     }
     return null

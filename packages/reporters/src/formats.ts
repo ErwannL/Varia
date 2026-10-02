@@ -4,7 +4,8 @@ import type { Report } from './schema.js'
 export const esc = (s: unknown): string =>
   String(s).replace(
     /[&<>"']/g,
-    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] ?? c,
+    // La classe de caractères garantit une clé connue : aucune autre valeur possible.
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string,
   )
 
 /** Logo fixe inline (le rapport HTML est autonome : aucune ressource externe). */
