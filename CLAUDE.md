@@ -55,3 +55,4 @@ npm test             # vitest
 - `docs/notes/chemins.md` — racine canonique (macOS `/private/var`, noms courts Windows), chemins POSIX dans les tests.
 - `docs/notes/sonde-jest.md` — pièges de la sonde sous Jest (instanceof, resetModules, preset, cache, ESM, mocks, `process` vm, sonde défensive).
 - `docs/notes/configuration.md` — accepté = implémenté : valeur non implémentée refusée (code `UNSUPPORTED_*`).
+- `docs/notes/tests-deterministes.md` — scénarios sans dépendance à la vitesse (cibles déterministes, délais explicites).

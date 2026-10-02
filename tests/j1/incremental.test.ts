@@ -4,7 +4,7 @@ import { appendFileSync, cpSync, mkdtempSync, symlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { EXAMPLE, json, newDataDir, varia } from './helpers.js'
+import { EXAMPLE, json, newDataDir, varia, withReader } from './helpers.js'
 
 interface R {
   run: { partial: boolean }
@@ -34,23 +34,37 @@ describe('mode incrémental', () => {
     appendFileSync(join(d, 'src', 'users.js'), '\n// modification\n')
     const r = json<R>(
       await varia(
-        ['--data-dir', newDataDir(), '--json', 'test', '--quick', '--seed', '1', '--changed'],
+        // F-02 : périmètre borné (12 mutations), aucune cible qui boucle dans src/users.js.
+        [
+          '--data-dir',
+          newDataDir(),
+          '--json',
+          'test',
+          '--quick',
+          '--seed',
+          '1',
+          '--max-mutations',
+          '12',
+          '--changed',
+        ],
         d,
       ),
     )
     expect(r.incremental).toMatchObject({ scope: 'PARTIAL', changedFiles: ['src/users.js'] })
     expect(r.run.partial).toBe(true)
-    expect(r.mutations.length).toBeGreaterThan(0)
-    expect(new Set(r.mutations.map((m) => m.target))).toEqual(
-      new Set(['src/users.js#createUser', 'src/users.js#fetchUser']),
-    )
+    expect(r.mutations.length).toBe(12)
+    const users = new Set(['src/users.js#createUser', 'src/users.js#fetchUser'])
+    expect(r.mutations.every((m) => users.has(m.target))).toBe(true)
   })
-  it('sans git : repli complet annoncé (on_unknown: full)', async () => {
+  it('sans git : repli complet annoncé (on_unknown: full), run NON partiel (B-10)', async () => {
     const d = copyProject(false)
     const D = newDataDir()
     expect((await varia(['--data-dir', D, '-q', 'plan', '--quick', '--changed'], d)).code).toBe(0)
     const r = json<R>(await varia(['--data-dir', D, 'report'], d))
     expect(r.incremental).toEqual({ base: 'HEAD', changedFiles: null, scope: 'FULL_FALLBACK' })
+    // Le repli planifie le périmètre complet : le run n'est pas partiel par le périmètre (B-10) ; le
+    // rapport reste partiel tant que les mutations planifiées ne sont pas exécutées.
+    expect(withReader(D, (rd) => rd.listRuns(1)[0]?.partial)).toBe(false)
     expect(r.run.partial).toBe(true)
   })
 })

@@ -257,5 +257,26 @@
     "find": "              .enum(['none', 'tmpdir'], {",
     "replace": "              .enum(['none', 'tmpdir', 'copy'], {",
     "tests": ["packages/config/test/config.test.ts"]
+  },
+  {
+    "name": "A-11 le run s'arrête après un TIMEOUT",
+    "file": "packages/engine/src/fuzz.ts",
+    "find": "      ctx.writer.saveResult(runId, record)\n",
+    "replace": "      ctx.writer.saveResult(runId, record)\n      if (c.status === 'TIMEOUT') break\n",
+    "tests": ["tests/j3/sequence.test.ts"]
+  },
+  {
+    "name": "B-10 repli complet étiqueté partiel",
+    "file": "packages/engine/src/planning.ts",
+    "find": "partial: run.partial || reduced,",
+    "replace": "partial: true,",
+    "tests": ["packages/engine/test/incremental.test.ts"]
+  },
+  {
+    "name": "D-029 délai sans coût de démarrage",
+    "file": "packages/engine/src/fuzz.ts",
+    "find": "  return ctx.config.parsed.execution.timeout_ms + Math.ceil(startupMs)",
+    "replace": "  return ctx.config.parsed.execution.timeout_ms",
+    "tests": ["packages/engine/test/planning.test.ts"]
   }
 ]

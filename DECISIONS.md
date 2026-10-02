@@ -274,3 +274,15 @@ image par image dans Chromium en `<img>` comme dans le README.
 - **C-02** : référence = dernier run `COMPLETED` non partiel ; une issue absente n'est `FIXED` que si
   une de ses mutations a été rejouée, ou si (run complet) sa cible l'a été ; sinon `UNKNOWN`. Même
   exigence de run complet pour la référence de `fail_on_new_only_against`.
+
+## D-029 — 2026-10-02 — Délai d'une mutation et tests déterministes (F-02)
+
+- Contexte : le délai (`execution.timeout_ms`) s'appliquait au PROCESSUS entier, démarrage du runner
+  compris (Jest/ts-jest : 1 à 5 s, §35) ; sur une machine chargée, des mutations qui terminent étaient
+  classées `TIMEOUT` et les états d'issues variaient (échec de `tests/j1/history.test.ts` à l'audit).
+- Choix : délai d'une mutation = `timeout_ms` (pour la cible) + coût de démarrage mesuré en baseline
+  (durée du premier processus d'observation). Une cible qui boucle dépasse toujours le délai ; le
+  surcoût d'un timeout réel est d'environ une durée de baseline.
+- Tests (F-02) : les scénarios d'historique et d'incrémental utilisent des cibles déterministes et
+  rapides (`deterministicConfig` : sans `repeat`, `exitOn`, `stamp`, `outer`, `scheduleWelcome`), un
+  délai explicite large, un budget de mutations borné ; aucune assertion ne dépend de la vitesse.

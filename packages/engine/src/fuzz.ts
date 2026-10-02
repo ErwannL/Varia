@@ -1,5 +1,6 @@
 import {
   classify,
+  observationOf,
   groupIssues,
   issueStates,
   evaluateAcceptances,
@@ -39,6 +40,9 @@ export interface FuzzSummary {
   budgetCut: boolean
 }
 
+/** Coût de démarrage d'un processus de test mesuré en baseline (durée du premier run d'observation). */
+export const startupMs = (run: RunRecord) => Number(run.info['baselineDurationMs'] ?? 0)
+
 export function oracleConfig(ctx: EngineContext) {
   const o = ctx.config.parsed.oracle
   return {
@@ -73,6 +77,16 @@ export interface MutationExecution {
   calls: ExecutedCall[]
 }
 
+/**
+ * Délai d'une mutation (CDC §16.2, D-029) : `execution.timeout_ms` POUR LA CIBLE, plus le coût de
+ * démarrage du runner mesuré en baseline (un processus Jest ou ts-jest peut prendre plusieurs
+ * secondes avant d'exécuter le test : sans cette marge, une machine chargée classerait TIMEOUT des
+ * mutations qui terminent). Une cible qui boucle dépasse toujours le délai.
+ */
+export function mutationTimeoutMs(ctx: EngineContext, startupMs: number): number {
+  return ctx.config.parsed.execution.timeout_ms + Math.ceil(startupMs)
+}
+
 /** Exécute UNE mutation dans un processus isolé, limité au test visé, puis la classe (§16.1, §18). */
 export async function executeMutation(
   ctx: EngineContext,
@@ -81,6 +95,8 @@ export async function executeMutation(
   tmpDir: string,
   /** Durée du test visé en baseline (drapeau SLOW, CDC §18.9). */
   baselineTestMs: number | null = null,
+  /** Coût de démarrage du runner mesuré en baseline, ajouté au délai (D-029). */
+  startupMs = 0,
 ): Promise<MutationExecution> {
   const runDir = join(tmpDir, m.id)
   mkdirSync(runDir, { recursive: true })
@@ -101,7 +117,7 @@ export async function executeMutation(
     const run = await ctx.adapter.run({
       mode: 'fuzz',
       runDir,
-      timeoutMs: ctx.config.parsed.execution.timeout_ms,
+      timeoutMs: mutationTimeoutMs(ctx, startupMs),
       testFile: m.testFile,
       testName: m.testName,
       planPath,
@@ -111,44 +127,9 @@ export async function executeMutation(
     })
     const mutateEvents = run.events.filter((e) => e.type === 'MUTATE_CALL' && e.mutationId === m.id)
     const appliedCall = mutateEvents.find((e) => e.applied === true)?.callId
-    const observe = run.events.find((e) => e.type === 'OBSERVE_CALL' && e.callId === appliedCall)
-    const outcomeEvent = run.events.find(
-      (e) =>
-        (e.type === 'TARGET_RETURN' || e.type === 'TARGET_THROW' || e.type === 'TARGET_REJECT') &&
-        e.callId === appliedCall,
-    )
-    const mutatedCall =
-      observe === undefined
-        ? undefined
-        : {
-            callId: observe.callId ?? 0,
-            callSiteId: observe.callSiteId ?? '',
-            testId: observe.testId ?? '',
-            module: observe.module ?? '',
-            export: observe.export ?? '',
-            depth: observe.depth ?? 0,
-            sequence: observe.sequence ?? 0,
-            argsFingerprint: observe.argsFingerprint ?? '',
-            args: observe.args ?? null,
-            mutated: true,
-            outcome:
-              outcomeEvent === undefined
-                ? { kind: 'none' as const, async: false }
-                : outcomeEvent.type === 'TARGET_RETURN'
-                  ? {
-                      kind: 'return' as const,
-                      async: outcomeEvent.async === true,
-                      ...(outcomeEvent.value !== undefined ? { value: outcomeEvent.value } : {}),
-                    }
-                  : {
-                      kind:
-                        outcomeEvent.type === 'TARGET_THROW'
-                          ? ('throw' as const)
-                          : ('reject' as const),
-                      async: outcomeEvent.type === 'TARGET_REJECT',
-                      ...(outcomeEvent.error !== undefined ? { error: outcomeEvent.error } : {}),
-                    },
-          }
+    // Même reconstitution des appels que la baseline (OBSERVE_CALL + issue TARGET_*).
+    const observed = observationOf(run).calls
+    const mutatedCall = observed.find((c) => c.callId === appliedCall)
     const hint = ctx.config.parsed.inputs.hints.find((h) => h.path === `${m.export}#${m.pathStr}`)
     const testResult = run.tests?.find((t) => t.testId === m.testId)
     const testStatus = testResult?.status ?? null
@@ -169,16 +150,16 @@ export async function executeMutation(
       },
       oracleConfig(ctx),
     )
-    const calls = run.events
-      .filter((e) => e.type === 'OBSERVE_CALL' && e.testId === m.testId)
-      .map((e) => ({
-        callSiteId: e.callSiteId ?? '',
-        module: e.module ?? '',
-        export: e.export ?? '',
-        depth: e.depth ?? 0,
-        sequence: e.sequence ?? 0,
-        argsFingerprint: e.argsFingerprint ?? '',
-        mutated: e.mutated === true,
+    const calls = observed
+      .filter((c) => c.testId === m.testId)
+      .map((c) => ({
+        callSiteId: c.callSiteId,
+        module: c.module,
+        export: c.export,
+        depth: c.depth,
+        sequence: c.sequence,
+        argsFingerprint: c.argsFingerprint,
+        mutated: c.mutated,
       }))
     return {
       classification,
@@ -258,7 +239,14 @@ async function fuzzRun(
         cacheMisses++
       }
       ctx.writer.event(runId, 'MUTATION_STARTED', { mutationId: m.id, invocation })
-      const r = await executeMutation(ctx, m, planPath, tmpDir, baselineMs.get(m.testId) ?? null)
+      const r = await executeMutation(
+        ctx,
+        m,
+        planPath,
+        tmpDir,
+        baselineMs.get(m.testId) ?? null,
+        startupMs(run),
+      )
       const c = r.classification
       const record = {
         mutationId: m.id,

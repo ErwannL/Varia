@@ -1,6 +1,6 @@
 import { runCli, type Io } from '@varia/cli'
 import { openReader, Reader } from '@varia/database'
-import { mkdtempSync, readdirSync } from 'node:fs'
+import { mkdtempSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 
@@ -40,4 +40,27 @@ export function withReader<T>(dataDir: string, fn: (r: Reader) => T): T {
   } finally {
     o.close()
   }
+}
+
+/**
+ * Configuration DÉTERMINISTE de l'exemple (F-02), hors du projet : sans les cibles qui bouclent
+ * (`repeat`), quittent le processus (`exitOn`), dépendent de l'horloge (`stamp`) ou de l'ordonnanceur
+ * (`outer`, `scheduleWelcome`) ; délai large et explicite (aucune cible ne boucle) : le résultat ne
+ * dépend pas de la vitesse de la machine.
+ */
+export function deterministicConfig(extra: string[] = []): string {
+  const file = join(mkdtempSync(join(tmpdir(), 'varia-cfg-')), 'varia.yml')
+  writeFileSync(
+    file,
+    [
+      'version: 1',
+      'project: { name: jest-project }',
+      "targets: { mode: auto, include: ['src/**'], exclude: ['src/values.js', 'src/notify.js', 'src/chain.js'] }",
+      'mutations: { mode: normal, seed: 42 }',
+      'execution: { timeout_ms: 30000 }',
+      'oracle: { handled_errors: [{ name: ValidationError }] }',
+      ...extra,
+    ].join('\n'),
+  )
+  return file
 }

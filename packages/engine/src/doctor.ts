@@ -9,6 +9,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node
 import { join } from 'node:path'
 import { newRunId, prepareContext } from './baseline.js'
 import type { EngineContext } from './context.js'
+import { mutationTimeoutMs } from './fuzz.js'
 import { guardProject } from './integrity.js'
 import { VARIA_VERSION } from './version.js'
 
@@ -112,7 +113,7 @@ async function doctorOf(ctx: EngineContext): Promise<DoctorReport> {
         const f = await ctx.adapter.run({
           mode: 'fuzz',
           runDir: join(tmpDir, 'fuzz'),
-          timeoutMs: ctx.config.parsed.execution.timeout_ms,
+          timeoutMs: mutationTimeoutMs(ctx, run.process.durationMs),
           testFile: m.testFile,
           testName: m.testName,
           planPath,

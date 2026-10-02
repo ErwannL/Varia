@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { prepareContext } from './baseline.js'
 import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
-import { executeMutation, type ExecutedCall } from './fuzz.js'
+import { executeMutation, startupMs, type ExecutedCall } from './fuzz.js'
 import { guardProject } from './integrity.js'
 import { readPlan } from './planning.js'
 
@@ -55,6 +55,7 @@ async function replayOf(ctx: EngineContext, mutationId: string): Promise<ReplayR
       run.planPath,
       tmpDir,
       baselineMs,
+      startupMs(run),
     )
     const prev = ctx.reader.result(run.id, mutationId)
     ctx.writer.event(run.id, 'MUTATION_REPLAYED', {

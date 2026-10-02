@@ -263,7 +263,7 @@
     {
       "pattern": "packages/engine/src/fuzz.ts",
       "statements": 97,
-      "branches": 80,
+      "branches": 85,
       "functions": 97,
       "lines": 99
     },
@@ -277,7 +277,7 @@
     {
       "pattern": "packages/engine/src/planning.ts",
       "statements": 94,
-      "branches": 74,
+      "branches": 76,
       "functions": 100,
       "lines": 96
     },

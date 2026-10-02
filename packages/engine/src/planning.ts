@@ -78,17 +78,20 @@ export function planRun(
   const total = Math.min(p.mutations.limits.total_mutations, o.maxMutations ?? Infinity)
   let calls = eligibleCalls(ctx, runId)
   let incremental: Record<string, unknown> | null = null
+  let reduced = false
   if (o.changed !== undefined) {
     const scope = changedFiles(ctx.root, o.changed)
     const keep = incrementalFilter(ctx, scope)
     if (keep !== null) {
       const fileOf = new Map(ctx.reader.tests(runId).map((t) => [t.testId, t.file]))
+      const before = calls.length
       calls = calls.filter((c) => keep({ module: c.module, testFile: fileOf.get(c.testId) ?? '' }))
+      reduced = calls.length < before
     }
     incremental = {
       base: scope.base,
       changedFiles: scope.files,
-      scope: keep === null ? 'FULL_FALLBACK' : 'PARTIAL',
+      scope: keep === null ? 'FULL_FALLBACK' : reduced ? 'PARTIAL' : 'FULL',
     }
   }
   const plan = generatePlan(catalogFromCalls(ctx, calls), {
@@ -110,9 +113,10 @@ export function planRun(
   })
   const summary = savePlan(ctx, runId, plan)
   if (incremental !== null) {
-    // Un run incrémental est TOUJOURS étiqueté partiel (CDC §29).
+    // Partiel seulement si le périmètre est RÉELLEMENT réduit (CDC §29, B-10) : un repli complet ou un
+    // filtre qui garde tout exécute le périmètre entier ; l'étiquette suit le fait, pas l'intention.
     const info = ctx.reader.getRun(runId)?.info ?? {}
-    ctx.writer.updateRun(runId, { partial: true, info: { ...info, incremental } })
+    ctx.writer.updateRun(runId, { partial: run.partial || reduced, info: { ...info, incremental } })
   }
   return summary
 }
