@@ -51,7 +51,7 @@ describe('reset et environnement de test (A-06)', () => {
       ].join('\n'),
     )
     const r = await varia(['--data-dir', newDataDir(), '--config', cfg, '--json', 'test'], d)
-    expect([0, 1]).toContain(r.code)
+    expect([0, 1], r.err).toContain(r.code)
     const report = json<{ counts: { mutations: number; infra: number; pending: number } }>(r)
     expect(report.counts.mutations).toBeGreaterThan(0)
     expect([report.counts.infra, report.counts.pending]).toEqual([0, 0])

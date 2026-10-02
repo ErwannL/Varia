@@ -32,8 +32,9 @@ export const AXES = ['statements', 'branches', 'functions', 'lines']
 /** @param {unknown} url @param {string} root */
 export function isVariaFile(url, root) {
   if (typeof url !== 'string' || !url.startsWith('file://')) return false
-  const file = fileURLToPath(url)
-  const prefix = join(root, 'packages') + '/'
+  // Comparaison en séparateurs POSIX : sous Windows, fileURLToPath rend des « \\ ».
+  const file = fileURLToPath(url).split('\\').join('/')
+  const prefix = join(root, 'packages').split('\\').join('/') + '/'
   return (
     file.startsWith(prefix) &&
     /\/runtime\/[^/]+$/.test(file) &&

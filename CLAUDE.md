@@ -56,3 +56,4 @@ npm test             # vitest
 - `docs/notes/sonde-jest.md` — pièges de la sonde sous Jest (instanceof, resetModules, preset, cache, ESM, mocks, `process` vm, sonde défensive).
 - `docs/notes/configuration.md` — accepté = implémenté : valeur non implémentée refusée (code `UNSUPPORTED_*`).
 - `docs/notes/tests-deterministes.md` — scénarios sans dépendance à la vitesse (cibles déterministes, délais explicites).
+- `docs/notes/plateformes.md` — branches de plateforme injectées, tubes asynchrones sous macOS, URL `file:` et shell sous Windows.

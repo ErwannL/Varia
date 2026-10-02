@@ -1,0 +1,25 @@
+// Gabarit Jenkins (pipeline déclaratif) pour Varia (CDC §28).
+// Politique : varia.yml contient `ci: { fail_on_new_only_against: main }`.
+pipeline {
+  agent { docker { image 'node:22' } }
+  options { skipDefaultCheckout(false) }
+  stages {
+    stage('Install') {
+      steps {
+        sh 'npm ci'
+      }
+    }
+    stage('Varia') {
+      steps {
+        // Le répertoire de données est conservé dans l'espace de travail du job (non nettoyé).
+        sh 'npx varia --data-dir .varia-data ci --junit varia-junit.xml --sarif varia.sarif --markdown varia.md'
+      }
+    }
+  }
+  post {
+    always {
+      junit 'varia-junit.xml'
+      archiveArtifacts artifacts: 'varia-junit.xml, varia.sarif, varia.md', allowEmptyArchive: true
+    }
+  }
+}

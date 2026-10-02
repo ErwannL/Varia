@@ -1,0 +1,43 @@
+# Gabarit GitHub Actions pour Varia (CDC §28). À copier dans .github/workflows/varia.yml.
+# Politique : varia.yml contient `ci: { fail_on_new_only_against: main }` — seules les issues
+# nouvelles par rapport au dernier run complet de `main` font échouer une PR.
+name: varia
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  varia:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Le répertoire de données (base, historique, cache) est conservé entre exécutions.
+      - uses: actions/cache@v4
+        with:
+          path: .varia-data
+          key: varia-${{ runner.os }}-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            varia-${{ runner.os }}-${{ github.ref_name }}-
+            varia-${{ runner.os }}-main-
+      - run: npx varia --data-dir .varia-data ci --junit varia-junit.xml --sarif varia.sarif --markdown varia.md
+      - if: always()
+        run: cat varia.md >> "$GITHUB_STEP_SUMMARY"
+      - if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: varia.sarif
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: varia-report
+          path: |
+            varia-junit.xml
+            varia.sarif
+            varia.md

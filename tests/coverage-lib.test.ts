@@ -1,6 +1,6 @@
 import { mkdtempSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 import {
@@ -15,6 +15,11 @@ import {
   mergeChildren,
   pruneChildCoverage,
 } from '../scripts/coverage-lib.mjs'
+
+// Racine absolue de la plateforme (`/r`, ou `D:\r` sous Windows) : URL et chemins natifs cohérents.
+const R = resolve('/r')
+const abs = (rel: string) => join(R, rel)
+const u = (rel: string) => pathToFileURL(abs(rel)).href
 
 const loc = (line: number) => ({ start: { line, column: 0 }, end: { line, column: 5 } })
 const fc = (path: string, s: number[], b: number[][] = [], f: number[] = []) => ({
@@ -62,15 +67,15 @@ describe('globToRegExp / isPackageSource / isVariaFile', () => {
     expect(isPackageSource('scripts/a.mjs')).toBe(false)
   })
   it('ne retient que les fichiers file: de packages/, hors dist et node_modules', () => {
-    const root = '/r'
-    expect(isVariaFile('file:///r/packages/core/runtime/s.cjs', root)).toBe(true)
-    expect(isVariaFile('file:///r/packages/adapters/vitest/runtime/p.mjs', root)).toBe(true)
-    expect(isVariaFile('file:///r/packages/core/src/a.ts', root)).toBe(false)
-    expect(isVariaFile('file:///r/packages/cli/dist/main.js', root)).toBe(false)
-    expect(isVariaFile('file:///r/packages/x/node_modules/y.js', root)).toBe(false)
-    expect(isVariaFile('file:///r/packages/x/test/y.js', root)).toBe(false)
-    expect(isVariaFile('file:///r/scripts/y.js', root)).toBe(false)
-    expect(isVariaFile('/r/packages/probe-runtime/runtime/probe.cjs', root)).toBe(false)
+    const root = R
+    expect(isVariaFile(u('packages/core/runtime/s.cjs'), root)).toBe(true)
+    expect(isVariaFile(u('packages/adapters/vitest/runtime/p.mjs'), root)).toBe(true)
+    expect(isVariaFile(u('packages/core/src/a.ts'), root)).toBe(false)
+    expect(isVariaFile(u('packages/cli/dist/main.js'), root)).toBe(false)
+    expect(isVariaFile(u('packages/x/node_modules/y.js'), root)).toBe(false)
+    expect(isVariaFile(u('packages/x/test/y.js'), root)).toBe(false)
+    expect(isVariaFile(u('scripts/y.js'), root)).toBe(false)
+    expect(isVariaFile(abs('packages/probe-runtime/runtime/probe.cjs'), root)).toBe(false)
     expect(isVariaFile('node:fs', root)).toBe(false)
   })
 })
@@ -137,16 +142,13 @@ describe('evaluateCoverage', () => {
 })
 
 describe('couverture des processus enfants', () => {
-  const root = '/r'
+  const root = R
   const raw = (urls: string[]) =>
     JSON.stringify({ result: urls.map((url) => ({ url, functions: [{ ranges: [] }] })) })
   it('réduit les dépôts aux fichiers de Varia et supprime le reste', () => {
     const dir = mkdtempSync(join(tmpdir(), 'varia-cc-'))
-    writeFileSync(
-      join(dir, 'coverage-1.json'),
-      raw(['file:///r/packages/a/runtime/s.cjs', 'node:fs']),
-    )
-    writeFileSync(join(dir, 'coverage-2.json'), raw(['file:///r/node_modules/x.js']))
+    writeFileSync(join(dir, 'coverage-1.json'), raw([u('packages/a/runtime/s.cjs'), 'node:fs']))
+    writeFileSync(join(dir, 'coverage-2.json'), raw([u('node_modules/x.js')]))
     writeFileSync(join(dir, 'coverage-3.json'), '{"result": [')
     writeFileSync(join(dir, 'autre.txt'), '')
     expect(pruneChildCoverage(dir, root)).toBe(1)
@@ -155,10 +157,10 @@ describe('couverture des processus enfants', () => {
   })
   it('fusionne les exécutions des enfants puis la carte du processus de test', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'varia-cc-'))
-    writeFileSync(join(dir, 'coverage-1.json'), raw(['file:///r/packages/a/runtime/s.cjs']))
+    writeFileSync(join(dir, 'coverage-1.json'), raw([u('packages/a/runtime/s.cjs')]))
     writeFileSync(
       join(dir, 'coverage-2.json'),
-      raw(['file:///r/packages/a/runtime/s.cjs', 'file:///r/packages/b/runtime/t.cjs']),
+      raw([u('packages/a/runtime/s.cjs'), u('packages/b/runtime/t.cjs')]),
     )
     let n = 0
     const convert = async (file: string) => {
@@ -167,23 +169,23 @@ describe('couverture des processus enfants', () => {
     }
     const map: Record<string, ReturnType<typeof fc>> = {
       // Entrées de Vitest (source transformée, positions fausses) : remplacées.
-      '/r/packages/a/runtime/s.cjs': fc('/r/packages/a/runtime/s.cjs', [7, 7, 7]),
-      '/r/packages/b/runtime/t.cjs': fc('/r/packages/b/runtime/t.cjs', [0, 0, 0]),
+      [abs('packages/a/runtime/s.cjs')]: fc(abs('packages/a/runtime/s.cjs'), [7, 7, 7]),
+      [abs('packages/b/runtime/t.cjs')]: fc(abs('packages/b/runtime/t.cjs'), [0, 0, 0]),
       // Fichier d'exécution jamais exécuté : conservé tel quel ; code TypeScript : non concerné.
-      '/r/packages/c/runtime/u.cjs': fc('/r/packages/c/runtime/u.cjs', [0]),
-      '/r/packages/c/src/v.ts': fc('/r/packages/c/src/v.ts', [3]),
+      [abs('packages/c/runtime/u.cjs')]: fc(abs('packages/c/runtime/u.cjs'), [0]),
+      [abs('packages/c/src/v.ts')]: fc(abs('packages/c/src/v.ts'), [3]),
     }
     const merged = await mergeChildren(map, dir, root, convert)
-    expect(merged).toEqual(['/r/packages/a/runtime/s.cjs', '/r/packages/b/runtime/t.cjs'])
+    expect(merged).toEqual([abs('packages/a/runtime/s.cjs'), abs('packages/b/runtime/t.cjs')])
     expect(
-      exactCounts(map['/r/packages/a/runtime/s.cjs'] as ReturnType<typeof fc>).statements,
+      exactCounts(map[abs('packages/a/runtime/s.cjs')] as ReturnType<typeof fc>).statements,
     ).toEqual([2, 2])
-    expect(map['/r/packages/a/runtime/s.cjs']?.s).toEqual({ 0: 1, 1: 1 })
-    expect(map['/r/packages/c/src/v.ts']?.s).toEqual({ 0: 3 })
-    expect(Object.keys(map['/r/packages/b/runtime/t.cjs']?.s ?? {})).toHaveLength(2)
+    expect(map[abs('packages/a/runtime/s.cjs')]?.s).toEqual({ 0: 1, 1: 1 })
+    expect(map[abs('packages/c/src/v.ts')]?.s).toEqual({ 0: 3 })
+    expect(Object.keys(map[abs('packages/b/runtime/t.cjs')]?.s ?? {})).toHaveLength(2)
     expect(await mergeChildren({}, join(dir, 'absent'), root, convert)).toEqual([])
     // Exécuté (compteurs non nuls) sans couverture brute : chargé par Vite, mesure refusée.
-    const viaVite = { '/r/packages/c/runtime/u.cjs': fc('/r/packages/c/runtime/u.cjs', [1]) }
+    const viaVite = { [abs('packages/c/runtime/u.cjs')]: fc(abs('packages/c/runtime/u.cjs'), [1]) }
     await expect(mergeChildren(viaVite, join(dir, 'absent'), root, convert)).rejects.toThrow(
       /mesure non fiable/,
     )

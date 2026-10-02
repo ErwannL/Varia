@@ -1,0 +1,38 @@
+# Gabarit Azure DevOps pour Varia (CDC §28). À copier dans azure-pipelines.yml.
+# Politique : varia.yml contient `ci: { fail_on_new_only_against: main }`.
+trigger:
+  branches:
+    include: [main]
+pr:
+  branches:
+    include: ['*']
+pool:
+  vmImage: ubuntu-latest
+steps:
+  - checkout: self
+    fetchDepth: 0
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '22.x'
+  - script: npm ci
+    displayName: npm ci
+  # Le répertoire de données (base, historique, cache) est conservé entre exécutions.
+  - task: Cache@2
+    inputs:
+      key: 'varia | "$(Agent.OS)" | "$(Build.SourceBranchName)" | "$(Build.BuildId)"'
+      restoreKeys: |
+        varia | "$(Agent.OS)" | "$(Build.SourceBranchName)"
+        varia | "$(Agent.OS)" | "main"
+      path: .varia-data
+  - script: npx varia --data-dir .varia-data ci --junit varia-junit.xml --sarif varia.sarif --markdown varia.md
+    displayName: varia ci
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testResultsFormat: JUnit
+      testResultsFiles: varia-junit.xml
+  - task: PublishBuildArtifacts@1
+    condition: always()
+    inputs:
+      PathtoPublish: varia.sarif
+      ArtifactName: varia-report

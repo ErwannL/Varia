@@ -1,5 +1,5 @@
 // A-06 : `reset.database: command`, `reset.filesystem: tmpdir`, `test.env`, `test.cwd` réellement appliqués.
-import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
@@ -28,13 +28,19 @@ describe('reset de base (execution.reset.database: command)', () => {
   it('exécutée avant CHAQUE mutation, dans le projet, avec test.env', async () => {
     const root = project()
     const log = join(root, 'reset.log')
+    const script = join(root, 'reset.cjs')
+    writeFileSync(
+      script,
+      "require('fs').appendFileSync(process.argv[2], process.env.GREETING + '\\n')\n",
+    )
     const adapter = scripted(TESTS)
     const ctx = context(
       adapter,
       undefined,
       project(
         yml(
-          `{ database: command, database_command: 'echo "$GREETING" >> ${log}' }`,
+          // Commande neutre (sh et cmd.exe) : un script Node ajoute la variable au journal.
+          `{ database: command, database_command: 'node ${script} ${log}' }`,
           'test: { env: { GREETING: bonjour } }',
         ),
       ),

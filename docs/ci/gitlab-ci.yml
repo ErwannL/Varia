@@ -1,0 +1,25 @@
+# Gabarit GitLab CI pour Varia (CDC §28). À fusionner dans .gitlab-ci.yml.
+# Politique : varia.yml contient `ci: { fail_on_new_only_against: main }`.
+varia:
+  image: node:22
+  stage: test
+  variables:
+    GIT_DEPTH: '0'
+  # Le répertoire de données (base, historique, cache) est conservé entre pipelines de la branche.
+  cache:
+    key: varia-$CI_COMMIT_REF_SLUG
+    fallback_keys:
+      - varia-main
+    paths:
+      - .varia-data/
+  script:
+    - npm ci
+    - npx varia --data-dir .varia-data ci --junit varia-junit.xml --sarif varia.sarif --markdown varia.md
+  artifacts:
+    when: always
+    paths:
+      - varia-junit.xml
+      - varia.sarif
+      - varia.md
+    reports:
+      junit: varia-junit.xml

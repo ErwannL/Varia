@@ -31,18 +31,30 @@ describe('exécution supervisée (CDC §16.2)', () => {
     )
     expect([r.exitCode, r.timedOut, r.stdout, r.stderr]).toEqual([3, false, 'out', 'err'])
   })
-  it('timeout : boucle infinie tuée avec son arbre', async () => {
+  it('timeout : boucle infinie tuée avec son arbre (toutes plateformes)', async () => {
     const t0 = performance.now()
+    // Le petit-enfant annonce son pid par une écriture SYNCHRONE (fd 1), puis le parent boucle.
     const r = await node(
-      'require("child_process").spawn(process.execPath, ["-e", "setInterval(()=>{},1000)"]); for(;;){}',
+      'const c = require("child_process").spawn(process.execPath, ["-e", "setInterval(()=>{},1000)"]); require("fs").writeSync(1, String(c.pid)); for(;;){}',
       800,
     )
     expect(r.timedOut).toBe(true)
     expect(performance.now() - t0).toBeLessThan(5000)
-    if (process.platform !== 'win32') {
-      expect(await waitGroupGone(r.pid ?? -1)).toBe(true)
-      expect(groupAlive(r.pid ?? -1)).toBe(false)
+    const grandchild = Number(r.stdout)
+    expect(grandchild).toBeGreaterThan(0)
+    expect(await waitGroupGone(r.pid ?? -1)).toBe(true)
+    expect(groupAlive(r.pid ?? -1, process.platform)).toBe(false)
+    // Arbre mort : le petit-enfant lui-même n'existe plus, quelle que soit la plateforme.
+    let alive = true
+    for (let i = 0; i < 50 && alive; i++) {
+      try {
+        process.kill(grandchild, 0)
+        await new Promise((r) => setTimeout(r, 100))
+      } catch {
+        alive = false
+      }
     }
+    expect(alive).toBe(false)
   })
   it('sortie plafonnée et marquée', async () => {
     const d = dir()
@@ -65,7 +77,9 @@ describe('exécution supervisée (CDC §16.2)', () => {
     const t0 = performance.now()
     const r = await runSupervised(
       process.execPath,
-      ['-e', 'for (;;) process.stdout.write("x".repeat(65536))'],
+      // Écritures cédant la main : sous macOS, un tube est asynchrone et une boucle synchrone
+      // infinie ne viderait jamais son tampon (aucune sortie observée, faux TIMEOUT).
+      ['-e', 'setInterval(() => process.stdout.write("x".repeat(65536)), 1)'],
       {
         cwd: d,
         env: process.env,
