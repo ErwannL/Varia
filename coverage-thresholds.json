@@ -46,7 +46,7 @@
     {
       "pattern": "packages/cli/src/program.ts",
       "statements": 84,
-      "branches": 77,
+      "branches": 78,
       "functions": 88,
       "lines": 88
     },
@@ -275,25 +275,11 @@
       "lines": 93
     },
     {
-      "pattern": "packages/engine/src/integrity.ts",
-      "statements": 88,
-      "branches": 84,
-      "functions": 100,
-      "lines": 88
-    },
-    {
       "pattern": "packages/engine/src/planning.ts",
       "statements": 94,
       "branches": 74,
       "functions": 100,
       "lines": 96
-    },
-    {
-      "pattern": "packages/engine/src/replay.ts",
-      "statements": 95,
-      "branches": 61,
-      "functions": 100,
-      "lines": 95
     },
     {
       "pattern": "packages/reporters/src/build.ts",

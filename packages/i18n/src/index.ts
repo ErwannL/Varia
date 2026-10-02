@@ -58,6 +58,7 @@ export function issueTitle(
  */
 export function configIssue(locale: Locale, detail: string): string {
   const m = /^(.*) : ([A-Z][A-Z0-9_]+)$/.exec(detail)
-  const key = `config.issue.${m?.[2] ?? ''}` as MessageKey
-  return m !== null && key in messages[locale] ? `${m[1] ?? ''} : ${t(locale, key)}` : detail
+  if (m === null) return detail
+  const key = `config.issue.${String(m[2])}` as MessageKey
+  return key in messages[locale] ? `${String(m[1])} : ${t(locale, key)}` : detail
 }

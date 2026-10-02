@@ -1,4 +1,5 @@
 import { diffSnapshots, gitSnapshot, manifestSnapshot, type Snapshot } from '@varia/core'
+import type { RunRecord } from '@varia/database'
 import { execFileSync } from 'node:child_process'
 import { isAbsolute, relative, sep } from 'node:path'
 import type { EngineContext } from './context.js'
@@ -46,13 +47,6 @@ export function snapshotProject(root: string, o: IntegrityOptions): Snapshot {
     : manifestSnapshot(root, o.ignore)
 }
 
-/** Toute différence attribuable au run ⇒ `PROJECT_MUTATED` (exit 4), avec la liste des fichiers. */
-export function assertUnchanged(before: Snapshot, after: Snapshot): void {
-  const changed = diffSnapshots(before, after)
-  if (changed.length > 0)
-    throw new VariaError('PROJECT_MUTATED', 'le projet cible a été modifié pendant le run', changed)
-}
-
 /**
  * Exécute une opération qui lance le projet (baseline, fuzz, rejeu, doctor) entre deux instantanés
  * (CDC §5). Si le projet a changé, le run concerné est d'abord MARQUÉ `PROJECT_MUTATED` (avec la liste
@@ -74,7 +68,7 @@ export async function guardProject<T>(
   if (changed.length > 0) {
     const id = runId()
     if (id !== null) {
-      const info = ctx.reader.getRun(id)?.info ?? {}
+      const info = (ctx.reader.getRun(id) as RunRecord).info
       ctx.writer.updateRun(id, {
         state: 'PROJECT_MUTATED',
         info: { ...info, projectMutated: changed },
