@@ -30,7 +30,9 @@ describe('historique et comparaison', () => {
     const states = withReader(D, (r) => ({ a: r.issues(first ?? ''), b: r.issues(second ?? '') }))
     expect(states.a.every((i) => i.state === 'NEW')).toBe(true)
     expect(states.b.length).toBeGreaterThan(0)
-    expect(states.b.every((i) => i.state === 'UNCHANGED')).toBe(true)
+    expect(states.b.filter((i) => i.state !== 'UNCHANGED').map((i) => [i.kind, i.state])).toEqual(
+      [],
+    )
     const report = json<{ comparedTo: string; resolvedIssues: unknown[] }>(
       await varia(['--data-dir', D, '--config', cfg, 'report', second ?? '']),
     )

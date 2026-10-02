@@ -20,8 +20,8 @@ function projectWithEnvTarget(): string {
       "const fs = require('fs')",
       "const path = require('path')",
       'function greeting(key) { return process.env[key] ?? null }',
-      // Écrit dans le répertoire temporaire du processus : TMPDIR (reset.filesystem: tmpdir).
-      "function scratch(name) { const f = path.join(process.env.TMPDIR || '/tmp', String(name)); fs.writeFileSync(f, 'x'); return f }",
+      // Écrit dans le répertoire temporaire du processus (os.tmpdir suit TMPDIR, TMP, TEMP : reset.filesystem).
+      "function scratch(name) { const f = path.join(require('os').tmpdir(), String(name)); fs.writeFileSync(f, 'x'); return f }",
       'module.exports = { greeting, scratch }',
     ].join('\n'),
   )

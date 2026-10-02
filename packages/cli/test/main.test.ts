@@ -33,7 +33,6 @@ describe('bin/varia (main.ts)', () => {
     const lines: string[] = []
     vi.spyOn(process.stdout, 'write').mockImplementation((c) => {
       lines.push(String(c))
-      if (String(c).startsWith('Dashboard :')) setTimeout(() => process.emit('SIGINT'), 10)
       return true
     })
     vi.spyOn(process.stderr, 'write').mockReturnValue(true)
@@ -51,7 +50,16 @@ describe('bin/varia (main.ts)', () => {
         '0',
       ]
       vi.resetModules()
-      await import('../src/main.js')
+      // Ctrl+C simulé dès que le serveur s'annonce, répété jusqu'à l'arrêt (aucune hypothèse sur
+      // l'ordre d'enregistrement de l'écouteur ni sur la vitesse de la machine).
+      const ctrlC = setInterval(() => {
+        if (lines.some((l) => l.startsWith('Dashboard :'))) process.emit('SIGINT')
+      }, 20)
+      try {
+        await import('../src/main.js')
+      } finally {
+        clearInterval(ctrlC)
+      }
       expect(lines.join('')).toMatch(/^Dashboard : http:\/\/127\.0\.0\.1:\d+/m)
       expect(process.exitCode).toBe(0)
     } finally {

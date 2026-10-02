@@ -86,7 +86,7 @@ describe('configuration Jest du projet', () => {
     })
     const entry = (c['transform'] as Record<string, [string, Record<string, unknown>]>)['x']
     expect(entry?.[1]['originalConfig']).toEqual({})
-    expect(entry?.[1]['original']).toBe(join(d, 'tr.cjs'))
+    expect(entry?.[1]['original']).toBe(join(realpathSync(d), 'tr.cjs'))
   })
   it('transformeur introuvable depuis le projet : résolu depuis jest-config (babel-jest implicite)', () => {
     const d = dir({

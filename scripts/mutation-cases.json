@@ -523,5 +523,12 @@
     "find": "on_unknown === 'abort'",
     "replace": "on_unknown === 'full'",
     "tests": ["packages/engine/test/incremental.test.ts"]
+  },
+  {
+    "name": "journal non fermé par close() (verrou Windows)",
+    "file": "packages/engine/src/context.ts",
+    "find": "    this.logDestination.end()\n",
+    "replace": "",
+    "tests": ["packages/engine/test/context.test.ts"]
   }
 ]

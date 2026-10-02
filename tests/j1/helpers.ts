@@ -58,7 +58,9 @@ export function deterministicConfig(extra: string[] = []): string {
       "targets: { mode: auto, include: ['src/**'], exclude: ['src/values.js', 'src/notify.js', 'src/chain.js'] }",
       'mutations: { mode: normal, seed: 42 }',
       'execution: { timeout_ms: 30000 }',
-      'oracle: { handled_errors: [{ name: ValidationError }] }',
+      // Drapeau SLOW (fonction de la durée mesurée) neutralisé : une machine chargée en produirait
+      // des issues variables d'un run à l'autre. SLOW est testé à part (packages/core, tests/j3).
+      'oracle: { handled_errors: [{ name: ValidationError }], slow_floor_ms: 3600000 }',
       ...extra,
     ].join('\n'),
   )

@@ -27,6 +27,8 @@ describe('runCli', () => {
     const home = realpathSync.native(mkdtempSync(join(tmpdir(), 'varia-home-')))
     vi.stubEnv('XDG_DATA_HOME', home)
     vi.stubEnv('LOCALAPPDATA', home)
+    // macOS : ~/Library/Application Support suit HOME (os.homedir) — jamais le vrai dossier personnel.
+    vi.stubEnv('HOME', home)
     try {
       const d = project()
       const r = await run(['-q', 'baseline'], d, () => scripted([{ name: 'a', calls: [] }]))

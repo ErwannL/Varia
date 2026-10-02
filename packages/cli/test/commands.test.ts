@@ -135,7 +135,7 @@ describe('db, prune', () => {
     expect((await run(['--data-dir', data, 'db', 'backup', '--out', out], d)).code).toBe(0)
     expect(existsSync(out)).toBe(true)
     const def = await run(['--data-dir', data, 'db', 'backup'], d)
-    expect(def.out).toMatch(/backups\/varia-.*\.db$/)
+    expect(def.out).toMatch(/backups[\\/]varia-.*\.db$/)
   })
   it('prune --keep N, défaut retention_runs, valeur invalide ⇒ exit 3', async () => {
     const d = project({ 'varia.yml': 'version: 1\nstorage: { retention_runs: 2 }\n' })

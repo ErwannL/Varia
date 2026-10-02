@@ -48,6 +48,8 @@ export class EngineContext {
   readonly writer: Writer
   readonly reader: Reader
   readonly log: Logger
+  /** Fichier journal ouvert par le contexte, fermé par `close()`. */
+  readonly logDestination: ReturnType<typeof pino.destination>
   readonly emit: (e: ProgressEvent) => void
   /** Répertoire de travail des processus de test (`test.cwd`, dans le projet). */
   readonly testCwd: string
@@ -85,10 +87,12 @@ export class EngineContext {
     this.writer = new Writer(this.db.db)
     this.reader = new Reader(this.db.db)
     mkdirSync(join(this.dataDir, 'logs'), { recursive: true })
-    this.log = pino(
-      { base: { projectId: this.projectId } },
-      pino.destination({ dest: join(this.dataDir, 'logs', 'varia.log'), sync: true, append: true }),
-    )
+    this.logDestination = pino.destination({
+      dest: join(this.dataDir, 'logs', 'varia.log'),
+      sync: true,
+      append: true,
+    })
+    this.log = pino({ base: { projectId: this.projectId } }, this.logDestination)
     this.emit = o.onProgress ?? (() => undefined)
     this.keepTmp = o.keepTmp === true
     // Clés inconnues de la configuration : annoncées au lancement, sans bloquer (B-05).
@@ -144,6 +148,7 @@ export class EngineContext {
 
   close(): void {
     this.log.flush()
+    this.logDestination.end()
     this.db.close()
   }
 }

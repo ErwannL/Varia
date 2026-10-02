@@ -126,6 +126,8 @@ describe('contexte du moteur', () => {
     const home = realpathSync.native(mkdtempSync(join(tmpdir(), 'varia-home-')))
     vi.stubEnv('XDG_DATA_HOME', home)
     vi.stubEnv('LOCALAPPDATA', home)
+    // macOS : ~/Library/Application Support suit HOME (os.homedir) — jamais le vrai dossier personnel.
+    vi.stubEnv('HOME', home)
     try {
       const d = project('version: 1\n')
       const ctx = new EngineContext({ root: d, adapter: fakeAdapter })
@@ -136,5 +138,19 @@ describe('contexte du moteur', () => {
     } finally {
       vi.unstubAllEnvs()
     }
+  })
+})
+
+describe('fermeture du contexte', () => {
+  it('close() libère le fichier journal (sinon, sous Windows, le dossier de données reste verrouillé)', () => {
+    const d = project('version: 1\n')
+    const ctx = new EngineContext({ root: d, adapter: fakeAdapter, dataDir: join(d, 'data') })
+    ctx.log.info('avant fermeture')
+    ctx.close()
+    // `destroyed` existe à l'exécution (sonic-boom) mais pas dans ses types publiés.
+    expect((ctx.logDestination as unknown as { destroyed: boolean }).destroyed).toBe(true)
+    expect(readFileSync(join(ctx.dataDir, 'logs', 'varia.log'), 'utf8')).toContain(
+      'avant fermeture',
+    )
   })
 })
