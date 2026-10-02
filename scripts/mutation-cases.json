@@ -173,5 +173,12 @@
     "find": "        transitive: depths(i.mutationIds).every((d) => d > 0),",
     "replace": "        transitive: false,",
     "tests": ["tests/j3/transitive.test.ts"]
+  },
+  {
+    "name": "A-10 drapeau SLOW jamais posé",
+    "file": "packages/core/src/oracle.ts",
+    "find": "  return isSlow(i, cfg) ? { ...c, flags: ['SLOW'] } : c",
+    "replace": "  return c",
+    "tests": ["packages/core/test/oracle.test.ts", "tests/j3/limits.test.ts"]
   }
 ]

@@ -2,7 +2,7 @@ import type { Json } from '@varia/probe-protocol'
 import type { Hint } from '../src/hints.js'
 import { describe, expect, it } from 'vitest'
 import type { ObservedCall } from '../src/observe.js'
-import { classify, findEcho, type OracleInput } from '../src/oracle.js'
+import { classify, DEFAULT_ORACLE, findEcho, type OracleInput } from '../src/oracle.js'
 import type { PlannedMutation } from '../src/plan.js'
 import type { ProcessResult } from '../src/exec/proc.js'
 
@@ -349,5 +349,28 @@ describe('limites de ressources (A-03)', () => {
       input({ process: proc({ outputTruncated: true, signal: 'SIGKILL' }), reportPresent: false }),
     )
     expect([r.status, r.subtype, r.reason]).toEqual(['CRASH', 'RESOURCE_LIMIT', 'OUTPUT_LIMIT'])
+  })
+})
+
+describe('drapeau SLOW (A-10, CDC §18.9)', () => {
+  const ok = call({ kind: 'return', async: false, value: 1 })
+  const slow = (baselineTestMs: number | null, testDurationMs: number | null, cfg = {}) =>
+    classify(input({ mutatedCall: ok, baselineTestMs, testDurationMs }), {
+      ...DEFAULT_ORACLE,
+      ...cfg,
+    })
+  it('au-dessus de k × baseline et du plancher : drapeau, statut inchangé', () => {
+    expect(slow(20, 250)).toMatchObject({ status: 'PASSED', flags: ['SLOW'] })
+  })
+  it('au-dessous du facteur : pas de drapeau', () => {
+    expect(slow(20, 150).flags).toBeUndefined()
+  })
+  it('plancher : un test très court multiplié reste sous le seuil absolu', () => {
+    expect(slow(1, 90).flags).toBeUndefined()
+    expect(slow(1, 90, { slowFloorMs: 50 }).flags).toEqual(['SLOW'])
+    expect(slow(1, 30, { slowFactor: 2, slowFloorMs: 0 }).flags).toEqual(['SLOW'])
+  })
+  it('durées inconnues : jamais de drapeau', () => {
+    expect([slow(null, 1000).flags, slow(10, null).flags]).toEqual([undefined, undefined])
   })
 })

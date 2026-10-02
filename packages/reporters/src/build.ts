@@ -195,6 +195,8 @@ export function buildReport(reader: Reader, runId: string): Report {
         echoPath: r?.echoPath ?? null,
         error: err ? { name: String(err.name ?? ''), message: String(err.message ?? '') } : null,
         durationMs: r?.durationMs ?? null,
+        testDurationMs: r?.testDurationMs ?? null,
+        flags: r?.flags ?? [],
         acceptedBy:
           ((info['acceptedMutations'] ?? {}) as Record<string, string>)[String(m['id'])] ?? null,
       }

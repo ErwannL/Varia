@@ -517,6 +517,10 @@
             ]
           },
           "durationMs": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+          "testDurationMs": {
+            "anyOf": [{ "type": "number" }, { "type": "null" }]
+          },
+          "flags": { "type": "array", "items": { "type": "string" } },
           "acceptedBy": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
         },
         "required": [
@@ -536,6 +540,8 @@
           "echoPath",
           "error",
           "durationMs",
+          "testDurationMs",
+          "flags",
           "acceptedBy"
         ],
         "additionalProperties": false

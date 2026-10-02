@@ -141,3 +141,25 @@ describe('métriques (CDC §22)', () => {
     expect(resilienceRate(countResults(0, []))).toBeNull()
   })
 })
+
+describe('issue de lenteur (A-10)', () => {
+  it('une issue SLOW (LOW) par target, en plus de l’issue principale éventuelle', () => {
+    const slow: Classification = { status: 'PASSED', testStatus: 'passed', flags: ['SLOW'] }
+    const drafts = groupIssues(
+      [
+        { mutation: mutation({ id: 'm_1' }), classification: slow },
+        { mutation: mutation({ id: 'm_2' }), classification: { ...crash('x'), flags: ['SLOW'] } },
+        {
+          mutation: mutation({ id: 'm_3' }),
+          classification: { status: 'PASSED', testStatus: null },
+        },
+      ],
+      '/p',
+    )
+    expect(drafts.map((d) => [d.kind, d.severity, d.mutationIds])).toEqual([
+      ['ERROR', 'HIGH', ['m_2']],
+      ['SLOW', 'LOW', ['m_1', 'm_2']],
+    ])
+    expect(severityOf('SLOW')).toBe('LOW')
+  })
+})

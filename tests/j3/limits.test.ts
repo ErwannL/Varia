@@ -64,6 +64,22 @@ describe('limites de ressources réelles (A-03)', () => {
   })
 })
 
+describe('drapeau SLOW (A-10)', () => {
+  it('tally sur un tableau de 1000 éléments (stratégie size) : test ≫ baseline ⇒ SLOW, statut inchangé', async () => {
+    const m = plan.mutations.find((x) => x.export === 'tally' && x.strategy === 'size')
+    const r = await cli(['--json', 'replay', m?.id ?? ''])
+    expect(r.code, r.err).toBe(0)
+    const c = json<{ classification: { status: string; flags?: string[] } }>(r).classification
+    expect([c.status, c.flags]).toEqual(['PASSED', ['SLOW']])
+    // Contre-épreuve : une mutation rapide du même test n'est pas lente.
+    const quick = plan.mutations.find((x) => x.export === 'tally' && x.strategy === 'empty')
+    const q = json<{ classification: { flags?: string[] } }>(
+      await cli(['--json', 'replay', quick?.id ?? '']),
+    ).classification
+    expect(q.flags).toBeUndefined()
+  })
+})
+
 describe('limite de mémoire sous Vitest (A-03)', () => {
   it('grow(null) sous Vitest, tas limité à 128 Mo ⇒ CRASH / RESOURCE_LIMIT (OUT_OF_MEMORY)', async () => {
     const dir = resolve('examples/limits-vitest-project')

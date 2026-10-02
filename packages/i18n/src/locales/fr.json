@@ -203,6 +203,7 @@
   "issue.kind.PROCESS_EXIT": "{target} : sortie anormale du processus",
   "issue.kind.RESOURCE_LIMIT": "{target} : limite de ressources",
   "issue.kind.SUSPICIOUS_ACCEPT": "{target} : acceptation suspecte ({reason}) sur {path}",
+  "issue.kind.SLOW": "{target} : lenteur (durée du test ≫ baseline)",
   "cli.cmd.compare": "comparer les issues de deux runs",
   "cli.compare.head": "Comparaison {a} → {b}",
   "cli.compare.added": "  + nouvelle : {id}",

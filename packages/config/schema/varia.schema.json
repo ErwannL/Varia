@@ -299,7 +299,9 @@
       "default": {
         "handled_errors": [],
         "crash_errors": ["TypeError", "ReferenceError", "RangeError"],
-        "suspicious_accept": "report"
+        "suspicious_accept": "report",
+        "slow_factor": 10,
+        "slow_floor_ms": 100
       },
       "type": "object",
       "properties": {
@@ -331,6 +333,13 @@
           "default": "report",
           "type": "string",
           "enum": ["report", "ignore"]
+        },
+        "slow_factor": { "default": 10, "type": "number", "minimum": 1 },
+        "slow_floor_ms": {
+          "default": 100,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
         }
       },
       "additionalProperties": false

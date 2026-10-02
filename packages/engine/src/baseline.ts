@@ -185,6 +185,7 @@ export async function runBaseline(
       name: t.name,
       status: t.status,
       flakyReasons: flakyById.get(t.testId) ?? [],
+      durationMs: t.durationMs,
     })),
   )
   const nd = new Set(stability.nonDeterministicCallSites)

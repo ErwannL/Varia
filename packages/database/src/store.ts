@@ -36,7 +36,18 @@ export interface ResultRecord {
   timedOut: boolean
   error: unknown
   echoPath: string | null
+  /** Drapeaux du résultat (`SLOW`, CDC §18.9) ; absents des enregistrements antérieurs à J3. */
+  flags?: string[]
+  /** Durée du test visé rapportée par le runner pendant la mutation. */
+  testDurationMs?: number | null
 }
+
+const toResult = (r: typeof t.mutationResults.$inferSelect): ResultRecord => ({
+  ...r,
+  timedOut: r.timedOut === 1,
+  error: r.error === null ? null : (JSON.parse(r.error) as unknown),
+  flags: JSON.parse(r.flags) as string[],
+})
 
 export interface IssueDraftRecord {
   fingerprint: string
@@ -100,7 +111,14 @@ export class Writer {
 
   saveTests(
     runId: string,
-    rows: { testId: string; file: string; name: string; status: string; flakyReasons: string[] }[],
+    rows: {
+      testId: string
+      file: string
+      name: string
+      status: string
+      flakyReasons: string[]
+      durationMs?: number | null
+    }[],
   ): void {
     this.db.transaction((tx) => {
       for (const r of rows) {
@@ -113,6 +131,7 @@ export class Writer {
             status: r.status,
             flaky: r.flakyReasons.length > 0 ? 1 : 0,
             flakyReasons: J(r.flakyReasons),
+            durationMs: r.durationMs ?? null,
           })
           .onConflictDoNothing()
           .run()
@@ -237,6 +256,8 @@ export class Writer {
         runId,
         timedOut: r.timedOut ? 1 : 0,
         error: r.error === undefined || r.error === null ? null : J(r.error),
+        flags: J(r.flags ?? []),
+        testDurationMs: r.testDurationMs ?? null,
         createdAt: now(),
       })
       .onConflictDoNothing()
@@ -490,15 +511,16 @@ export class Reader {
       .where(eq(t.mutationResults.runId, runId))
       .orderBy(asc(t.mutationResults.mutationId))
       .all()
-      .map((r) => ({
-        ...r,
-        timedOut: r.timedOut === 1,
-        error: r.error === null ? null : (JSON.parse(r.error) as unknown),
-      }))
+      .map(toResult)
   }
 
   result(runId: string, mutationId: string): ResultRecord | null {
-    return this.results(runId).find((r) => r.mutationId === mutationId) ?? null
+    const r = this.db
+      .select()
+      .from(t.mutationResults)
+      .where(and(eq(t.mutationResults.runId, runId), eq(t.mutationResults.mutationId, mutationId)))
+      .get()
+    return r === undefined ? null : toResult(r)
   }
 
   resultIds(runId: string): Set<string> {

@@ -38,7 +38,15 @@ export async function replayMutation(
   mkdirSync(tmpDir, { recursive: true })
   try {
     await ctx.adapter.prepare(prepareContext(ctx, run.id, tmpDir))
-    const { classification, calls } = await executeMutation(ctx, mutation, run.planPath, tmpDir)
+    const baselineMs =
+      ctx.reader.tests(run.id).find((t) => t.testId === mutation.testId)?.durationMs ?? null
+    const { classification, calls } = await executeMutation(
+      ctx,
+      mutation,
+      run.planPath,
+      tmpDir,
+      baselineMs,
+    )
     const prev = ctx.reader.result(run.id, mutationId)
     ctx.writer.event(run.id, 'MUTATION_REPLAYED', {
       mutationId,

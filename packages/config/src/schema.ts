@@ -211,12 +211,18 @@ export const configSchema = z
         handled_errors: z.array(handledRule).default([]),
         crash_errors: z.array(z.string()).default(['TypeError', 'ReferenceError', 'RangeError']),
         suspicious_accept: z.enum(['report', 'ignore']).default('report'),
+        /** `SLOW` : durée du test muté > `slow_factor` × celle de la baseline (CDC §18.9)… */
+        slow_factor: z.number().min(1).default(10),
+        /** … et au-delà d'un plancher en ms (le bruit des tests très courts n'est pas un signal). */
+        slow_floor_ms: z.number().int().min(0).default(100),
       })
       .strict()
       .default({
         handled_errors: [],
         crash_errors: ['TypeError', 'ReferenceError', 'RangeError'],
         suspicious_accept: 'report',
+        slow_factor: 10,
+        slow_floor_ms: 100,
       }),
     redaction: z
       .object({

@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
-import { copyFileSync, mkdtempSync } from 'node:fs'
+import { copyFileSync, readdirSync, mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -43,7 +43,7 @@ function seeded() {
 describe('migrations', () => {
   it('appliquées une fois, idempotentes', () => {
     const sqlite = new Database(':memory:')
-    expect(migrate(sqlite)).toEqual(['0001', '0002', '0003', '0004'])
+    expect(migrate(sqlite)).toEqual(['0001', '0002', '0003', '0004', '0005'])
     expect(migrate(sqlite)).toEqual([])
   })
   it('montée de version d’une base existante (0001 → 0002), données conservées', () => {
@@ -54,8 +54,38 @@ describe('migrations', () => {
     sqlite
       .prepare("INSERT INTO projects (id, name, root, framework) VALUES ('p', 'n', '/r', 'jest')")
       .run()
-    expect(migrate(sqlite)).toEqual(['0002', '0003', '0004'])
+    expect(migrate(sqlite)).toEqual(['0002', '0003', '0004', '0005'])
     expect(sqlite.prepare('SELECT name FROM projects').get()).toEqual({ name: 'n' })
+  })
+  it('0005 : durées de tests et drapeaux ajoutés sans perte (valeurs par défaut)', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'varia-mig-'))
+    for (const f of readdirSync(MIGRATIONS_DIR).filter((x) => /^000[1-4]_/.test(x)))
+      copyFileSync(join(MIGRATIONS_DIR, f), join(dir, f))
+    const sqlite = new Database(':memory:')
+    migrate(sqlite, dir)
+    sqlite.exec(
+      "INSERT INTO projects (id, name, root, framework) VALUES ('p', 'n', '/r', 'jest');" +
+        "INSERT INTO runs (id, project_id, state, mode, varia_version, config_hash, env_hash, created_at, updated_at) VALUES ('r', 'p', 'COMPLETED', 'normal', '0', 'c', 'e', 'x', 'x');",
+    )
+    sqlite
+      .prepare(
+        "INSERT INTO tests (run_id, test_id, file, name, status) VALUES ('r', 't', 'f', 'n', 'passed')",
+      )
+      .run()
+    sqlite
+      .prepare(
+        "INSERT INTO mutation_results (run_id, mutation_id, status, duration_ms, timed_out, created_at) VALUES ('r', 'm', 'PASSED', 1, 0, 'x')",
+      )
+      .run()
+    expect(migrate(sqlite)).toEqual(['0005'])
+    expect(sqlite.prepare('SELECT name, duration_ms FROM tests').get()).toEqual({
+      name: 'n',
+      duration_ms: null,
+    })
+    expect(sqlite.prepare('SELECT flags, test_duration_ms FROM mutation_results').get()).toEqual({
+      flags: '[]',
+      test_duration_ms: null,
+    })
   })
   it('le schéma Drizzle correspond exactement aux tables migrées', () => {
     const sqlite = new Database(':memory:')

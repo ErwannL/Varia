@@ -44,6 +44,8 @@ export function oracleConfig(ctx: EngineContext) {
     handledRules: ctx.config.handledRules,
     crashErrors: o.crash_errors,
     suspiciousAccept: o.suspicious_accept,
+    slowFactor: o.slow_factor,
+    slowFloorMs: o.slow_floor_ms,
   }
 }
 
@@ -60,6 +62,8 @@ export interface ExecutedCall {
 
 export interface MutationExecution {
   classification: Classification
+  /** Durée du test visé rapportée par le runner (`null` si inconnue). */
+  testDurationMs: number | null
   durationMs: number
   exitCode: number | null
   signal: string | null
@@ -73,6 +77,8 @@ export async function executeMutation(
   m: PlannedMutation,
   planPath: string,
   tmpDir: string,
+  /** Durée du test visé en baseline (drapeau SLOW, CDC §18.9). */
+  baselineTestMs: number | null = null,
 ): Promise<MutationExecution> {
   const runDir = join(tmpDir, m.id)
   mkdirSync(runDir, { recursive: true })
@@ -128,7 +134,8 @@ export async function executeMutation(
                     },
           }
     const hint = ctx.config.parsed.inputs.hints.find((h) => h.path === `${m.export}#${m.pathStr}`)
-    const testStatus = run.tests?.find((t) => t.testId === m.testId)?.status ?? null
+    const testResult = run.tests?.find((t) => t.testId === m.testId)
+    const testStatus = testResult?.status ?? null
     const classification = classify(
       {
         mutation: m,
@@ -141,6 +148,8 @@ export async function executeMutation(
         ...(hint !== undefined ? { hint } : {}),
         probeErrors: probeErrorCount(run),
         rejections: run.events.filter((e) => e.type === 'UNHANDLED_REJECTION'),
+        baselineTestMs,
+        testDurationMs: testResult?.durationMs ?? null,
       },
       oracleConfig(ctx),
     )
@@ -157,6 +166,7 @@ export async function executeMutation(
       }))
     return {
       classification,
+      testDurationMs: testResult?.durationMs ?? null,
       durationMs: run.process.durationMs,
       exitCode: run.process.exitCode,
       signal: run.process.signal,
@@ -194,6 +204,7 @@ export async function runFuzz(
   let executed = 0
   let cut = false
   const todo = plan.mutations.filter((m) => !done.has(m.id))
+  const baselineMs = new Map(ctx.reader.tests(runId).map((t) => [t.testId, t.durationMs]))
   const useCache = ctx.config.parsed.cache.enabled && o.noCache !== true
   const contentHash = useCache ? projectContentHash(ctx) : ''
   let cacheHits = 0
@@ -219,7 +230,13 @@ export async function runFuzz(
         cacheMisses++
       }
       ctx.writer.event(runId, 'MUTATION_STARTED', { mutationId: m.id, invocation })
-      const r = await executeMutation(ctx, m, run.planPath, tmpDir)
+      const r = await executeMutation(
+        ctx,
+        m,
+        run.planPath,
+        tmpDir,
+        baselineMs.get(m.testId) ?? null,
+      )
       const c = r.classification
       const record = {
         mutationId: m.id,
@@ -234,6 +251,8 @@ export async function runFuzz(
         timedOut: r.timedOut,
         error: c.error ?? null,
         echoPath: c.echoPath ?? null,
+        flags: c.flags ?? [],
+        testDurationMs: r.testDurationMs,
       }
       ctx.writer.saveResult(runId, record)
       if (useCache) ctx.writer.cacheResult(cacheKey(ctx, run.envHash, contentHash, m), record)
@@ -293,6 +312,7 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
         : {}),
       ...(r.reason !== null ? { reason: r.reason } : {}),
       ...(r.error !== null ? { error: r.error as NonNullable<Classification['error']> } : {}),
+      ...((r.flags ?? []).length > 0 ? { flags: r.flags } : {}),
     }
     return [{ mutation, classification }]
   })

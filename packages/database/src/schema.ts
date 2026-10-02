@@ -42,6 +42,7 @@ export const tests = sqliteTable(
     status: text('status').notNull(),
     flaky: integer('flaky').notNull().default(0),
     flakyReasons: text('flaky_reasons').notNull().default('[]'),
+    durationMs: real('duration_ms'),
   },
   (t) => ({ pk: primaryKey({ columns: [t.runId, t.testId] }) }),
 )
@@ -122,6 +123,8 @@ export const mutationResults = sqliteTable(
     error: text('error'),
     echoPath: text('echo_path'),
     createdAt: text('created_at').notNull(),
+    flags: text('flags').notNull().default('[]'),
+    testDurationMs: real('test_duration_ms'),
   },
   (t) => ({ pk: primaryKey({ columns: [t.runId, t.mutationId] }) }),
 )

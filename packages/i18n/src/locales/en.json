@@ -203,6 +203,7 @@
   "issue.kind.PROCESS_EXIT": "{target}: abnormal process exit",
   "issue.kind.RESOURCE_LIMIT": "{target}: resource limit",
   "issue.kind.SUSPICIOUS_ACCEPT": "{target}: suspicious accept ({reason}) on {path}",
+  "issue.kind.SLOW": "{target}: slowness (test duration ≫ baseline)",
   "cli.cmd.compare": "compare the issues of two runs",
   "cli.compare.head": "Comparison {a} → {b}",
   "cli.compare.added": "  + new: {id}",

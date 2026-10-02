@@ -153,6 +153,10 @@ export const reportSchema = z
         echoPath: z.string().nullable(),
         error: z.object({ name: z.string(), message: z.string() }).nullable(),
         durationMs: z.number().nullable(),
+        /** Durée du test visé pendant la mutation, rapportée par le runner. */
+        testDurationMs: z.number().nullable(),
+        /** Drapeaux (`SLOW`, CDC §18.9) : ne changent pas le statut. */
+        flags: z.array(z.string()),
         acceptedBy: z.string().nullable(),
       }),
     ),

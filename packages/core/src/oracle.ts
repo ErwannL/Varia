@@ -35,6 +35,8 @@ export interface Classification {
   echoPath?: string
   outcome?: OutcomeKind
   error?: SerializedError
+  /** Drapeaux qui ne changent pas le statut (`SLOW`, CDC §18.9). */
+  flags?: string[]
   /** Signal secondaire seulement (CDC §18.3-7) : jamais utilisé seul pour classer. */
   testStatus: string | null
 }
@@ -54,6 +56,9 @@ export interface OracleConfig {
   handledRules?: HandledRule[]
   crashErrors: string[]
   suspiciousAccept?: 'report' | 'ignore'
+  /** `SLOW` si la durée du test muté dépasse `slowFactor` × la baseline et `slowFloorMs`. */
+  slowFactor?: number
+  slowFloorMs?: number
 }
 
 export const DEFAULT_ORACLE: OracleConfig = {
@@ -81,6 +86,9 @@ export interface OracleInput {
   probeErrors?: number
   /** Rejets de promesse non gérés (`UNHANDLED_REJECTION`), attribués à un appel quand c'est possible. */
   rejections?: ProbeEvent[]
+  /** Durée du test visé en baseline et pendant la mutation (rapportées par le runner). */
+  baselineTestMs?: number | null
+  testDurationMs?: number | null
 }
 
 /** Épuisement du tas V8 (limite `--max-old-space-size` posée par `memory_mb`, CDC §16.3, A-03). */
@@ -134,8 +142,25 @@ export function matchesRule(r: HandledRule, e: SerializedError): boolean {
 const inDependency = (e: SerializedError) =>
   (e.stack.split('\n').find((l) => l.trim().startsWith('at ')) ?? '').includes('node_modules')
 
+/**
+ * Drapeau `SLOW` (CDC §18.9) : la durée du test muté dépasse `slowFactor` × celle de la baseline ET le
+ * plancher `slowFloorMs` (sans plancher, un test de 1 ms passé à 11 ms serait « lent »). Ce n'est pas
+ * un statut : il s'ajoute au résultat, gravité LOW.
+ */
+export function isSlow(i: OracleInput, cfg: OracleConfig): boolean {
+  const base = i.baselineTestMs
+  const now = i.testDurationMs
+  if (base === null || base === undefined || now === null || now === undefined) return false
+  return now > Math.max((cfg.slowFactor ?? 10) * base, cfg.slowFloorMs ?? 100)
+}
+
 /** Oracle (CDC §18) : ordre d'évaluation strict, le statut du test n'est qu'un signal secondaire. */
 export function classify(i: OracleInput, cfg: OracleConfig = DEFAULT_ORACLE): Classification {
+  const c = classifyStatus(i, cfg)
+  return isSlow(i, cfg) ? { ...c, flags: ['SLOW'] } : c
+}
+
+function classifyStatus(i: OracleInput, cfg: OracleConfig): Classification {
   const base = { testStatus: i.testStatus }
   if (!i.hello && !i.process.timedOut)
     return { ...base, status: 'INFRA_ERROR', reason: 'PROBE_NOT_STARTED' }

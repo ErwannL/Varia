@@ -11,6 +11,7 @@ export type IssueKind =
   | 'RESOURCE_LIMIT'
   | 'SUSPICIOUS_ACCEPT'
   | 'DEPENDENCY_ERROR'
+  | 'SLOW'
 
 export interface IssueDraft {
   fingerprint: string
@@ -58,6 +59,8 @@ export function severityOf(kind: IssueKind): Severity {
       return 'CRITICAL'
     case 'ERROR':
       return 'HIGH'
+    case 'SLOW':
+      return 'LOW'
     default:
       return 'MEDIUM'
   }
@@ -121,15 +124,32 @@ export function issueOf(r: ResultForIssues, root: string): Omit<IssueDraft, 'mut
   return null
 }
 
+/** Issue de lenteur (drapeau `SLOW`, CDC §18.9), une par target, gravité LOW. */
+export function slowIssueOf(r: ResultForIssues): Omit<IssueDraft, 'mutationIds'> | null {
+  if (!(r.classification.flags ?? []).includes('SLOW')) return null
+  const target = `${r.mutation.module}#${r.mutation.export}`
+  return {
+    fingerprint: 'i_' + sha256(['SLOW', target].join('\u0000')).slice(0, 16),
+    kind: 'SLOW',
+    severity: severityOf('SLOW'),
+    target,
+    title: `${target} : lenteur`,
+    errorName: null,
+    frame: null,
+    message: null,
+  }
+}
+
 /** Regroupe les mutations par empreinte primaire (CDC §20.1). Ordre stable. */
 export function groupIssues(results: ResultForIssues[], root: string): IssueDraft[] {
   const map = new Map<string, IssueDraft>()
   for (const r of results) {
-    const i = issueOf(r, root)
-    if (i === null) continue
-    const existing = map.get(i.fingerprint)
-    if (existing) existing.mutationIds.push(r.mutation.id)
-    else map.set(i.fingerprint, { ...i, mutationIds: [r.mutation.id] })
+    for (const i of [issueOf(r, root), slowIssueOf(r)]) {
+      if (i === null) continue
+      const existing = map.get(i.fingerprint)
+      if (existing) existing.mutationIds.push(r.mutation.id)
+      else map.set(i.fingerprint, { ...i, mutationIds: [r.mutation.id] })
+    }
   }
   const order: Severity[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO']
   return [...map.values()].sort(
