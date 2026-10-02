@@ -537,5 +537,12 @@
     "find": "  /^openai$/,\n",
     "replace": "",
     "tests": ["tests/quality-scripts.test.ts"]
+  },
+  {
+    "name": "A-12 : redaction de la sonde coupée (secret brut dans les journaux conservés)",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "        opts.redactFields?.has(key.toLowerCase()) ||\n        opts.redactPaths?.has(childPath) ||\n        opts.redactPatterns?.some((re) => re.test(key))\n",
+    "replace": "        false\n",
+    "tests": ["tests/j3/secrets.test.ts"]
   }
 ]
