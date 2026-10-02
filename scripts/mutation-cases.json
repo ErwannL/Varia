@@ -530,5 +530,12 @@
     "find": "    this.logDestination.end()\n",
     "replace": "",
     "tests": ["packages/engine/test/context.test.ts"]
+  },
+  {
+    "name": "check:no-ai : dépendance openai acceptée",
+    "file": "scripts/check-no-ai.mjs",
+    "find": "  /^openai$/,\n",
+    "replace": "",
+    "tests": ["tests/quality-scripts.test.ts"]
   }
 ]

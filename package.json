@@ -23,7 +23,7 @@
     "check:skips": "node scripts/check-skipped-tests.mjs",
     "check:lines": "node scripts/check-file-lines.mjs",
     "check:readmes": "node scripts/check-readmes.mjs",
-    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm run check:coverage-ignores && npm run brand:check && npm run build && npm run test:coverage && npm run check:coverage-exact",
+    "check": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm run check:coverage-ignores && npm run check:no-ai && npm run brand:check && npm run build && npm run test:coverage && npm run check:coverage-exact",
     "brand": "node scripts/brand.mjs",
     "brand:check": "node scripts/brand.mjs --check",
     "examples:install": "node scripts/install-examples.mjs",
@@ -33,10 +33,11 @@
     "acceptance:external": "node scripts/acceptance-external.mjs",
     "test:coverage": "node scripts/coverage.mjs",
     "check:coverage-ignores": "node scripts/check-coverage-ignores.mjs",
-    "check:fast": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm run check:coverage-ignores && npm run brand:check",
+    "check:fast": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm run check:coverage-ignores && npm run check:no-ai && npm run brand:check",
     "clean": "node scripts/clean.mjs",
     "check:coverage-exact": "node scripts/check-coverage-exact.mjs",
-    "schemas": "tsx scripts/write-schemas.ts"
+    "schemas": "tsx scripts/write-schemas.ts",
+    "check:no-ai": "node scripts/check-no-ai.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

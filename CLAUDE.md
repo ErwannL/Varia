@@ -57,3 +57,4 @@ npm test             # vitest
 - `docs/notes/configuration.md` — accepté = implémenté : valeur non implémentée refusée (code `UNSUPPORTED_*`).
 - `docs/notes/tests-deterministes.md` — scénarios sans dépendance à la vitesse (cibles déterministes, délais explicites).
 - `docs/notes/plateformes.md` — branches de plateforme injectées, tubes asynchrones sous macOS, URL `file:` et shell sous Windows.
+- `docs/notes/zero-ia.md` — aucune IA/LLM dans Varia ; contrôle `check:no-ai` (paquets, manifestes, code de sonde).

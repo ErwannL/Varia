@@ -74,3 +74,34 @@ describe('check-coverage-ignores', () => {
     ).toBe(0)
   })
 })
+
+describe('check-no-ai', () => {
+  // Chaînes interdites assemblées à l'exécution : ce fichier lui-même reste propre.
+  const j = (...p: string[]) => p.join('')
+  it.each([
+    ['package.json', JSON.stringify({ dependencies: { [j('open', 'ai')]: '4' } })],
+    ['package.json', JSON.stringify({ devDependencies: { [j('@anthropic', '-ai/sdk')]: '1' } })],
+    ['package-lock.json', JSON.stringify({ packages: { [j('node_modules/lang', 'chain')]: {} } })],
+    ['src/a.ts', `fetch('https://${j('api.open', 'ai.com')}/v1')\n`],
+    ['src/b.js', `const k = process.env.${j('OPENAI', '_API_KEY')}\n`],
+    ['src/c.ts', `import x from '${j('open', 'ai')}'\n`],
+    ['probe/p.py', `${j('import ', 'anthropic')}\n`],
+    ['requirements.txt', `${j('lang', 'chain')}==0.1\n`],
+    ['composer.json', `{"require": {"${j('openai', '-php')}/client": "1"}}`],
+    ['pom.xml', `<artifactId>${j('lang', 'chain4j')}</artifactId>`],
+  ])('échoue sur %s', (file, content) => {
+    expect(run('check-no-ai.mjs', repo({ [file]: content }))).toBe(1)
+  })
+  it('passe sur un dépôt sans IA, documentation exclue', () => {
+    expect(
+      run(
+        'check-no-ai.mjs',
+        repo({
+          'package.json': JSON.stringify({ dependencies: { commander: '12' } }),
+          'src/a.ts': 'export const a = 1\n',
+          'README.md': `${j('api.open', 'ai.com')}\n`,
+        }),
+      ),
+    ).toBe(0)
+  })
+})
