@@ -187,3 +187,48 @@ dépendante de l'OS ; aucun seuil abaissé).
 l'éclair semblait rogné (sommet plat). Éclair à pointe, entièrement dans la tuile ; animation nette
 (chute et scintillement de l'éclair, accolades qui s'écartent sous le choc, boucle de 3 s), vérifiée
 image par image dans Chromium en `<img>` comme dans le README.
+
+## D-024 — 2026-10-02 — Mesure de couverture J3 (100 %, processus enfants)
+
+- Contexte : J3 exige 100 % fichier par fichier sur tout le code livré, y compris le code exécuté
+  hors du processus de test (sonde, superviseur, lanceur Vitest).
+- Options : (a) NODE_V8_COVERAGE partout + fusion ; (b) tests en processus seulement ; (c) les deux.
+- Choix : (c). `scripts/coverage.mjs` lance Vitest, propage `NODE_V8_COVERAGE` aux enfants (préchargement
+  qui coupe la propagation aux runners du projet cible), puis convertit la couverture V8 brute des
+  fichiers `runtime/` avec le convertisseur AST de Vitest (`ast-v8-to-istanbul`) et la source réelle.
+- Constat : Vitest convertit un fichier chargé par le `require` natif avec la source TRANSFORMÉE par
+  Vite (positions décalées : des branches « sinon » exécutées apparaissaient à 0, et inversement des
+  branches non exécutées pouvaient paraître couvertes). Un fournisseur enveloppe
+  (`scripts/vitest-coverage-provider.mjs`) conserve donc la couverture brute de ces fichiers, et la
+  fusion REMPLACE l'entrée de Vitest ; un fichier `runtime/` chargé par Vite fait échouer la mesure.
+- Le passage au convertisseur AST change la définition des instructions et des lignes : les seuils
+  ont été reconstitués sur la nouvelle mesure (`coverage-thresholds.json`, plancher mesuré par
+  fichier, 100 ailleurs) ; aucun n'a été abaissé depuis, et la cible finale est 100 partout.
+- Code exécuté dans le contexte `vm` de Jest (sonde, transform) : non repris des enfants (décalage
+  d'enveloppe) ; mesuré par des tests en processus (F-03).
+
+## D-025 — 2026-10-02 — Sonde défensive et rejets non gérés (A-05, A-02)
+
+- Toute erreur du code de la sonde est capturée : `PROBE_ERROR` (ou marqueur `[varia] PROBE_ERROR` sur
+  stderr si le journal est inaccessible), cible appelée sans mutation avec ses arguments d'origine ;
+  l'oracle classe `INFRA_ERROR / PROBE_FAILURE` (avant tout autre critère, §18.3-1).
+- Rejets non gérés : un crochet `async_hooks` (init) étiquette les promesses créées pendant un appel de
+  cible avec son contexte (appel et appels englobants) ; l'écouteur `unhandledRejection` émet
+  `UNHANDLED_REJECTION` avec cette attribution ; l'oracle classe `CRASH / UNHANDLED_REJECTION` si le
+  rejet vient de l'appel muté ou d'un appel qu'il a fait. Un rejet attendu (`TARGET_REJECT`) est jugé
+  comme avant.
+- Sous Jest, `process` est une copie dans le contexte `vm` (un écouteur y est sans effet, jest-circus le
+  dit). Le transform Jest, qui s'exécute dans le vrai processus, publie `process` sur le module
+  `async_hooks` (partagé tel quel avec le contexte vm) ; la sonde s'y abonne à l'enveloppement du
+  premier module ciblé (après le `setup` de jest-circus, qui sinon retirerait l'écouteur). Sous Vitest,
+  le fichier de setup passe `process` à `install`.
+- Si la sonde est seule à écouter, le rejet est relancé (comportement par défaut de Node conservé).
+
+## D-026 — 2026-10-02 — Écarts C.0 régularisés (A-15) et ordre des premiers commits (G-04)
+
+- `fetchUser` non déclarée `async` (D-005) : seule façon de lever SYNCHRONIQUEMENT (`TypeError` pour un
+  objet) tout en renvoyant une promesse sinon ; couvert par J0-14 (`tests/j1/j0-via-cli.test.ts`).
+- `exitOn("boom")` atteint par l'extension `inputs.values` (D-006) : aucun catalogue du §13.3 ne
+  contient `"boom"` ; couvert par J0-9 (même fichier).
+- G-04 : le premier commit du dépôt n'est pas `docs/SPEC.md` seul précédé de rien (D-001 : `.gitattributes`
+  d'abord). Non corrigeable sans réécrire l'historique (interdit) : constaté, laissé tel quel.

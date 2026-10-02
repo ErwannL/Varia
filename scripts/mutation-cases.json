@@ -61,5 +61,54 @@
     "find": "if (patterns.some((p) => p.test(line)))",
     "replace": "if (false)",
     "tests": ["tests/quality-scripts.test.ts"]
+  },
+  {
+    "name": "F-03 copie profonde retirée (mutation en place)",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "const copy = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (deepClone(args)))",
+    "replace": "const copy = /** @type {Record<string, unknown>} */ (/** @type {unknown} */ (args))",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "F-03 profondeur par compteur global (appels entrelacés)",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "const depth = parent ? parent.depth + 1 : 0",
+    "replace": "const depth = (st.callCounter > 0 && st.als.getStore() === undefined && st.currentTest !== null ? 0 : 0) + (parent ? 1 : 0) + (st.sequences.size > 2 ? 1 : 0)",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "A-01 clé __proto__ écrite par affectation",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "function setOwn(obj, key, value) {\n  Object.defineProperty(obj, key, { value, enumerable: true, writable: true, configurable: true })\n}",
+    "replace": "function setOwn(obj, key, value) {\n  obj[key] = value\n}",
+    "tests": ["packages/probe-runtime/test/serialize.test.ts"]
+  },
+  {
+    "name": "A-05 garde de la sonde retirée",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "      probeError(st, 'prepare', e, { module: moduleId, export: exportName })\n      return invoke(args)",
+    "replace": "      throw e",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "A-02 hook unhandledRejection retiré",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "  proc.on('unhandledRejection', (reason, promise) => {",
+    "replace": "  proc.on('unhandledRejection-off', (reason, promise) => {",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "A-02 processus réel non publié par le transform Jest",
+    "file": "packages/adapters/jest/runtime/transform.cjs",
+    "find": "publishProcess(require('async_hooks'), process)",
+    "replace": "void publishProcess",
+    "tests": ["tests/j3/rejection.test.ts", "packages/adapters/jest/test/transform.test.ts"]
+  },
+  {
+    "name": "A-02 oracle : rejet non géré ignoré",
+    "file": "packages/core/src/oracle.ts",
+    "find": "  if (rejection !== undefined) {",
+    "replace": "  if (rejection !== undefined && false) {",
+    "tests": ["packages/core/test/oracle.test.ts"]
   }
 ]

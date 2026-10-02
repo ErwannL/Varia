@@ -13,6 +13,9 @@
 
 ## J3 (en cours)
 
-- Outillage de couverture : `npm run test:coverage` (fusion des enfants) puis `npm run check:coverage-exact`.
-  Pas encore branché dans `npm run check` : la sonde (`probe.cjs`) et le transform Jest ne sont pas
-  encore mesurés en processus (F-03 en cours) ⇒ la porte échoue volontairement sur eux.
+- Outillage de couverture : `npm run test:coverage` (fusion des enfants) puis `npm run check:coverage-exact`
+  (branché dans `npm run check`). Fichiers `runtime/` (sonde, transform, superviseur, plugin et lanceur
+  Vitest) à 100 % ; seuils par fichier restants dans `coverage-thresholds.json` (cliquet :
+  `node scripts/coverage-ratchet.mjs`).
+- Fait : F-01 (outillage), F-03 (sonde en processus), A-01, A-02, A-05.
+- À faire : A-03…A-15, B, C, D, E, G, F-02, F-04 (cas restants), couverture 100 % des `src/`.

@@ -7,6 +7,15 @@
 const nodeCrypto = require('crypto')
 const path = require('path')
 
+// Le transform s'exécute dans le processus RÉEL (hors du contexte vm des tests) : il publie `process`
+// pour que la sonde écoute `unhandledRejection` sur le vrai processus (CDC §10.8, A-02). Le module
+// `async_hooks` est partagé tel quel avec le contexte vm (Jest ne remplace que `process`).
+/** @param {any} hooks @param {NodeJS.Process} proc */
+function publishProcess(hooks, proc) {
+  Object.defineProperty(hooks, Symbol.for('varia.process'), { value: proc, configurable: true })
+}
+publishProcess(require('async_hooks'), process)
+
 /**
  * @typedef {object} VariaTransformConfig
  * @property {string | null} original chemin absolu du transform d'origine (null : aucun)
@@ -89,4 +98,4 @@ function createTransformer(cfg) {
   }
 }
 
-module.exports = { createTransformer }
+module.exports = { createTransformer, publishProcess }

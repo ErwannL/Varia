@@ -37,8 +37,12 @@ export function rewriteExports(code, filename, moduleId) {
         if (ts.isIdentifier(d.name)) values.add(d.name.text)
   }
   /** Supprime les mots-clés `export` / `default` d'une déclaration. @param {ts.Node} node */
+  // Appelée seulement sur une déclaration exportée : elle porte donc des modificateurs.
   const dropExport = (node) => {
-    for (const m of ts.canHaveModifiers(node) ? (ts.getModifiers(node) ?? []) : []) {
+    const modifiers = /** @type {readonly ts.Modifier[]} */ (
+      ts.getModifiers(/** @type {ts.HasModifiers} */ (node))
+    )
+    for (const m of modifiers) {
       if (m.kind === ts.SyntaxKind.ExportKeyword || m.kind === ts.SyntaxKind.DefaultKeyword)
         s.remove(m.getStart(sf), m.getEnd() + 1)
     }

@@ -42,6 +42,15 @@ function stableStringify(/** @type {unknown} */ value, indent = 0) {
   return JSON.stringify(sortKeys(value), null, indent)
 }
 
+/**
+ * Pose une clé PROPRE (jamais une écriture de prototype) : `__proto__` est une donnée comme une autre
+ * (A-01 : `out["__proto__"] = x` changerait le prototype et ferait disparaître la clé).
+ * @param {Record<string, unknown>} obj @param {string} key @param {unknown} value
+ */
+function setOwn(obj, key, value) {
+  Object.defineProperty(obj, key, { value, enumerable: true, writable: true, configurable: true })
+}
+
 /** @param {unknown} v @returns {unknown} */
 function sortKeys(v) {
   if (Array.isArray(v)) return v.map(sortKeys)
@@ -49,7 +58,7 @@ function sortKeys(v) {
     /** @type {Record<string, unknown>} */
     const out = {}
     for (const k of Object.keys(v).sort())
-      out[k] = sortKeys(/** @type {Record<string, unknown>} */ (v)[k])
+      setOwn(out, k, sortKeys(/** @type {Record<string, unknown>} */ (v)[k]))
     return out
   }
   return v
@@ -182,7 +191,7 @@ function ser(value, opts, path, depth, seen) {
       proto === Object.prototype ||
       (toTag(proto) === 'Object' && proto.constructor?.name === 'Object')
     if (!plain && OPAQUE_HINTS.every((m) => typeof record[m] === 'function')) {
-      return { $t: 'opaque', kind: proto?.constructor?.name ?? 'object' }
+      return { $t: 'opaque', kind: proto.constructor?.name ?? 'object' }
     }
     if (toTag(obj) === 'Promise') return { $t: 'opaque', kind: 'Promise' }
     /** @type {Record<string, JsonValue>} */
@@ -195,13 +204,13 @@ function ser(value, opts, path, depth, seen) {
         opts.redactPaths?.has(childPath) ||
         opts.redactPatterns?.some((re) => re.test(key))
       ) {
-        fields[key] = redacted(raw, opts)
+        setOwn(fields, key, redacted(raw, opts))
       } else {
-        fields[key] = ser(raw, opts, childPath, depth + 1, seen)
+        setOwn(fields, key, ser(raw, opts, childPath, depth + 1, seen))
       }
     }
     const escaped = '$t' in fields || '$redacted' in fields
-    if (!plain) return { $t: 'object', ctor: String(proto?.constructor?.name ?? ''), v: fields }
+    if (!plain) return { $t: 'object', ctor: String(proto.constructor?.name ?? ''), v: fields }
     return escaped ? { $t: 'object', v: fields } : fields
   } finally {
     seen.delete(obj)
@@ -309,12 +318,7 @@ function deserializeFields(fields) {
   /** @type {Record<string, unknown>} */
   const out = {}
   for (const [k, v] of Object.entries(fields)) {
-    Object.defineProperty(out, k, {
-      value: deserialize(v),
-      enumerable: true,
-      writable: true,
-      configurable: true,
-    })
+    setOwn(out, k, deserialize(v))
   }
   return out
 }
@@ -324,11 +328,6 @@ function fingerprint(/** @type {unknown} */ serialized) {
   return sha256(stableStringify(serialized))
 }
 
-/** Égalité structurelle de deux formes sérialisées. */
-function sameShape(/** @type {unknown} */ a, /** @type {unknown} */ b) {
-  return stableStringify(a) === stableStringify(b)
-}
-
 /** Type runtime d'une forme sérialisée. @param {JsonValue} json */
 function typeOfSerialized(json) {
   if (json === null) return 'null'
@@ -336,20 +335,16 @@ function typeOfSerialized(json) {
   if (typeof json !== 'object') return typeof json
   if ('$redacted' in json) return String(json['type'])
   const t = json['$t']
-  if (t === undefined) return 'object'
-  if (t === 'number' || t === 'bigint' || t === 'symbol' || t === 'undefined' || t === 'string')
-    return String(t)
-  if (t === 'object') return 'object'
-  if (t === 'array') return 'array'
-  return String(t)
+  // Forme étiquetée : son étiquette EST le type runtime (number, bigint, object, array, date…).
+  return t === undefined ? 'object' : String(t)
 }
 
 module.exports = {
   callSiteIdOf,
+  setOwn,
   deserialize,
   fingerprint,
   hmac,
-  sameShape,
   serialize,
   serializeArgs,
   sha256,

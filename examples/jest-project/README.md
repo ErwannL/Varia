@@ -13,6 +13,7 @@ Il sert de cible aux scénarios d'acceptation J0/J1 ; ses comportements sont imp
 | `fetchUser`            | objet ⇒ `TypeError` **synchrone** ; non entier positif ⇒ promesse rejetée `ValidationError` ; sinon résolue             | J0-14               |
 | `outer` → `text.inner` | appel transitif via l'export d'un autre module                                                                          | J0-16               |
 | `sumLocal` → `helper`  | appel interne au même fichier (non observable)                                                                          | J0-17               |
+| `scheduleWelcome`      | lance un envoi sans l'attendre : `email` non textuel ⇒ rejet **non géré** après un retour normal                        | A-02 (J3)           |
 
 **J0-5 documenté :** `createUser({ name: "" })` lève `ValidationError` (chaîne vide après `trim`) ⇒ `HANDLED`.
 

@@ -25,8 +25,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 export const AXES = ['statements', 'branches', 'functions', 'lines']
 
 /**
- * Le fichier fait-il partie du code de Varia susceptible d'être mesuré dans un enfant ? Code
- * exécuté directement par Node (URL `file:`) sous `packages/`, hors dépendances et code compilé.
+ * Fichier d'exécution de Varia (dossiers `runtime/` des paquets), exécuté tel quel par Node (URL `file:`) :
+ * le seul code dont la couverture V8 brute est convertie par Varia (processus enfants et processus de
+ * test). Le reste (TypeScript compilé, dépendances, code transformé) n'est jamais repris d'un enfant.
  */
 /** @param {unknown} url @param {string} root */
 export function isVariaFile(url, root) {
@@ -35,6 +36,7 @@ export function isVariaFile(url, root) {
   const prefix = join(root, 'packages') + '/'
   return (
     file.startsWith(prefix) &&
+    /\/runtime\/[^/]+$/.test(file) &&
     !file.includes('/node_modules/') &&
     !file.includes('/dist/') &&
     !file.includes('/test/')
@@ -159,12 +161,16 @@ export async function mergeChildren(map, dir, root, convert = convertRaw) {
       const data = await convert(file, functions)
       acc = acc === null ? data : addCounts(acc, data)
     }
-    // Fichier jamais exécuté dans le processus de test : l'entrée de Vitest (rapport vide, construit
-    // sur la source transformée par Vite) ne porte aucune information ; on la remplace.
-    const childData = /** @type {FileCoverage} */ (acc)
-    const own = map[file]
-    map[file] = own === undefined || neverExecuted(own) ? childData : addCounts(own, childData)
+    // L'entrée de Vitest pour un fichier d'exécution est construite sur la source transformée par Vite
+    // (positions fausses) : elle est REMPLACÉE par la conversion de la couverture brute.
+    map[file] = /** @type {FileCoverage} */ (acc)
     merged.push(file)
+  }
+  // Un fichier d'exécution exécuté (compteurs de Vitest non nuls) sans couverture brute a été chargé
+  // autrement (par Vite) : sa mesure serait fausse.
+  for (const [file, fc] of Object.entries(map)) {
+    if (!merged.includes(file) && isVariaFile(pathToFileURL(file).href, root) && !neverExecuted(fc))
+      throw new Error(`${file} : couverture brute absente, mesure non fiable`)
   }
   return merged.sort()
 }

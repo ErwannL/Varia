@@ -139,7 +139,7 @@ export class VitestAdapter implements TestAdapter {
         `import { afterEach, beforeEach, expect } from ${JSON.stringify(pathToFileURL(entry).href)}`,
         `import { createRequire } from 'node:module'`,
         `const probe = createRequire(import.meta.url)(${JSON.stringify(PROBE_PATH)})`,
-        `probe.install({ beforeEach, afterEach, getState: () => expect.getState(), nameOf: (s) => String(s.currentTestName ?? '').split(' > ').join(' ') })`,
+        `probe.install({ beforeEach, afterEach, getState: () => expect.getState(), nameOf: (s) => String(s.currentTestName ?? '').split(' > ').join(' '), process })`,
         '',
       ].join('\n'),
     )

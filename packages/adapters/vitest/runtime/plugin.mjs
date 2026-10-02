@@ -15,7 +15,7 @@ export function variaPlugin(o) {
     name: 'varia-probe',
     enforce: 'pre',
     transform(code, id) {
-      const file = id.split('?')[0] ?? id
+      const file = id.replace(/\?.*$/s, '')
       if (!/\.[cm]?[jt]sx?$/.test(file) || file.includes('/node_modules/')) return null
       const rel = path.relative(o.root, file).split(path.sep).join('/')
       if (

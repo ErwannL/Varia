@@ -26,6 +26,12 @@
   test, rapport construit sur la source transformée par Vite) est remplacée.
 - Code exécuté dans un contexte `vm` (sonde sous Jest, transform Jest) : non fusionné (décalages
   d'enveloppe et de transformation non fiables) ; mesuré par des **tests en processus** directs.
+- **Fichiers `runtime/` dans le processus de test** : Vitest les convertirait avec la source transformée
+  par Vite (positions fausses). `scripts/vitest-coverage-provider.mjs` (fournisseur enveloppant celui de
+  Vitest) garde leur couverture V8 brute ; la fusion REMPLACE l'entrée de Vitest. Les tests les chargent
+  par `createRequire` (jamais `import`) ; un fichier `runtime/` chargé par Vite fait échouer la mesure.
+- Scripts d'appoint : `node scripts/coverage-gaps.mjs [filtre]` (ce qui n'est pas couvert),
+  `node scripts/coverage-ratchet.mjs` (monte les seuils au niveau mesuré, jamais à la baisse).
 - `npm run check:coverage-exact` (`scripts/check-coverage-exact.mjs`) juge `coverage-exact.json` contre
   `coverage-thresholds.json` (fichier unique des seuils, des fichiers d'exécution requis et des
   exclusions motivées) : tout fichier sous son seuil, tout fichier d'exécution requis à 0 instruction

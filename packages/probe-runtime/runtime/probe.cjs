@@ -2,10 +2,13 @@
 'use strict'
 // Sonde Varia (CDC §10, D.0) : fichier `setupFilesAfterEnv` éphémère, chargé dans chaque fichier de test
 // Jest. Elle n'a aucune politique : elle observe, applique au plus UNE mutation, et écrit des JSONL.
+// Elle est DÉFENSIVE (A-05) : toute erreur de son propre code (sérialisation d'un getter qui lève, Proxy
+// hostile, disque plein) est signalée `PROBE_ERROR` et la cible est appelée SANS mutation, avec ses
+// arguments d'origine ; l'erreur de la sonde n'atteint jamais le code testé.
 
 const fs = require('fs')
 const path = require('path')
-const { AsyncLocalStorage } = require('async_hooks')
+const asyncHooks = require('async_hooks')
 // Jest 24 n'expose pas le global `performance` dans l'environnement de test.
 const { performance: perf } = require('perf_hooks')
 const S = require('./serialize.cjs')
@@ -13,8 +16,15 @@ const S = require('./serialize.cjs')
 const PROTOCOL_VERSION = 1
 const MAX_LOGGED_CALLS = 20
 const WRAPPED = Symbol.for('varia.wrapped')
+/** Contexte d'appel porté par une promesse créée pendant l'appel d'une cible (attribution, A-02). */
+const CALL_TAG = Symbol.for('varia.call')
+/** Processus réel publié par le transform Jest (la sonde, dans le contexte vm, n'y a pas accès). */
+const REAL_PROCESS = Symbol.for('varia.process')
+/** Écouteur `unhandledRejection` unique par processus (partagé entre fichiers de test). */
+const HOOK = Symbol.for('varia.rejectionHook')
+/** Marqueur écrit sur stderr quand le journal lui-même est inaccessible (lu par l'orchestrateur). */
+const STDERR_MARKER = '[varia] PROBE_ERROR'
 
-/** @typedef {import('./serialize.cjs').stableStringify} _ */
 /**
  * @typedef {object} PlanMutation
  * @property {string} id
@@ -25,12 +35,20 @@ const WRAPPED = Symbol.for('varia.wrapped')
  * @property {any} value
  */
 /**
+ * @typedef {object} CallStore contexte asynchrone d'un appel de cible
+ * @property {number} depth
+ * @property {number} callId
+ * @property {string | null} callSiteId
+ * @property {number[]} chain appels englobants, du plus externe au plus interne (lui compris)
+ * @property {string[]} secrets valeurs brutes masquées (filtre des messages d'erreur)
+ */
+/**
  * @typedef {object} ProbeState
  * @property {string} mode
  * @property {string} runId
  * @property {string} logFile
  * @property {string} projectRoot
- * @property {AsyncLocalStorage<{ depth: number }>} als
+ * @property {import('async_hooks').AsyncLocalStorage<CallStore>} als
  * @property {PlanMutation | null} mutation
  * @property {Set<string>} redactFields
  * @property {RegExp[]} redactPatterns
@@ -41,6 +59,9 @@ const WRAPPED = Symbol.for('varia.wrapped')
  * @property {Map<string, number>} nameCounts
  * @property {number} callCounter
  * @property {Set<string>} announced
+ * @property {(line: string) => void} write écriture d'une ligne du journal (remplaçable en test)
+ * @property {(s: string) => void} stderr
+ * @property {() => string} now
  * @property {(m: unknown, id: string) => unknown} wrapExports
  * @property {(f: unknown, id: string, name: string) => unknown} wrapExport
  */
@@ -50,26 +71,31 @@ function readJson(file) {
   return file ? JSON.parse(fs.readFileSync(file, 'utf8')) : null
 }
 
-/** @returns {ProbeState | null} */
-function init() {
-  const mode = process.env['VARIA_MODE']
-  const runDir = process.env['VARIA_RUN_DIR']
+/**
+ * État de la sonde à partir des variables d'environnement (CDC D.0) ; `null` hors d'un run Varia.
+ * @param {Record<string, string | undefined>} env
+ * @returns {ProbeState | null}
+ */
+function init(env) {
+  const mode = env['VARIA_MODE']
+  const runDir = env['VARIA_RUN_DIR']
   if ((mode !== 'observe' && mode !== 'fuzz') || !runDir) return null
-  const redact = readJson(process.env['VARIA_REDACT']) ?? {}
-  const targets = readJson(process.env['VARIA_TARGETS']) ?? {}
+  const redact = readJson(env['VARIA_REDACT']) ?? {}
+  const targets = readJson(env['VARIA_TARGETS']) ?? {}
   let mutation = null
   if (mode === 'fuzz') {
-    const plan = readJson(process.env['VARIA_PLAN'])
-    const id = process.env['VARIA_MUTATION_ID']
+    const plan = readJson(env['VARIA_PLAN'])
+    const id = env['VARIA_MUTATION_ID']
     mutation = plan?.mutations?.find((/** @type {PlanMutation} */ m) => m.id === id) ?? null
   }
+  const logFile = path.join(runDir, `probe-${process.pid}.jsonl`)
   /** @type {ProbeState} */
   const state = {
     mode,
     runId: String(targets.runId ?? ''),
-    logFile: path.join(runDir, `probe-${process.pid}.jsonl`),
+    logFile,
     projectRoot: String(targets.projectRoot ?? process.cwd()),
-    als: new AsyncLocalStorage(),
+    als: new asyncHooks.AsyncLocalStorage(),
     mutation,
     redactFields: new Set((redact.fields ?? []).map((/** @type {string} */ f) => f.toLowerCase())),
     redactPatterns: (redact.patterns ?? []).map((/** @type {string} */ p) => new RegExp(p, 'i')),
@@ -80,6 +106,10 @@ function init() {
     nameCounts: new Map(),
     callCounter: 0,
     announced: new Set(),
+    // appendFileSync : chaque ligne est écrite (et vidée) avant de continuer ; survit à process.exit.
+    write: (line) => fs.appendFileSync(logFile, line),
+    stderr: (s) => process.stderr.write(s),
+    now: () => new Date().toISOString(),
     wrapExports,
     wrapExport,
   }
@@ -93,30 +123,70 @@ function emit(st, type, fields) {
     runId: st.runId,
     type,
     testId: st.currentTest?.testId ?? null,
-    timestamp: new Date().toISOString(),
+    timestamp: st.now(),
     ...fields,
   }
-  // appendFileSync : chaque ligne est écrite (et vidée) avant de continuer ; survit à process.exit.
-  fs.appendFileSync(st.logFile, JSON.stringify(msg) + '\n')
+  st.write(JSON.stringify(msg) + '\n')
 }
 
-/** @param {unknown} e @param {string[]} secrets */
+/**
+ * Signale une erreur du code de la sonde (jamais propagée à la cible). Si le journal lui-même est
+ * inaccessible, un marqueur est écrit sur stderr : l'orchestrateur ne croit jamais un run muet.
+ * @param {ProbeState} st @param {string} stage @param {unknown} e @param {Record<string, unknown>} [extra]
+ */
+function probeError(st, stage, e, extra = {}) {
+  try {
+    emit(st, 'PROBE_ERROR', { reason: stage, error: serializeError(e, []), ...extra })
+  } catch {
+    try {
+      st.stderr(`${STDERR_MARKER} ${stage}\n`)
+    } catch {
+      // stderr fermé : plus aucun canal ; l'absence d'issue de la cible sera classée par l'oracle.
+    }
+  }
+}
+
+/** Lecture défensive d'une propriété (getter qui lève, Proxy hostile). @param {any} o @param {PropertyKey} k */
+function safeGet(o, k) {
+  try {
+    return o[k]
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Forme sérialisée d'une erreur (D.0) ; les chaînes masquées sont retirées du message et de la pile.
+ * Ne lève jamais : une erreur hostile (getters qui lèvent) donne des champs vides.
+ * @param {unknown} e @param {string[]} secrets
+ */
 function serializeError(e, secrets) {
   const scrub = (/** @type {string} */ s) =>
     secrets.reduce((acc, x) => acc.split(x).join('[REDACTED]'), s)
-  if (e === null || typeof e !== 'object')
-    return { name: typeof e, message: scrub(String(e)), constructorChain: [] }
-  const err = /** @type {Record<string, unknown>} */ (e)
-  const chain = []
-  for (
-    let p = Object.getPrototypeOf(e);
-    p !== null && chain.length < 10;
-    p = Object.getPrototypeOf(p)
-  ) {
-    const name = p.constructor?.name
-    if (typeof name === 'string' && name !== 'Object') chain.push(name)
+  const str = (/** @type {unknown} */ v) => {
+    try {
+      return String(v)
+    } catch {
+      return ''
+    }
   }
-  const stack = typeof err['stack'] === 'string' ? err['stack'] : ''
+  if (e === null || typeof e !== 'object')
+    return { name: typeof e, message: scrub(str(e)), stack: '', constructorChain: [] }
+  const chain = []
+  try {
+    for (
+      let p = Object.getPrototypeOf(e);
+      p !== null && chain.length < 10;
+      p = Object.getPrototypeOf(p)
+    ) {
+      const name = safeGet(safeGet(p, 'constructor'), 'name')
+      if (typeof name === 'string' && name !== 'Object') chain.push(name)
+    }
+  } catch {
+    // Proxy dont getPrototypeOf lève : chaîne partielle.
+  }
+  const rawStack = safeGet(e, 'stack')
+  const stack = typeof rawStack === 'string' ? rawStack : ''
   const frames = stack
     .split('\n')
     .slice(1)
@@ -124,11 +194,13 @@ function serializeError(e, secrets) {
       (l) => !l.includes(__dirname) && !l.includes('node:internal') && !l.includes('/jest-circus/'),
     )
     .slice(0, 15)
+  const code = safeGet(e, 'code')
+  const status = safeGet(e, 'status')
   return {
-    name: scrub(String(err['name'] ?? '')),
-    message: scrub(String(err['message'] ?? '')),
-    ...(err['code'] !== undefined ? { code: String(err['code']) } : {}),
-    ...(err['status'] !== undefined ? { status: Number(err['status']) } : {}),
+    name: scrub(str(safeGet(e, 'name') ?? '')),
+    message: scrub(str(safeGet(e, 'message') ?? '')),
+    ...(code !== undefined ? { code: str(code) } : {}),
+    ...(status !== undefined ? { status: Number(status) } : {}),
     stack: scrub(frames.join('\n')),
     constructorChain: chain,
   }
@@ -175,118 +247,233 @@ function applyMutation(args, m) {
   }
   const last = /** @type {string} */ (m.path[m.path.length - 1])
   if (m.op === 'delete') Reflect.deleteProperty(parent, last)
-  else parent[last] = S.deserialize(m.value)
+  // Clé propre, jamais une écriture de prototype (`__proto__` est une donnée, A-01).
+  else
+    Object.defineProperty(parent, last, {
+      value: S.deserialize(m.value),
+      enumerable: true,
+      writable: true,
+      configurable: true,
+    })
   return /** @type {unknown[]} */ (/** @type {unknown} */ (copy))
+}
+
+/**
+ * Processus réel publié par le transform Jest (qui s'exécute hors du contexte vm) ; `null` s'il ne
+ * l'est pas (transform pas encore chargé, ou runner sans transform : Vitest passe `process` à install).
+ * @returns {NodeJS.Process | null}
+ */
+function publishedProcess() {
+  return /** @type {any} */ (asyncHooks)[REAL_PROCESS] ?? null
+}
+
+/**
+ * Rejet de promesse non géré (CDC §10.8, §18.8, A-02) : attribué à l'appel de cible dans le contexte
+ * asynchrone duquel la promesse a été créée (étiquette posée par le crochet `init`).
+ * @param {ProbeState} st @param {unknown} reason @param {unknown} promise
+ */
+function onUnhandledRejection(st, reason, promise) {
+  /** @type {CallStore | undefined} */
+  const tag =
+    promise !== null && typeof promise === 'object' ? safeGet(promise, CALL_TAG) : undefined
+  try {
+    emit(st, 'UNHANDLED_REJECTION', {
+      ...(tag !== undefined ? { callId: tag.callId } : {}),
+      callSiteId: tag?.callSiteId ?? null,
+      chain: tag?.chain ?? [],
+      error: serializeError(reason, tag?.secrets ?? []),
+    })
+  } catch (e) {
+    probeError(st, 'unhandled-rejection', e)
+  }
+}
+
+/**
+ * Installe (une fois par processus) l'écouteur `unhandledRejection` et le crochet qui étiquette les
+ * promesses créées pendant un appel de cible ; l'état courant est mis à jour à chaque fichier de test.
+ * Sous Jest, sans processus réel publié (transform pas encore chargé), rien n'est installé : un
+ * écouteur sur la copie vm du processus ne recevrait rien. Renvoie `true` si l'écoute est active.
+ * @param {ProbeState} st @param {NodeJS.Process | null} proc
+ */
+function installRejectionHook(st, proc) {
+  if (proc === null) return false
+  const p = /** @type {any} */ (proc)
+  /** @type {{ st: ProbeState } | undefined} */
+  const existing = p[HOOK]
+  if (existing !== undefined) {
+    existing.st = st
+    return true
+  }
+  const holder = { st }
+  Object.defineProperty(p, HOOK, { value: holder })
+  proc.on('unhandledRejection', (reason, promise) => {
+    onUnhandledRejection(holder.st, reason, promise)
+    // Seul écouteur : comportement par défaut de Node conservé (le rejet devient une exception).
+    if (proc.listenerCount('unhandledRejection') === 1) throw reason
+  })
+  asyncHooks
+    .createHook({
+      init(_id, type, _trigger, resource) {
+        if (type !== 'PROMISE') return
+        const store = holder.st.als.getStore()
+        if (store !== undefined)
+          Object.defineProperty(resource, CALL_TAG, { value: store, configurable: true })
+      },
+    })
+    .enable()
+  return true
+}
+
+/**
+ * Préparation d'un appel (observation, mutation) : peut lever (valeurs hostiles), jamais la cible.
+ * @param {ProbeState} st @param {unknown[]} args @param {string} moduleId @param {string} exportName
+ */
+function prepareCall(st, args, moduleId, exportName) {
+  const parent = st.als.getStore()
+  const depth = parent ? parent.depth + 1 : 0
+  const test = st.currentTest
+  const seqKey = `${moduleId}#${exportName}#${depth}`
+  const sequence = st.sequences.get(seqKey) ?? 0
+  st.sequences.set(seqKey, sequence + 1)
+  const callSiteId = test
+    ? S.callSiteIdOf(test.testId, moduleId, exportName, depth, sequence)
+    : null
+  const callId = ++st.callCounter
+  /** @type {string[]} */
+  const secrets = []
+  const redactPaths = new Set(
+    st.skipPaths
+      .filter((p) => p.startsWith(`${exportName}#`))
+      .map((p) => p.slice(exportName.length + 1)),
+  )
+  const opts = {
+    redactFields: st.redactFields,
+    redactPatterns: st.redactPatterns,
+    redactPaths,
+    hmacKey: st.hmacKey,
+    secrets,
+  }
+  const serialized = S.serializeArgs(args, opts)
+  const argsFingerprint = S.fingerprint(serialized)
+  let callArgs = args
+  let mutated = false
+  const m = st.mutation
+  if (m && callSiteId !== null && callSiteId === m.callSiteId) {
+    if (argsFingerprint !== m.argsFingerprint) {
+      emit(st, 'MUTATE_CALL', {
+        callId,
+        callSiteId,
+        mutationId: m.id,
+        applied: false,
+        reason: 'AMBIGUOUS_CALL_SITE',
+        expectedFingerprint: m.argsFingerprint,
+        argsFingerprint,
+      })
+    } else {
+      const next = applyMutation(args, m)
+      if (next === null) {
+        emit(st, 'MUTATE_CALL', {
+          callId,
+          callSiteId,
+          mutationId: m.id,
+          applied: false,
+          reason: 'PATH_NOT_FOUND',
+        })
+      } else {
+        callArgs = next
+        mutated = true
+        emit(st, 'MUTATE_CALL', { callId, callSiteId, mutationId: m.id, applied: true })
+      }
+    }
+  }
+  emit(st, 'OBSERVE_CALL', {
+    callId,
+    callSiteId,
+    module: moduleId,
+    export: exportName,
+    depth,
+    sequence,
+    argsFingerprint,
+    mutated,
+    ...(sequence < MAX_LOGGED_CALLS ? { args: serialized } : { argsOmitted: true }),
+  })
+  /** @type {CallStore} */
+  const store = {
+    depth,
+    callId,
+    callSiteId,
+    chain: [...(parent?.chain ?? []), callId],
+    secrets,
+  }
+  return { store, callArgs, opts }
+}
+
+/** @param {unknown} v */
+function isThenable(v) {
+  return v !== null && typeof v === 'object' && typeof safeGet(v, 'then') === 'function'
 }
 
 /** @param {ProbeState} st @param {Function} fn @param {string} moduleId @param {string} exportName */
 function wrapFunction(st, fn, moduleId, exportName) {
   /** @this {unknown} @param {unknown[]} args */
   function variaWrapper(...args) {
-    const parent = st.als.getStore()
-    const depth = parent ? parent.depth + 1 : 0
-    const test = st.currentTest
-    const seqKey = `${moduleId}#${exportName}#${depth}`
-    const sequence = st.sequences.get(seqKey) ?? 0
-    st.sequences.set(seqKey, sequence + 1)
-    const callSiteId = test
-      ? S.callSiteIdOf(test.testId, moduleId, exportName, depth, sequence)
-      : null
-    const callId = ++st.callCounter
-    /** @type {string[]} */
-    const secrets = []
-    const redactPaths = new Set(
-      st.skipPaths
-        .filter((p) => p.startsWith(`${exportName}#`))
-        .map((p) => p.slice(exportName.length + 1)),
-    )
-    const opts = {
-      redactFields: st.redactFields,
-      redactPatterns: st.redactPatterns,
-      redactPaths,
-      hmacKey: st.hmacKey,
-      secrets,
+    const invoke = (/** @type {unknown[]} */ a) =>
+      new.target ? Reflect.construct(fn, a, new.target) : fn.apply(this, a)
+    let prepared
+    try {
+      prepared = prepareCall(st, args, moduleId, exportName)
+    } catch (e) {
+      // Échec de la sonde : appel d'origine, sans mutation ni observation (A-05).
+      probeError(st, 'prepare', e, { module: moduleId, export: exportName })
+      return invoke(args)
     }
-    const serialized = S.serializeArgs(args, opts)
-    const argsFingerprint = S.fingerprint(serialized)
-    let callArgs = args
-    let mutated = false
-    const m = st.mutation
-    if (m && callSiteId !== null && callSiteId === m.callSiteId) {
-      if (argsFingerprint !== m.argsFingerprint) {
-        emit(st, 'MUTATE_CALL', {
-          callId,
-          callSiteId,
-          mutationId: m.id,
-          applied: false,
-          reason: 'AMBIGUOUS_CALL_SITE',
-          expectedFingerprint: m.argsFingerprint,
-          argsFingerprint,
+    const { store, callArgs, opts } = prepared
+    const started = perf.now()
+    const outcome = (
+      /** @type {string} */ type,
+      /** @type {() => Record<string, unknown>} */ extra,
+    ) => {
+      try {
+        emit(st, type, {
+          callId: store.callId,
+          callSiteId: store.callSiteId,
+          durationMs: perf.now() - started,
+          ...extra(),
         })
-      } else {
-        const next = applyMutation(args, m)
-        if (next === null) {
-          emit(st, 'MUTATE_CALL', {
-            callId,
-            callSiteId,
-            mutationId: m.id,
-            applied: false,
-            reason: 'PATH_NOT_FOUND',
-          })
-        } else {
-          callArgs = next
-          mutated = true
-          emit(st, 'MUTATE_CALL', { callId, callSiteId, mutationId: m.id, applied: true })
-        }
+      } catch (e) {
+        probeError(st, 'outcome', e, { callId: store.callId })
       }
     }
-    emit(st, 'OBSERVE_CALL', {
-      callId,
-      callSiteId,
-      module: moduleId,
-      export: exportName,
-      depth,
-      sequence,
-      argsFingerprint,
-      mutated,
-      ...(sequence < MAX_LOGGED_CALLS ? { args: serialized } : { argsOmitted: true }),
-    })
-    const started = perf.now()
-    const outcome = (/** @type {string} */ type, /** @type {Record<string, unknown>} */ extra) =>
-      emit(st, type, { callId, callSiteId, durationMs: perf.now() - started, ...extra })
     const ser = (/** @type {unknown} */ v) => S.serialize(v, { ...opts, secrets: [] }, 'return')
     let result
     try {
-      result = st.als.run({ depth }, () =>
-        new.target ? Reflect.construct(fn, callArgs, new.target) : fn.apply(this, callArgs),
-      )
+      result = st.als.run(store, () => invoke(callArgs))
     } catch (e) {
-      outcome('TARGET_THROW', { error: serializeError(e, secrets) })
+      outcome('TARGET_THROW', () => ({ error: serializeError(e, store.secrets) }))
       throw e
     }
-    if (
-      result !== null &&
-      typeof result === 'object' &&
-      typeof (/** @type {any} */ (result).then) === 'function'
-    ) {
-      return /** @type {Promise<unknown>} */ (result).then(
+    if (isThenable(result)) {
+      const derived = /** @type {Promise<unknown>} */ (result).then(
         (value) => {
-          outcome('TARGET_RETURN', { async: true, value: ser(value) })
+          outcome('TARGET_RETURN', () => ({ async: true, value: ser(value) }))
           return value
         },
         (e) => {
-          outcome('TARGET_REJECT', { error: serializeError(e, secrets) })
+          outcome('TARGET_REJECT', () => ({ error: serializeError(e, store.secrets) }))
           throw e
         },
       )
+      // La promesse rendue au test porte l'appel : un rejet que personne n'attend lui est attribué.
+      Object.defineProperty(derived, CALL_TAG, { value: store, configurable: true })
+      return derived
     }
-    outcome('TARGET_RETURN', { async: false, value: ser(result) })
+    outcome('TARGET_RETURN', () => ({ async: false, value: ser(result) }))
     return result
   }
   for (const key of Reflect.ownKeys(fn)) {
     if (key === 'prototype' || key === 'caller' || key === 'arguments') continue
-    const d = Object.getOwnPropertyDescriptor(fn, key)
-    if (d) Object.defineProperty(variaWrapper, key, d)
+    const d = /** @type {PropertyDescriptor} */ (Object.getOwnPropertyDescriptor(fn, key))
+    Object.defineProperty(variaWrapper, key, d)
   }
   // Constructeur (ES5 ou classe compilée) : `new enveloppe()` doit produire une instance de `fn` ;
   // l'enveloppe partage donc le prototype de `fn` (instanceof préservé, méthodes disponibles).
@@ -302,11 +489,13 @@ const isClass = (fn) =>
   typeof fn === 'function' && /^class[\s{]/.test(Function.prototype.toString.call(fn))
 
 /**
- * Enveloppe les exports fonctions d'un module (appelé par le code ajouté par le transform).
+ * Enveloppe les exports fonctions d'un module (appelé par le code ajouté par le transform). Un export
+ * que la sonde ne parvient pas à envelopper reste intact (`PROBE_ERROR`, jamais une erreur du module).
  * @param {unknown} exportsValue @param {string} moduleId @returns {unknown}
  */
 function wrapExports(exportsValue, moduleId) {
   const st = /** @type {ProbeState} */ (/** @type {any} */ (globalThis).__varia)
+  installRejectionHook(st, publishedProcess())
   /** @type {string[]} */
   const wrapped = []
   /** @type {string[]} */
@@ -324,34 +513,17 @@ function wrapExports(exportsValue, moduleId) {
     exportsValue !== null &&
     (typeof exportsValue === 'object' || typeof exportsValue === 'function')
   ) {
-    for (const key of Object.keys(holder)) {
-      const d = Object.getOwnPropertyDescriptor(holder, key)
-      if (!d) continue
-      const target =
-        result === exportsValue ? holder : /** @type {Record<string, unknown>} */ (result)
-      if ('value' in d && typeof d.value === 'function' && !(WRAPPED in d.value)) {
-        if (isClass(d.value)) unsupported.push(key)
-        else if (d.writable || d.configurable) {
-          Object.defineProperty(target, key, {
-            ...d,
-            value: wrapFunction(st, d.value, moduleId, key),
-          })
-          wrapped.push(key)
-        } else unsupported.push(key)
-      } else if (d.get && d.configurable) {
-        const getter = d.get
-        /** @type {Map<unknown, unknown>} */
-        const cache = new Map()
-        Object.defineProperty(target, key, {
-          ...d,
-          get() {
-            const v = getter.call(this)
-            if (typeof v !== 'function' || isClass(v) || WRAPPED in v) return v
-            if (!cache.has(v)) cache.set(v, wrapFunction(st, v, moduleId, key))
-            return cache.get(v)
-          },
-        })
-        wrapped.push(key)
+    let keys = /** @type {string[]} */ ([])
+    try {
+      keys = Object.keys(holder)
+    } catch (e) {
+      probeError(st, 'wrap', e, { module: moduleId, export: '*' })
+    }
+    for (const key of keys) {
+      try {
+        wrapKey(st, holder, result, key, moduleId, wrapped, unsupported)
+      } catch (e) {
+        probeError(st, 'wrap', e, { module: moduleId, export: key })
       }
     }
   }
@@ -360,6 +532,36 @@ function wrapExports(exportsValue, moduleId) {
     emit(st, 'DISCOVER', { module: moduleId, wrapped, unsupported })
   }
   return result
+}
+
+/**
+ * @param {ProbeState} st @param {Record<string, unknown>} holder @param {unknown} result
+ * @param {string} key @param {string} moduleId @param {string[]} wrapped @param {string[]} unsupported
+ */
+function wrapKey(st, holder, result, key, moduleId, wrapped, unsupported) {
+  const d = /** @type {PropertyDescriptor} */ (Object.getOwnPropertyDescriptor(holder, key))
+  const target = result === holder ? holder : /** @type {Record<string, unknown>} */ (result)
+  if ('value' in d && typeof d.value === 'function' && !(WRAPPED in d.value)) {
+    if (isClass(d.value)) unsupported.push(key)
+    else if (d.writable || d.configurable) {
+      Object.defineProperty(target, key, { ...d, value: wrapFunction(st, d.value, moduleId, key) })
+      wrapped.push(key)
+    } else unsupported.push(key)
+  } else if (d.get && d.configurable) {
+    const getter = d.get
+    /** @type {Map<unknown, unknown>} */
+    const cache = new Map()
+    Object.defineProperty(target, key, {
+      ...d,
+      get() {
+        const v = getter.call(this)
+        if (typeof v !== 'function' || isClass(v) || WRAPPED in v) return v
+        if (!cache.has(v)) cache.set(v, wrapFunction(st, v, moduleId, key))
+        return cache.get(v)
+      },
+    })
+    wrapped.push(key)
+  }
 }
 
 /**
@@ -377,23 +579,26 @@ function wrapExport(fn, moduleId, exportName) {
   return wrapFunction(st, fn, moduleId, exportName)
 }
 
-const g = /** @type {any} */ (globalThis)
-if (!g.__varia) g.__varia = init()
-const state = /** @type {ProbeState | null} */ (g.__varia)
-
 /**
  * @typedef {object} TestHooks
  * @property {(fn: () => void) => void} beforeEach
  * @property {(fn: () => void) => void} afterEach
  * @property {() => { testPath?: string, currentTestName?: string }} getState
  * @property {(s: { currentTestName?: string }) => string} [nameOf] nom complet du test (Vitest : « a > b » → « a b »)
+ * @property {NodeJS.Process | null} [process] processus réel (Vitest) ; absent sous Jest
  */
 
 /** Branche la sonde sur les crochets du runner (Jest : globaux ; Vitest : API importée). Une fois par fichier de test. */
 function install(/** @type {TestHooks} */ hooks) {
+  installOn(globalThis, hooks)
+}
+
+/** @param {any} g objet global portant l'état @param {TestHooks} hooks */
+function installOn(g, hooks) {
   const st = /** @type {ProbeState | null} */ (g.__varia)
   if (!st) return
   emit(st, 'HELLO', { mode: st.mode, pid: process.pid, mutationId: st.mutation?.id ?? null })
+  installRejectionHook(st, hooks.process ?? null)
   hooks.beforeEach(() => {
     const cur = /** @type {ProbeState} */ (g.__varia)
     const es = hooks.getState()
@@ -416,9 +621,42 @@ function install(/** @type {TestHooks} */ hooks) {
   })
 }
 
-// Jest : la sonde est un `setupFilesAfterEnv`, réévalué pour chaque fichier de test, avec des globaux.
-if (state && typeof g.beforeEach === 'function' && typeof g.expect?.getState === 'function') {
-  install({ beforeEach: g.beforeEach, afterEach: g.afterEach, getState: () => g.expect.getState() })
+/**
+ * Démarrage dans un processus de test : état sur `globalThis.__varia` (survit à `jest.resetModules`),
+ * puis branchement automatique sous Jest (globaux `beforeEach` et `expect.getState`).
+ * @param {any} g objet global @param {Record<string, string | undefined>} env
+ */
+function boot(g, env) {
+  if (!g.__varia) g.__varia = init(env)
+  if (g.__varia && typeof g.beforeEach === 'function' && typeof g.expect?.getState === 'function')
+    installOn(g, {
+      beforeEach: g.beforeEach,
+      afterEach: g.afterEach,
+      getState: () => g.expect.getState(),
+    })
 }
 
-module.exports = { install }
+boot(globalThis, process.env)
+
+module.exports = {
+  install,
+  // Exposés pour les tests en processus de la sonde (F-03).
+  internals: {
+    applyMutation,
+    boot,
+    CALL_TAG,
+    deepClone,
+    emit,
+    init,
+    installRejectionHook,
+    onUnhandledRejection,
+    probeError,
+    publishedProcess,
+    REAL_PROCESS,
+    serializeError,
+    STDERR_MARKER,
+    wrapExport,
+    wrapExports,
+    wrapFunction,
+  },
+}

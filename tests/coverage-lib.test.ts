@@ -64,6 +64,8 @@ describe('globToRegExp / isPackageSource / isVariaFile', () => {
   it('ne retient que les fichiers file: de packages/, hors dist et node_modules', () => {
     const root = '/r'
     expect(isVariaFile('file:///r/packages/core/runtime/s.cjs', root)).toBe(true)
+    expect(isVariaFile('file:///r/packages/adapters/vitest/runtime/p.mjs', root)).toBe(true)
+    expect(isVariaFile('file:///r/packages/core/src/a.ts', root)).toBe(false)
     expect(isVariaFile('file:///r/packages/cli/dist/main.js', root)).toBe(false)
     expect(isVariaFile('file:///r/packages/x/node_modules/y.js', root)).toBe(false)
     expect(isVariaFile('file:///r/packages/x/test/y.js', root)).toBe(false)
@@ -164,18 +166,27 @@ describe('couverture des processus enfants', () => {
       return fc(file, n === 1 ? [1, 0] : [0, 1])
     }
     const map: Record<string, ReturnType<typeof fc>> = {
-      '/r/packages/a/runtime/s.cjs': fc('/r/packages/a/runtime/s.cjs', [1, 0]),
-      // Jamais exécuté dans le processus de test (autre structure) : remplacé par celle des enfants.
+      // Entrées de Vitest (source transformée, positions fausses) : remplacées.
+      '/r/packages/a/runtime/s.cjs': fc('/r/packages/a/runtime/s.cjs', [7, 7, 7]),
       '/r/packages/b/runtime/t.cjs': fc('/r/packages/b/runtime/t.cjs', [0, 0, 0]),
+      // Fichier d'exécution jamais exécuté : conservé tel quel ; code TypeScript : non concerné.
+      '/r/packages/c/runtime/u.cjs': fc('/r/packages/c/runtime/u.cjs', [0]),
+      '/r/packages/c/src/v.ts': fc('/r/packages/c/src/v.ts', [3]),
     }
     const merged = await mergeChildren(map, dir, root, convert)
     expect(merged).toEqual(['/r/packages/a/runtime/s.cjs', '/r/packages/b/runtime/t.cjs'])
     expect(
       exactCounts(map['/r/packages/a/runtime/s.cjs'] as ReturnType<typeof fc>).statements,
     ).toEqual([2, 2])
-    expect(map['/r/packages/a/runtime/s.cjs']?.s).toEqual({ 0: 2, 1: 1 })
+    expect(map['/r/packages/a/runtime/s.cjs']?.s).toEqual({ 0: 1, 1: 1 })
+    expect(map['/r/packages/c/src/v.ts']?.s).toEqual({ 0: 3 })
     expect(Object.keys(map['/r/packages/b/runtime/t.cjs']?.s ?? {})).toHaveLength(2)
     expect(await mergeChildren({}, join(dir, 'absent'), root, convert)).toEqual([])
+    // Exécuté (compteurs non nuls) sans couverture brute : chargé par Vite, mesure refusée.
+    const viaVite = { '/r/packages/c/runtime/u.cjs': fc('/r/packages/c/runtime/u.cjs', [1]) }
+    await expect(mergeChildren(viaVite, join(dir, 'absent'), root, convert)).rejects.toThrow(
+      /mesure non fiable/,
+    )
   })
   it('convertit une couverture V8 brute réelle avec le convertisseur AST de Vitest', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'varia-cc-'))

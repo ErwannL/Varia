@@ -2,13 +2,6 @@
   "$comment": "Seuils de couverture EXACTS par fichier (politique J3, docs/notes/couverture.md). Jamais abaissés : une entrée par fichier encore sous 100 %, supprimée dès qu il atteint 100 ; la règle finale vaut 100 partout. Premier motif correspondant appliqué.",
   "thresholds": [
     {
-      "pattern": "packages/adapters/jest/runtime/transform.cjs",
-      "statements": 0,
-      "branches": 0,
-      "functions": 0,
-      "lines": 0
-    },
-    {
       "pattern": "packages/adapters/jest/src/adapter.ts",
       "statements": 95,
       "branches": 82,
@@ -21,27 +14,6 @@
       "branches": 66,
       "functions": 100,
       "lines": 87
-    },
-    {
-      "pattern": "packages/adapters/vitest/runtime/plugin.mjs",
-      "statements": 85,
-      "branches": 92,
-      "functions": 60,
-      "lines": 90
-    },
-    {
-      "pattern": "packages/adapters/vitest/runtime/rewrite.mjs",
-      "statements": 100,
-      "branches": 93,
-      "functions": 100,
-      "lines": 100
-    },
-    {
-      "pattern": "packages/adapters/vitest/runtime/run-vitest.mjs",
-      "statements": 100,
-      "branches": 91,
-      "functions": 100,
-      "lines": 100
     },
     {
       "pattern": "packages/adapters/vitest/src/adapter.ts",
@@ -84,13 +56,6 @@
       "branches": 100,
       "functions": 100,
       "lines": 0
-    },
-    {
-      "pattern": "packages/core/runtime/supervisor.cjs",
-      "statements": 77,
-      "branches": 54,
-      "functions": 100,
-      "lines": 77
     },
     {
       "pattern": "packages/core/src/acceptances.ts",
@@ -143,10 +108,10 @@
     },
     {
       "pattern": "packages/core/src/oracle.ts",
-      "statements": 92,
-      "branches": 91,
+      "statements": 93,
+      "branches": 92,
       "functions": 100,
-      "lines": 96
+      "lines": 97
     },
     {
       "pattern": "packages/core/src/plan.ts",
@@ -278,8 +243,8 @@
       "pattern": "packages/engine/src/baseline.ts",
       "statements": 89,
       "branches": 74,
-      "functions": 83,
-      "lines": 93
+      "functions": 84,
+      "lines": 94
     },
     {
       "pattern": "packages/engine/src/context.ts",
@@ -329,20 +294,6 @@
       "branches": 61,
       "functions": 100,
       "lines": 94
-    },
-    {
-      "pattern": "packages/probe-runtime/runtime/probe.cjs",
-      "statements": 0,
-      "branches": 0,
-      "functions": 0,
-      "lines": 0
-    },
-    {
-      "pattern": "packages/probe-runtime/runtime/serialize.cjs",
-      "statements": 85,
-      "branches": 78,
-      "functions": 79,
-      "lines": 86
     },
     {
       "pattern": "packages/reporters/src/build.ts",

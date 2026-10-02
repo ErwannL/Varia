@@ -69,7 +69,7 @@ describe('baseline et observation (J0-1/2/11/15/16/17)', () => {
     withReader(D, (r) => {
       const run = r.listRuns(1)[0]
       const tests = r.tests(run?.id ?? '')
-      expect(tests).toHaveLength(12)
+      expect(tests).toHaveLength(13)
       expect(tests.every((t) => t.status === 'passed')).toBe(true)
       const names = r
         .callSites(run?.id ?? '')

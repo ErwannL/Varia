@@ -1,5 +1,10 @@
+import { createRequire } from 'node:module'
 import { describe, expect, it } from 'vitest'
-import { rewriteExports } from '../runtime/rewrite.mjs'
+
+// Chargé par Node (require d'un module ESM), jamais par Vite : mesure de couverture fiable.
+const { rewriteExports } = createRequire(import.meta.url)(
+  '../runtime/rewrite.mjs',
+) as typeof import('../runtime/rewrite.mjs')
 
 const run = (code: string, file = 'src/m.ts') => rewriteExports(code, file, 'src/m.ts')
 
@@ -50,6 +55,12 @@ describe('réécriture des exports ESM (plugin Vitest)', () => {
   it('source map générée, JavaScript et TSX acceptés', () => {
     expect(run('export function a() {}', 'src/m.js')?.map.mappings.length).toBeGreaterThan(0)
     expect(run('export const C = () => <div />', 'src/m.tsx')?.exports).toEqual(['C'])
+    expect(run('export const J = () => <p />', 'src/m.jsx')?.exports).toEqual(['J'])
+  })
+  it('instructions sans modificateurs (appels, conditions) ignorées', () => {
+    const out = run('setup()\nif (x) y()\nexport function z() {}')
+    expect(out?.exports).toEqual(['z'])
+    expect(out?.code.startsWith('setup()')).toBe(true)
   })
   it('surcharges TypeScript : seule l’implémentation est enveloppée', () => {
     const out = run(

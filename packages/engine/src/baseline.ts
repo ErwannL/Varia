@@ -13,6 +13,7 @@ import { join } from 'node:path'
 import { printableConfig } from '@varia/config'
 import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
+import { probeErrorCount } from './signals.js'
 import { VARIA_VERSION } from './version.js'
 
 export interface BaselineOptions {
@@ -125,6 +126,9 @@ export async function runBaseline(
   mkdirSync(tmpDir, { recursive: true })
   await ctx.adapter.prepare(prepareContext(ctx, runId, tmpDir))
   const observations: Observation[] = []
+  // Erreurs de la sonde et rejets non gérés pendant la baseline : comptés et rapportés (A-02, A-05).
+  let probeErrors = 0
+  let unhandledRejections = 0
   let coverageRows: CoverageRow[] | null = null
   const started = performance.now()
   let firstDuration = 0
@@ -142,6 +146,8 @@ export async function runBaseline(
         [run.process.stderr.slice(-2000)],
       )
     }
+    probeErrors += probeErrorCount(run)
+    unhandledRejections += run.events.filter((e) => e.type === 'UNHANDLED_REJECTION').length
     const obs = observationOf(run)
     if (obs.helloCount === 0) {
       ctx.writer.updateRun(runId, { state: 'FAILED' })
@@ -237,6 +243,8 @@ export async function runBaseline(
     testFiles: new Set(first.tests.map((t) => t.file)).size,
     probeTruncatedLines: observations.reduce((n, x) => n + x.truncatedLines, 0),
     probeInvalidLines: observations.reduce((n, x) => n + x.invalidLines, 0),
+    probeErrors,
+    unhandledRejections,
     failing,
     coverage: ctx.config.parsed.coverage.baseline
       ? coverageRows === null

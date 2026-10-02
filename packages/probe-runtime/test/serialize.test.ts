@@ -86,3 +86,105 @@ describe('valeurs étiquetées (CDC §10.7)', () => {
     ).toEqual(['null', 'array', 'string', 'number', 'object', 'undefined', 'string', 'date'])
   })
 })
+
+describe('clé __proto__ : une donnée, jamais une écriture de prototype (A-01)', () => {
+  // Construit comme le ferait JSON.parse : `__proto__` est une clé PROPRE.
+  const exotic = () =>
+    JSON.parse('{"a":1,"__proto__":{"polluted":true}}') as Record<string, unknown>
+  it('stableStringify conserve la clé, triée', () => {
+    expect(stableStringify(exotic())).toBe('{"__proto__":{"polluted":true},"a":1}')
+    expect(fingerprint(exotic())).not.toBe(fingerprint({ a: 1 }))
+  })
+  it('sérialisation puis reconstruction : clé propre, prototype intact, aucune pollution', () => {
+    const json = serialize(exotic())
+    expect(Object.getOwnPropertyNames(json)).toContain('__proto__')
+    const back = deserialize(json as never) as object
+    expect(Object.getPrototypeOf(back)).toBe(Object.prototype)
+    expect(Object.getOwnPropertyDescriptor(back, '__proto__')?.value).toEqual({ polluted: true })
+    expect(({} as Record<string, unknown>)['polluted']).toBeUndefined()
+  })
+})
+
+describe('valeurs limites de la sérialisation', () => {
+  it('chaînes longues, symboles, erreurs, tableaux longs, octets sans constructeur', () => {
+    expect(serialize('abcdef', { maxString: 3 })).toMatchObject({
+      $t: 'string',
+      truncated: true,
+      length: 6,
+    })
+    expect(serialize(Symbol())).toEqual({ $t: 'symbol', v: '' })
+    expect(serialize(Symbol('s'))).toEqual({ $t: 'symbol', v: 's' })
+    expect(serialize(new TypeError('m'))).toEqual({ $t: 'error', name: 'TypeError', message: 'm' })
+    expect(serialize([1, 2, 3], { maxItems: 2 })).toEqual({
+      $t: 'array',
+      truncated: true,
+      length: 3,
+      items: [1, 2],
+    })
+    const bytes = new Uint8Array([1])
+    Object.setPrototypeOf(
+      bytes,
+      Object.create(Uint8Array.prototype, { constructor: { value: undefined } }),
+    )
+    expect(serialize(bytes)).toMatchObject({ $t: 'bytes', kind: 'Uint8Array' })
+    expect(serialize(new Uint16Array([1]))).toMatchObject({ $t: 'bytes', kind: 'Uint16Array' })
+  })
+  it('objets à état externe opaques ; prototypes sans constructeur ; collisions d’étiquettes', () => {
+    class Stream {
+      pipe(): void {}
+      emit(): void {}
+    }
+    expect(serialize(new Stream())).toEqual({ $t: 'opaque', kind: 'Stream' })
+    const bare = Object.create(
+      Object.create(null, { pipe: { value: () => 1 }, emit: { value: () => 1 } }),
+    )
+    expect(serialize(bare)).toEqual({ $t: 'opaque', kind: 'object' })
+    const noCtor = Object.create(Object.create(null))
+    noCtor.x = 1
+    expect(serialize(noCtor)).toEqual({ $t: 'object', ctor: '', v: { x: 1 } })
+    expect(serialize(Object.assign(Object.create(null), { a: 1 }))).toEqual({ a: 1 })
+    expect(serialize({ $redacted: 1 })).toEqual({ $t: 'object', v: { $redacted: 1 } })
+  })
+  it('redaction : chemins, motifs, valeurs non textuelles, clé par défaut', () => {
+    const secrets: string[] = []
+    const out = serialize(
+      { token: 7, apiKey: '', nested: { pin: 'x' } },
+      {
+        redactPatterns: [/^tok/],
+        redactPaths: new Set(['arg0.nested.pin', 'arg0.apiKey']),
+        secrets,
+      },
+      'arg0',
+    ) as Record<string, Record<string, unknown>>
+    expect(out['token']).toMatchObject({ $redacted: true, type: 'number' })
+    expect(out['apiKey']).toMatchObject({ $redacted: true, type: 'string' })
+    expect(out['nested']?.['pin']).toMatchObject({ $redacted: true, type: 'string' })
+    expect(secrets).toEqual(['x'])
+    expect(serialize(null, { redactPaths: new Set(['arg0']) }, 'arg0')).toMatchObject({
+      $redacted: true,
+      type: 'null',
+    })
+  })
+  it('reconstruction de chaque forme étiquetée ; formes non reconstructibles refusées', () => {
+    const back = (j: unknown) => deserialize(j as never)
+    expect(back({ $t: 'number', v: 'Infinity' })).toBe(Infinity)
+    expect(back({ $t: 'bigint', v: '5' })).toBe(5n)
+    expect(String(back({ $t: 'symbol', v: 's' }))).toBe('Symbol(s)')
+    expect(back({ $t: 'date', v: '1970-01-01T00:00:00.000Z' })).toEqual(new Date(0))
+    expect(Number.isNaN((back({ $t: 'date', v: null }) as Date).getTime())).toBe(true)
+    expect(back({ $t: 'regexp', source: 'a', flags: 'g' })).toEqual(/a/g)
+    expect(back({ $t: 'map', entries: [[]] })).toEqual(new Map([[null, null]]))
+    expect((back({ $t: 'bytes', base64: 'aGk=' }) as Buffer).toString()).toBe('hi')
+    const e = back({ $t: 'error', name: 'TypeError', message: 'm' }) as Error
+    expect([e.name, e.message]).toEqual(['TypeError', 'm'])
+    expect(back({ $t: 'object', v: { $t: 1 } })).toEqual({ $t: 1 })
+    for (const t of ['string', 'opaque', 'circular', 'truncated', 'hole'])
+      expect(() => back({ $t: t })).toThrow(/non reconstructible/)
+    expect(() => back({ $t: 'array', items: [] })).toThrow(/tableau tronqué/)
+  })
+  it('typeOfSerialized : l’étiquette est le type', () => {
+    expect(typeOfSerialized({ $t: 'object', v: {} } as never)).toBe('object')
+    expect(typeOfSerialized({ $t: 'array' } as never)).toBe('array')
+    expect(typeOfSerialized({ $t: 'bigint', v: '1' } as never)).toBe('bigint')
+  })
+})

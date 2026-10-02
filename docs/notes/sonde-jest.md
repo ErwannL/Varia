@@ -19,3 +19,10 @@
 - **Vitest sans fichier de config** : Vitest remonte l'arborescence et peut charger la config d'un
   dépôt PARENT (constaté avec `destr` cloné sous `examples/external/`). Le lanceur passe `config: false`
   quand le projet n'a pas de config. Le setup est passé en option CLI (`setupFiles`).
+- **`process` dans le contexte vm** : une copie ; `process.on('unhandledRejection')` y est sans effet.
+  Le transform (vrai processus) publie `process` sur le module `async_hooks` (`Symbol.for('varia.process')`),
+  la sonde s'y abonne au premier `wrapExports` — après le `setup` de jest-circus, qui retire et restaure
+  les écouteurs existants (D-025).
+- **Sonde défensive** : jamais d'exception de la sonde vers la cible ; `PROBE_ERROR` ou marqueur stderr
+  `[varia] PROBE_ERROR` (D-025). Les fichiers `runtime/` se testent EN PROCESSUS par `createRequire`
+  (jamais par `import`, que Vite transformerait : mesure de couverture fausse, docs/notes/couverture.md).

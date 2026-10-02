@@ -1,6 +1,12 @@
+import { createRequire } from 'node:module'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import S from '../runtime/serialize.cjs'
+
+// Chargé par le `require` de Node (jamais par Vite) : une seule instance du module, mesurée une seule
+// fois par la couverture (deux chargements différents d'un même fichier faussent la fusion).
+const S = createRequire(import.meta.url)(
+  '../runtime/serialize.cjs',
+) as typeof import('../runtime/serialize.cjs')
 
 /** Dossier des fichiers exécutés DANS le processus de test (jamais compilés, chargés tels quels). */
 export const RUNTIME_DIR = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'runtime')
@@ -12,7 +18,6 @@ export const {
   deserialize,
   fingerprint,
   hmac,
-  sameShape,
   serialize,
   serializeArgs,
   sha256,

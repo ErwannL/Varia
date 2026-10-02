@@ -16,6 +16,7 @@ import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
 import { snapshotProject, assertUnchanged } from './integrity.js'
 import { readPlan } from './planning.js'
+import { probeErrorCount } from './signals.js'
 
 export interface FuzzOptions {
   maxTimeMs?: number
@@ -46,7 +47,6 @@ export function oracleConfig(ctx: EngineContext) {
   }
 }
 
-/** Exécute UNE mutation dans un processus isolé, limité au test visé, puis la classe (§16.1, §18). */
 /** Appel observé pendant l'exécution d'une mutation (diagnostic : seul l'appel visé doit être muté). */
 export interface ExecutedCall {
   callSiteId: string
@@ -67,6 +67,7 @@ export interface MutationExecution {
   calls: ExecutedCall[]
 }
 
+/** Exécute UNE mutation dans un processus isolé, limité au test visé, puis la classe (§16.1, §18). */
 export async function executeMutation(
   ctx: EngineContext,
   m: PlannedMutation,
@@ -138,6 +139,8 @@ export async function executeMutation(
         mutateEvents,
         mutatedCall,
         ...(hint !== undefined ? { hint } : {}),
+        probeErrors: probeErrorCount(run),
+        rejections: run.events.filter((e) => e.type === 'UNHANDLED_REJECTION'),
       },
       oracleConfig(ctx),
     )

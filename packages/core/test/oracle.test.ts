@@ -236,3 +236,59 @@ describe('règles de configuration', () => {
     ).toBe('RESOURCE_LIMIT')
   })
 })
+
+describe('erreurs de la sonde et rejets non gérés (A-05, A-02)', () => {
+  it('une erreur de la sonde est une erreur d’infrastructure, jamais un CRASH de la cible', () => {
+    const r = classify(input({ probeErrors: 1 }))
+    expect([r.status, r.reason]).toEqual(['INFRA_ERROR', 'PROBE_FAILURE'])
+    expect(classify(input({ probeErrors: 0 })).status).toBe('CRASH')
+  })
+  const rejection = (over: object) =>
+    ({
+      type: 'UNHANDLED_REJECTION',
+      error: err('TypeError', ['TypeError', 'Error']),
+      ...over,
+    }) as OracleInput['mutateEvents'][number]
+  const returned = (callId: number) =>
+    ({ ...call({ kind: 'return', async: false, value: true }), callId }) as ObservedCall
+  it('rejet attribué à l’appel muté (ou à un appel qu’il a fait) ⇒ CRASH / UNHANDLED_REJECTION', () => {
+    for (const r of [rejection({ callId: 4 }), rejection({ callId: 9, chain: [4, 9] })]) {
+      const c = classify(input({ mutatedCall: returned(4), rejections: [r] }))
+      expect([c.status, c.subtype, c.error?.name]).toEqual([
+        'CRASH',
+        'UNHANDLED_REJECTION',
+        'TypeError',
+      ])
+    }
+    const noError = classify(
+      input({
+        mutatedCall: returned(4),
+        rejections: [{ ...rejection({ callId: 4 }), error: undefined }],
+      }),
+    )
+    expect(noError.error).toBeUndefined()
+  })
+  it('rejet d’un autre appel, ou non attribué : ignoré ; un rejet ATTENDU reste distinct', () => {
+    const other = classify(
+      input({
+        mutatedCall: returned(4),
+        rejections: [rejection({ callId: 5, chain: [5] }), rejection({})],
+      }),
+    )
+    expect(other.status).toBe('PASSED')
+    const awaited = classify(
+      input({
+        mutatedCall: {
+          ...call({
+            kind: 'reject',
+            async: true,
+            error: err('ValidationError', ['ValidationError']),
+          }),
+          callId: 4,
+        } as ObservedCall,
+        rejections: [],
+      }),
+    )
+    expect([awaited.status, awaited.outcome]).toEqual(['HANDLED', 'reject'])
+  })
+})

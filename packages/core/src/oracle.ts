@@ -77,6 +77,10 @@ export interface OracleInput {
   mutateEvents: ProbeEvent[]
   mutatedCall: ObservedCall | undefined
   hint?: Hint
+  /** Erreurs du code de la sonde (`PROBE_ERROR`, ou marqueur sur stderr si le journal a échoué). */
+  probeErrors?: number
+  /** Rejets de promesse non gérés (`UNHANDLED_REJECTION`), attribués à un appel quand c'est possible. */
+  rejections?: ProbeEvent[]
 }
 
 const BANAL = new Set(['null', JSON.stringify({ $t: 'undefined' }), '0', '""', 'true', 'false'])
@@ -131,6 +135,8 @@ export function classify(i: OracleInput, cfg: OracleConfig = DEFAULT_ORACLE): Cl
   const base = { testStatus: i.testStatus }
   if (!i.hello && !i.process.timedOut)
     return { ...base, status: 'INFRA_ERROR', reason: 'PROBE_NOT_STARTED' }
+  // Erreur de VARIA (sonde), jamais comptée comme un comportement de la cible (CDC §44, A-05).
+  if ((i.probeErrors ?? 0) > 0) return { ...base, status: 'INFRA_ERROR', reason: 'PROBE_FAILURE' }
   if (i.process.timedOut) return { ...base, status: 'TIMEOUT' }
   if (/JavaScript heap out of memory|ERR_WORKER_OUT_OF_MEMORY/.test(i.process.stderr)) {
     return { ...base, status: 'CRASH', subtype: 'RESOURCE_LIMIT', reason: 'OUT_OF_MEMORY' }
@@ -147,6 +153,19 @@ export function classify(i: OracleInput, cfg: OracleConfig = DEFAULT_ORACLE): Cl
   if (!applied || !i.mutatedCall) {
     const reason = i.mutateEvents.find((e) => e.applied === false)?.reason ?? 'NOT_REACHED'
     return { ...base, status: 'SKIPPED', reason }
+  }
+  // Rejet non géré né de l'appel muté (ou d'un appel qu'il a fait) : signal de processus (§18.8).
+  const callId = i.mutatedCall.callId
+  const rejection = (i.rejections ?? []).find(
+    (r) => r.callId === callId || (r.chain ?? []).includes(callId),
+  )
+  if (rejection !== undefined) {
+    return {
+      ...base,
+      status: 'CRASH',
+      subtype: 'UNHANDLED_REJECTION',
+      ...(rejection.error !== undefined ? { error: rejection.error } : {}),
+    }
   }
   const out = i.mutatedCall.outcome
   if (out.kind === 'throw' || out.kind === 'reject') {

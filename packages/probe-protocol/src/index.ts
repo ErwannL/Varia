@@ -16,6 +16,7 @@ export const MESSAGE_TYPES = [
   'TARGET_THROW',
   'TARGET_REJECT',
   'PROBE_ERROR',
+  'UNHANDLED_REJECTION',
 ] as const
 export type MessageType = (typeof MESSAGE_TYPES)[number]
 
@@ -54,6 +55,8 @@ export const probeEventSchema = z.object({
   testId: z.string().nullable(),
   timestamp: z.string(),
   callId: z.number().int().optional(),
+  /** Appels englobants (rejet non géré : attribution au contexte asynchrone, A-02). */
+  chain: z.array(z.number().int()).optional(),
   callSiteId: z.string().nullable().optional(),
   module: z.string().optional(),
   export: z.string().optional(),
