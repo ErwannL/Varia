@@ -278,5 +278,19 @@
     "find": "  return ctx.config.parsed.execution.timeout_ms + Math.ceil(startupMs)",
     "replace": "  return ctx.config.parsed.execution.timeout_ms",
     "tests": ["packages/engine/test/planning.test.ts"]
+  },
+  {
+    "name": "B-06 store ignoré (fichier et base toujours lus)",
+    "file": "packages/engine/src/fuzz.ts",
+    "find": "  if (acceptanceStore(ctx) === 'db') return dbAcceptances(ctx)\n",
+    "replace": "",
+    "tests": ["packages/engine/test/fuzz.test.ts"]
+  },
+  {
+    "name": "cache invalidé par le stockage de Varia dans le projet",
+    "file": "packages/engine/src/cache.ts",
+    "find": "['.git', '.varia', ...integrityOptions(ctx).ignore]",
+    "replace": "['.git', '.varia']",
+    "tests": ["packages/engine/test/fuzz.test.ts"]
   }
 ]

@@ -232,6 +232,7 @@
   "cli.ci.noReference": "Aucun run de référence sur la branche {branch} : toutes les issues comptent.",
   "cli.cmd.accept": "accepter une issue (valeur autorisée par le domaine), enregistrée en base",
   "cli.accept.done": "Acceptation {id} : {function} {path} {strategy} — {reason}",
+  "cli.accept.file": "Magasin d'acceptations « fichier » : ajouter cette entrée sous acceptances.items de {file} (Varia ne modifie pas ce fichier) :",
   "dash.nav.history": "Historique",
   "dash.nav.compare": "Comparer",
   "dash.nav.acceptances": "Acceptations",
@@ -286,5 +287,6 @@
   "config.issue.UNSUPPORTED_RESET_MOCKS": "non supporté : chaque mutation s'exécute dans un processus neuf, les mocks sont toujours réinitialisés (mocks: true)",
   "config.issue.UNSUPPORTED_RESET_FILESYSTEM_COPY": "non supporté : filesystem: copy (copie du projet) n'est pas implémenté ; utiliser none ou tmpdir",
   "config.issue.UNSUPPORTED_STORE_RAW_VALUES": "non supporté : les valeurs brutes ne sont jamais stockées (store_raw_values: false)",
-  "config.issue.DATABASE_COMMAND_REQUIRED": "obligatoire quand reset.database vaut command"
+  "config.issue.DATABASE_COMMAND_REQUIRED": "obligatoire quand reset.database vaut command",
+  "config.issue.ACCEPTANCE_ITEMS_WITH_DB_STORE": "refusé : avec store: db, les acceptations sont en base ; des items dans varia.yml seraient ignorés"
 }

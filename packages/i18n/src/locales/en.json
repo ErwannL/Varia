@@ -232,6 +232,7 @@
   "cli.ci.noReference": "No reference run on branch {branch}: all issues count.",
   "cli.cmd.accept": "accept an issue (value allowed by the domain), stored in the database",
   "cli.accept.done": "Acceptance {id}: {function} {path} {strategy} — {reason}",
+  "cli.accept.file": "File acceptance store: add this entry under acceptances.items in {file} (Varia does not modify that file):",
   "dash.nav.history": "History",
   "dash.nav.compare": "Compare",
   "dash.nav.acceptances": "Acceptances",
@@ -286,5 +287,6 @@
   "config.issue.UNSUPPORTED_RESET_MOCKS": "not supported: each mutation runs in a fresh process, mocks are always reset (mocks: true)",
   "config.issue.UNSUPPORTED_RESET_FILESYSTEM_COPY": "not supported: filesystem: copy (project copy) is not implemented; use none or tmpdir",
   "config.issue.UNSUPPORTED_STORE_RAW_VALUES": "not supported: raw values are never stored (store_raw_values: false)",
-  "config.issue.DATABASE_COMMAND_REQUIRED": "required when reset.database is command"
+  "config.issue.DATABASE_COMMAND_REQUIRED": "required when reset.database is command",
+  "config.issue.ACCEPTANCE_ITEMS_WITH_DB_STORE": "refused: with store: db, acceptances live in the database; items in varia.yml would be ignored"
 }

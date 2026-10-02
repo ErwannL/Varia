@@ -310,6 +310,11 @@ export const configSchema = z
         fail_on_regression: true,
         include_transitive: false,
       }),
+    /**
+     * Acceptations (CDC §21). Forme abrégée (liste) = `store: file`. Clé absente : `store: db` (les
+     * acceptations créées par `varia accept` ou le dashboard sont en base). `store: db` avec des
+     * `items` est refusé : ils seraient ignorés (B-06, accepté = implémenté).
+     */
     acceptances: z
       .union([
         z.array(acceptanceItem),
@@ -318,9 +323,13 @@ export const configSchema = z
             store: z.enum(['file', 'db']).default('file'),
             items: z.array(acceptanceItem).default([]),
           })
-          .strict(),
+          .strict()
+          .refine((a) => a.store === 'file' || a.items.length === 0, {
+            error: 'ACCEPTANCE_ITEMS_WITH_DB_STORE',
+            path: ['items'],
+          }),
       ])
-      .default([]),
+      .default({ store: 'db', items: [] }),
   })
   .strict()
 

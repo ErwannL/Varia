@@ -392,16 +392,27 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
         matched: x.matched,
       })),
       acceptedMutations: Object.fromEntries(evaluation.accepted),
+      acceptanceStore: acceptanceStore(ctx),
     },
   })
   for (const d of drafts) ctx.writer.event(runId, 'ISSUE_CREATED', { issueId: d.fingerprint })
 }
 
-/** Acceptations du projet : `varia.yml` (`store: file`, forme abrégée ou `{ store, items }`) + base. */
+/** Magasin des acceptations du projet (CDC §21) : forme abrégée = fichier. */
+export function acceptanceStore(ctx: EngineContext): 'file' | 'db' {
+  const raw = ctx.config.parsed.acceptances
+  return Array.isArray(raw) ? 'file' : raw.store
+}
+
+/**
+ * Acceptations du projet selon `acceptances.store` (B-06) : `file` ⇒ seulement `varia.yml` (forme
+ * abrégée ou `{ store: file, items }`) ; `db` ⇒ seulement la base (`varia accept`, dashboard).
+ */
 export function loadAcceptances(ctx: EngineContext): Acceptance[] {
   const raw = ctx.config.parsed.acceptances
+  if (acceptanceStore(ctx) === 'db') return dbAcceptances(ctx)
   const items = Array.isArray(raw) ? raw : raw.items
-  const fromFile: Acceptance[] = items.map((a, n) => ({
+  return items.map((a, n) => ({
     id: `file:${String(n)}`,
     source: 'file',
     function: a.mutation_pattern.function,
@@ -411,7 +422,10 @@ export function loadAcceptances(ctx: EngineContext): Acceptance[] {
     owner: a.owner,
     expires: a.expires,
   }))
-  const fromDb: Acceptance[] = ctx.reader.acceptances(ctx.projectId).map((a) => ({
+}
+
+function dbAcceptances(ctx: EngineContext): Acceptance[] {
+  return ctx.reader.acceptances(ctx.projectId).map((a) => ({
     id: a.id,
     source: 'db',
     function: a.function,
@@ -421,5 +435,4 @@ export function loadAcceptances(ctx: EngineContext): Acceptance[] {
     owner: a.owner ?? undefined,
     expires: a.expires ?? undefined,
   }))
-  return [...fromFile, ...fromDb]
 }

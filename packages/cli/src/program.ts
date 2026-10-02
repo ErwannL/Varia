@@ -9,6 +9,7 @@ import {
   ConfigError,
 } from '@varia/config'
 import {
+  acceptanceStore,
   doctor,
   EngineContext,
   EXIT,
@@ -40,6 +41,29 @@ import { copyFileSync, existsSync, readFileSync, rmSync, writeFileSync } from 'n
 import { join, resolve } from 'node:path'
 import { printer, type Io, type Printer } from './io.js'
 import { printSummary, resilienceExit } from './summary.js'
+
+/** Entrée `acceptances.items` à ajouter à `varia.yml` (magasin fichier, CDC §21). */
+export function acceptanceYaml(a: {
+  function: string
+  path: string | null
+  strategy: string | null
+  reason: string
+  owner: string | null
+  expires: string | null
+}): string {
+  const pattern = {
+    function: a.function,
+    ...(a.path !== null ? { path: a.path } : {}),
+    ...(a.strategy !== null ? { strategy: a.strategy } : {}),
+  }
+  const item = {
+    mutation_pattern: pattern,
+    reason: a.reason,
+    ...(a.owner !== null ? { owner: a.owner } : {}),
+    ...(a.expires !== null ? { expires: a.expires } : {}),
+  }
+  return `- ${JSON.stringify(item)}`
+}
 
 /** Framework désigné par une commande de test (`npx vitest run` → vitest, `jest --ci` → jest). */
 export function frameworkOfCommand(command: string | undefined): 'jest' | 'vitest' | undefined {
@@ -622,6 +646,12 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
           reason: o.reason,
           owner: o.owner ?? null,
           expires: o.expires ?? null,
+        }
+        if (acceptanceStore(ctx) === 'file') {
+          // Magasin fichier : Varia n'écrit pas varia.yml lui-même ; il donne l'entrée à ajouter.
+          p.say('cli.accept.file', { file: ctx.config.file ?? 'varia.yml' })
+          io.out(acceptanceYaml(a))
+          return EXIT.OK
         }
         ctx.writer.addAcceptance(a)
         p.say('cli.accept.done', {

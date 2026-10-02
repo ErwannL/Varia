@@ -286,3 +286,12 @@ image par image dans Chromium en `<img>` comme dans le README.
 - Tests (F-02) : les scénarios d'historique et d'incrémental utilisent des cibles déterministes et
   rapides (`deterministicConfig` : sans `repeat`, `exitOn`, `stamp`, `outer`, `scheduleWelcome`), un
   délai explicite large, un budget de mutations borné ; aucune assertion ne dépend de la vitesse.
+
+## D-030 — 2026-10-02 — Magasin des acceptations (B-06)
+
+- `acceptances` absente : `store: db` (les acceptations de `varia accept` et du dashboard comptent sans
+  configuration). Forme abrégée (liste) ou `store: file` : SEULES les entrées de `varia.yml` comptent ;
+  `varia accept` n'écrit alors pas la base et n'édite pas `varia.yml` (fichier du projet) : il imprime
+  l'entrée à ajouter. `store: db` avec des `items` est refusé (ils seraient ignorés).
+- Constat en route : l'empreinte de contenu du cache incluait le stockage de Varia quand il est dans le
+  projet (`--data-dir` interne, `storage.path`) : tout le cache était invalidé à chaque run. Exclu.

@@ -477,7 +477,7 @@
       "additionalProperties": false
     },
     "acceptances": {
-      "default": [],
+      "default": { "store": "db", "items": [] },
       "anyOf": [
         {
           "type": "array",

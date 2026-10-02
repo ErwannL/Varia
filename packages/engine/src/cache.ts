@@ -1,6 +1,7 @@
 import { manifestSnapshot, type PlannedMutation } from '@varia/core'
 import { sha256, stableStringify } from '@varia/probe-runtime'
 import type { EngineContext } from './context.js'
+import { integrityOptions } from './integrity.js'
 import { VARIA_VERSION } from './version.js'
 
 /**
@@ -8,11 +9,8 @@ import { VARIA_VERSION } from './version.js'
  * la moindre modification d'un fichier invalide le cache (CDC §30, choix conservateur).
  */
 export function projectContentHash(ctx: EngineContext): string {
-  const snap = manifestSnapshot(ctx.root, [
-    '.git',
-    '.varia',
-    ...ctx.config.parsed.integrity.ignore_for_integrity,
-  ])
+  // Le stockage de Varia (base, plans) change à chaque run : il n'est jamais du contenu du projet.
+  const snap = manifestSnapshot(ctx.root, ['.git', '.varia', ...integrityOptions(ctx).ignore])
   return sha256(stableStringify([...snap.entries()].sort()))
 }
 
