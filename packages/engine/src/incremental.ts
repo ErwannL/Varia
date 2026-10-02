@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process'
 import { relative, resolve, sep } from 'node:path'
-import type { EngineContext } from './context.js'
+import { canonicalRoot, type EngineContext } from './context.js'
 import { VariaError } from './errors.js'
 
 export interface ChangedScope {
@@ -13,7 +13,8 @@ export interface ChangedScope {
  * Fichiers modifiés depuis `base` (CDC §29) : `git diff` + fichiers non suivis. `--changed` est une
  * OPTIMISATION, jamais une source de vérité : portée indéterminable ⇒ `null`.
  */
-export function changedFiles(root: string, base = 'HEAD'): ChangedScope {
+export function changedFiles(rawRoot: string, base = 'HEAD'): ChangedScope {
+  const root = canonicalRoot(rawRoot)
   const git = (args: string[]) =>
     execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
   try {

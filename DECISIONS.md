@@ -155,3 +155,21 @@ Format : date — contexte — options — choix — raison.
   (`{"constructor": null}`) : les valeurs sont désormais vérifiées par un parcours défensif
   (`isJsonValue`), testé.
 - Vitest sans fichier de config remontait jusqu'à la config du dépôt parent : `config: false`.
+
+## D-022 — 2026-10-02 — Racine de projet canonique (CI macOS / Windows)
+
+La CI multi-OS (jusqu'ici `UNVERIFIED`) échouait : sous macOS (`/var` → `/private/var`) et Windows
+(noms courts `RUNNER~1`), la sonde et git rapportent des chemins réels alors que la racine reçue ne
+l'était pas ; toutes les cibles étaient « hors projet » ⇒ zéro mutation, `--changed` vide. Correction
+dans le **code** : `canonicalRoot` (`realpathSync.native`) dans `EngineContext` et `changedFiles`.
+Reproduit sous Linux par un lien symbolique (`tests/j1/paths.test.ts`, vu échouer avant le correctif).
+Effet : l'identifiant de projet d'une racine atteinte par un lien change (ces projets étaient cassés).
+Test d'architecture : chemins POSIX (les comparaisons de préfixes échouaient sous Windows ; test faux,
+non le code). Couverture de `proc.ts` dépendante du timing de la machine : tests déterministes ajoutés
+pour `waitGroupGone` et l'échec de lancement (aucun seuil abaissé).
+
+## D-023 — 2026-10-02 — Nouveau logo
+
+Demande de l'utilisateur : un logo qui représente ce que fait l'application. Accolades `{ }` (données
+d'entrée) frappées par un éclair ambre (perturbation). Couleurs, tuile, contraintes (CSS seul, coupure
+sous reduced-motion, position d'arrêt = logo fixe) inchangées ; dérivés régénérés par `npm run brand`.

@@ -4,7 +4,14 @@ import { openWriter, Reader, Writer, type Opened } from '@varia/database'
 import { sha256 } from '@varia/probe-runtime'
 import { execFileSync } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import {
+  appendFileSync,
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  realpathSync,
+  writeFileSync,
+} from 'node:fs'
 import { join, resolve } from 'node:path'
 import pino, { type Logger } from 'pino'
 import { VariaError } from './errors.js'
@@ -42,7 +49,7 @@ export class EngineContext {
 
   constructor(o: EngineOptions) {
     try {
-      this.config = loadConfig(resolve(o.root), {
+      this.config = loadConfig(canonicalRoot(o.root), {
         ...(o.mode !== undefined ? { mode: o.mode } : {}),
         ...(o.configFile !== undefined ? { file: resolve(o.configFile) } : {}),
       })
@@ -121,6 +128,19 @@ export class EngineContext {
 }
 
 /** `storage.location: project` : `.varia/` exclu via `.git/info/exclude`, jamais `.gitignore` (§4.3). */
+/**
+ * Chemin canonique de la racine : la sonde et git rapportent des chemins RÉELS (`/private/var` sous
+ * macOS, noms longs sous Windows) ; une racine non canonique rendrait toutes les cibles « hors projet ».
+ */
+export function canonicalRoot(root: string): string {
+  const abs = resolve(root)
+  try {
+    return realpathSync.native(abs)
+  } catch {
+    return abs
+  }
+}
+
 function excludeFromGit(root: string): void {
   const exclude = join(root, '.git', 'info', 'exclude')
   if (!existsSync(join(root, '.git'))) return

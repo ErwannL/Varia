@@ -1,6 +1,9 @@
 // Règles d'architecture (CDC §6) : le cœur ne connaît aucun runner ; aucun cycle entre paquets.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+// Chemins POSIX : les comparaisons de préfixes (`packages/adapters/`) valent aussi sous Windows.
+import { posix } from 'node:path'
+
+const { join } = posix
 import { describe, expect, it } from 'vitest'
 
 const PACKAGES = ['packages', 'packages/adapters']

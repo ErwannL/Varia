@@ -8,4 +8,5 @@
 - Preuve d'échec possible : `npm run mutation-check`
 - Hook local : `.git/hooks/pre-commit` lance `npm run check:fast` (à recréer après un clone)
 - Push : `origin/main` à jour
-- UNVERIFIED : Windows, macOS, Node 20, CI GitHub réelle
+- CI multi-OS : correctifs D-022 poussés, résultat à confirmer sur GitHub Actions
+- Logo refait (D-023)

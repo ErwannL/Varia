@@ -4,10 +4,11 @@
 
 ## Dessin
 
-Un « V » blanc (la valeur attendue) sur une tuile violette, accompagné d'un point ambre décalé :
-la **valeur perturbée** qui s'écarte du chemin. La version animée fait dériver doucement le point
-et osciller le V (CSS seul, boucle de 3,6 s) ; sous `prefers-reduced-motion: reduce` l'animation est
-coupée et l'image est exactement le logo fixe.
+Des accolades blanches `{ }` (les **données d'entrée** d'une fonction) frappées par un éclair ambre (la
+**perturbation** injectée par Varia), sur une tuile violette : Varia perturbe les données pour vérifier
+que le code tient. La version animée fait frapper l'éclair puis « encaisser » le choc aux accolades
+(CSS seul, boucle de 2,4 s) ; sous `prefers-reduced-motion: reduce` l'animation est coupée et l'image
+est exactement le logo fixe.
 
 ## Couleurs
 
