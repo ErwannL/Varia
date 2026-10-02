@@ -1,6 +1,6 @@
 import type { TestAdapter } from '@varia/core'
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -35,7 +35,8 @@ const fakeAdapter: TestAdapter = {
 }
 
 const project = (yml: string, git = false) => {
-  const d = mkdtempSync(join(tmpdir(), 'varia-ctx-'))
+  // Racine canonique (D-022) : `tmpdir()` est un lien sous macOS (`/var` → `/private/var`).
+  const d = realpathSync.native(mkdtempSync(join(tmpdir(), 'varia-ctx-')))
   writeFileSync(join(d, 'varia.yml'), yml)
   if (git) execFileSync('git', ['init', '-q'], { cwd: d })
   return d

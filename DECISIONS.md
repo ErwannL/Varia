@@ -173,3 +173,7 @@ pour `waitGroupGone` et l'échec de lancement (aucun seuil abaissé).
 Demande de l'utilisateur : un logo qui représente ce que fait l'application. Accolades `{ }` (données
 d'entrée) frappées par un éclair ambre (perturbation). Couleurs, tuile, contraintes (CSS seul, coupure
 sous reduced-motion, position d'arrêt = logo fixe) inchangées ; dérivés régénérés par `npm run brand`.
+
+**Complément D-022 (test modifié)** : `packages/engine/test/context.test.ts` comparait `dataDir` au
+chemin `tmpdir()` brut ; la racine étant désormais canonique (comportement voulu), le test crée sa racine
+canonique. Le cas d'une racine non canonique reste couvert par `tests/j1/paths.test.ts`.
