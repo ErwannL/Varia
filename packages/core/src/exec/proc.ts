@@ -29,6 +29,8 @@ export interface RunProcessOptions {
   /** Fichier d'état écrit par le superviseur (timeout, code de sortie réel de la commande). */
   statusFile: string
   maxOutputBytes?: number
+  /** Plateforme (injectée pour tester les deux branches sur n'importe quel système, G-06). */
+  platform?: NodeJS.Platform
 }
 
 /** Tue un arbre de processus : groupe en POSIX, `taskkill /T /F` sous Windows. */
@@ -87,6 +89,7 @@ export function runSupervised(
   opts: RunProcessOptions,
 ): Promise<ProcessResult> {
   const max = opts.maxOutputBytes ?? 8 * 1024 * 1024
+  const platform = opts.platform ?? process.platform
   const started = performance.now()
   return new Promise((resolvePromise, reject) => {
     const child = spawn(
@@ -95,7 +98,7 @@ export function runSupervised(
       {
         cwd: opts.cwd,
         env: opts.env,
-        detached: process.platform !== 'win32',
+        detached: platform !== 'win32',
         stdio: ['ignore', 'pipe', 'pipe'],
         windowsHide: true,
       },
@@ -106,6 +109,8 @@ export function runSupervised(
     let truncated = false
     const collect = (sink: Buffer[]) => (chunk: Buffer) => {
       if (size + chunk.length > max) {
+        // Limite de sortie dépassée (CDC §16.3, A-03) : l'arbre est arrêté, pas seulement tronqué.
+        if (!truncated && child.pid !== undefined) killTree(child.pid, platform)
         truncated = true
         return
       }
@@ -117,7 +122,7 @@ export function runSupervised(
     let backstop = false
     const timer = setTimeout(() => {
       backstop = true
-      if (child.pid !== undefined) killTree(child.pid)
+      if (child.pid !== undefined) killTree(child.pid, platform)
     }, opts.timeoutMs + 5000)
     child.on('error', (e) => {
       clearTimeout(timer)
@@ -125,7 +130,7 @@ export function runSupervised(
     })
     child.on('close', (code, signal) => {
       clearTimeout(timer)
-      if (child.pid !== undefined && process.platform !== 'win32') killTree(child.pid)
+      if (child.pid !== undefined && platform !== 'win32') killTree(child.pid, platform)
       let status: SupervisorStatus = { timedOut: backstop, exitCode: code, signal }
       if (existsSync(opts.statusFile)) {
         status = JSON.parse(readFileSync(opts.statusFile, 'utf8')) as SupervisorStatus

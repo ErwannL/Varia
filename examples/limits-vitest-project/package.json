@@ -1,0 +1,14 @@
+{
+  "name": "varia-example-limits-vitest-project",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Exemple Vitest de Varia : limite de mémoire (J3)",
+  "license": "MIT",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vitest": "3.2.7"
+  }
+}

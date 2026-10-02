@@ -60,6 +60,34 @@ describe('exécution supervisée (CDC §16.2)', () => {
     expect(r.outputTruncated).toBe(true)
     expect(r.stdout.length).toBeLessThanOrEqual(1000)
   })
+  it('sortie au-delà de la limite : l’arbre est ARRÊTÉ (pas un timeout), sortie marquée (A-03)', async () => {
+    const d = dir()
+    const t0 = performance.now()
+    const r = await runSupervised(
+      process.execPath,
+      ['-e', 'for (;;) process.stdout.write("x".repeat(65536))'],
+      {
+        cwd: d,
+        env: process.env,
+        timeoutMs: 20000,
+        statusFile: statusFileIn(d),
+        maxOutputBytes: 100000,
+      },
+    )
+    expect([r.outputTruncated, r.timedOut]).toEqual([true, false])
+    expect(performance.now() - t0).toBeLessThan(10000)
+  })
+  it('plateforme Windows injectée : pas de groupe détaché, pas de nettoyage de groupe (G-06)', async () => {
+    const d = dir()
+    const r = await runSupervised(process.execPath, ['-e', 'process.stdout.write("w")'], {
+      cwd: d,
+      env: process.env,
+      timeoutMs: 5000,
+      statusFile: statusFileIn(d),
+      platform: 'win32',
+    })
+    expect([r.exitCode, r.stdout]).toEqual([0, 'w'])
+  })
   it('killTree Windows : taskkill /T /F (implémentation testée hors Windows)', () => {
     const run = vi.fn()
     killTree(1234, 'win32', run as never)

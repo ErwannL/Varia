@@ -145,5 +145,19 @@
     "find": "  if (hint.range && typeof value === 'number')",
     "replace": "  if (hint.range && typeof value !== 'number') return true\n  if (hint.range && typeof value === 'number')",
     "tests": ["packages/core/test/oracle.test.ts", "packages/core/test/observe-hints.test.ts"]
+  },
+  {
+    "name": "A-03 memory_mb non transmis aux processus de test",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "    memoryMb: p.mutations.limits.memory_mb,\n",
+    "replace": "",
+    "tests": ["tests/j3/limits.test.ts"]
+  },
+  {
+    "name": "A-03 dépassement de sortie seulement tronqué",
+    "file": "packages/core/src/oracle.ts",
+    "find": "  if (i.process.outputTruncated)\n",
+    "replace": "  if (i.process.outputTruncated && false)\n",
+    "tests": ["packages/core/test/oracle.test.ts", "tests/j3/limits.test.ts"]
   }
 ]

@@ -33,6 +33,21 @@ export interface PrepareContext {
   exclude: string[]
   redact: { fields: string[]; patterns: string[]; skipPaths: string[]; hmacKey: string }
   nodeOptions?: string
+  /** Limite de tas des processus de test (`mutations.limits.memory_mb`, CDC §16.3). */
+  memoryMb?: number
+}
+
+/** `NODE_OPTIONS` des processus de test : options du projet, puis limite de mémoire (A-03). */
+export function testNodeOptions(
+  inherited: string | undefined,
+  ctx: Pick<PrepareContext, 'nodeOptions' | 'memoryMb'>,
+): string | undefined {
+  const parts = [
+    inherited,
+    ctx.nodeOptions,
+    ctx.memoryMb !== undefined ? `--max-old-space-size=${String(ctx.memoryMb)}` : undefined,
+  ].filter((p): p is string => p !== undefined && p.trim() !== '')
+  return parts.length > 0 ? parts.join(' ') : undefined
 }
 
 export interface AdapterRunOptions {

@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import type { AdapterRun } from '../src/adapter.js'
+import { testNodeOptions, type AdapterRun } from '../src/adapter.js'
 import { detectFormat, violatesHint } from '../src/hints.js'
 import { diffSnapshots, gitSnapshot } from '../src/integrity.js'
 import { compareBaselines, observationOf, type Observation } from '../src/observe.js'
@@ -211,5 +211,16 @@ describe('intégrité avec git (CDC §5)', () => {
     const after = gitSnapshot(d)
     expect(diffSnapshots(before, after)).toEqual(['a.txt', 'b.txt', 'c.txt'])
     expect(after.get('b.txt')).toMatch(/missing$/)
+  })
+})
+
+describe('options Node des processus de test (A-03)', () => {
+  it('héritées, du projet, puis limite de mémoire', () => {
+    expect(testNodeOptions(undefined, {})).toBeUndefined()
+    expect(testNodeOptions(' ', { nodeOptions: '' })).toBeUndefined()
+    expect(testNodeOptions('--a', { nodeOptions: '--b', memoryMb: 128 })).toBe(
+      '--a --b --max-old-space-size=128',
+    )
+    expect(testNodeOptions(undefined, { memoryMb: 64 })).toBe('--max-old-space-size=64')
   })
 })

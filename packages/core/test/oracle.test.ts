@@ -330,3 +330,24 @@ describe('HINT_VIOLATION strictement range / format / length (A-13)', () => {
     ])
   })
 })
+
+describe('limites de ressources (A-03)', () => {
+  it('tas épuisé (toutes les formes du message de V8) ⇒ CRASH / RESOURCE_LIMIT', () => {
+    for (const stderr of [
+      'FATAL ERROR: Reached heap limit Allocation failed - JavaScript heap out of memory',
+      'FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - process out of memory',
+      'Error [ERR_WORKER_OUT_OF_MEMORY]',
+    ]) {
+      const r = classify(
+        input({ process: proc({ stderr, signal: 'SIGABRT' }), reportPresent: false }),
+      )
+      expect([r.status, r.subtype, r.reason]).toEqual(['CRASH', 'RESOURCE_LIMIT', 'OUT_OF_MEMORY'])
+    }
+  })
+  it('sortie au-delà de max_output_bytes ⇒ CRASH / RESOURCE_LIMIT (OUTPUT_LIMIT)', () => {
+    const r = classify(
+      input({ process: proc({ outputTruncated: true, signal: 'SIGKILL' }), reportPresent: false }),
+    )
+    expect([r.status, r.subtype, r.reason]).toEqual(['CRASH', 'RESOURCE_LIMIT', 'OUTPUT_LIMIT'])
+  })
+})

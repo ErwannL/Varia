@@ -7,7 +7,13 @@ import type {
   TestAdapter,
   TestResult,
 } from '@varia/core'
-import { globToRegExpSource, parseCoverageSummary, runSupervised, statusFileIn } from '@varia/core'
+import {
+  globToRegExpSource,
+  parseCoverageSummary,
+  runSupervised,
+  statusFileIn,
+  testNodeOptions,
+} from '@varia/core'
 import { parseProbeLog, PROBE_ENV, type ProbeEvent } from '@varia/probe-protocol'
 import { PROBE_PATH, testIdOf } from '@varia/probe-runtime'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -180,8 +186,8 @@ export class VitestAdapter implements TestAdapter {
     writeFileSync(paramsFile, JSON.stringify(params))
     const env: NodeJS.ProcessEnv = { ...process.env, FORCE_COLOR: '0', NO_COLOR: '1', CI: '1' }
     for (const k of Object.keys(env)) if (k.startsWith('VARIA_')) Reflect.deleteProperty(env, k)
-    if (ctx.nodeOptions !== undefined)
-      env['NODE_OPTIONS'] = `${env['NODE_OPTIONS'] ?? ''} ${ctx.nodeOptions}`.trim()
+    const nodeOptions = testNodeOptions(env['NODE_OPTIONS'], ctx)
+    if (nodeOptions !== undefined) env['NODE_OPTIONS'] = nodeOptions
     Object.assign(env, {
       [PROBE_ENV.mode]: o.mode,
       [PROBE_ENV.runDir]: o.runDir,

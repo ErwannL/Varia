@@ -51,6 +51,7 @@ export function prepareContext(ctx: EngineContext, runId: string, tmpDir: string
       hmacKey: ctx.hmacKey(),
     },
     ...(p.test.node_options !== undefined ? { nodeOptions: p.test.node_options } : {}),
+    memoryMb: p.mutations.limits.memory_mb,
   }
 }
 

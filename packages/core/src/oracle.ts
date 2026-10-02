@@ -83,6 +83,10 @@ export interface OracleInput {
   rejections?: ProbeEvent[]
 }
 
+/** Épuisement du tas V8 (limite `--max-old-space-size` posée par `memory_mb`, CDC §16.3, A-03). */
+const OUT_OF_MEMORY =
+  /JavaScript heap out of memory|Reached heap limit|ERR_WORKER_OUT_OF_MEMORY|Allocation failed - process out of memory/
+
 const BANAL = new Set(['null', JSON.stringify({ $t: 'undefined' }), '0', '""', 'true', 'false'])
 
 /** Cherche, à toute profondeur, un nœud structurellement égal à `needle` ; renvoie son chemin. */
@@ -138,9 +142,13 @@ export function classify(i: OracleInput, cfg: OracleConfig = DEFAULT_ORACLE): Cl
   // Erreur de VARIA (sonde), jamais comptée comme un comportement de la cible (CDC §44, A-05).
   if ((i.probeErrors ?? 0) > 0) return { ...base, status: 'INFRA_ERROR', reason: 'PROBE_FAILURE' }
   if (i.process.timedOut) return { ...base, status: 'TIMEOUT' }
-  if (/JavaScript heap out of memory|ERR_WORKER_OUT_OF_MEMORY/.test(i.process.stderr)) {
+  if (OUT_OF_MEMORY.test(i.process.stderr)) {
     return { ...base, status: 'CRASH', subtype: 'RESOURCE_LIMIT', reason: 'OUT_OF_MEMORY' }
   }
+  // Sortie au-delà de `execution.max_output_bytes` : limite de ressources (CDC §16.3), pas une
+  // simple troncature silencieuse.
+  if (i.process.outputTruncated)
+    return { ...base, status: 'CRASH', subtype: 'RESOURCE_LIMIT', reason: 'OUTPUT_LIMIT' }
   if (i.process.signal !== null || !i.reportPresent) {
     return {
       ...base,
