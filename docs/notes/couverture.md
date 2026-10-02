@@ -11,6 +11,31 @@
 - Branches de plateforme : la plateforme est injectée en paramètre, les deux branches sont testées.
 - Supprimer le dossier `coverage/` avant chaque mesure (un dossier partiel fausse le total).
 
+## Mécanique (J3)
+
+- `npm run test:coverage` = `scripts/coverage.mjs` : supprime `coverage/` et `.coverage-children/`,
+  lance Vitest (`--maxWorkers=2`, convertisseur AST `experimentalAstAwareRemapping`), puis fusionne la
+  couverture des **processus enfants** et écrit `coverage/coverage-exact.json`.
+- Processus enfants : `tests/setup/child-coverage.ts` pose `NODE_V8_COVERAGE` pour les processus lancés
+  par les tests ; `tests/setup/coverage-preload.cjs` (préchargé) coupe la propagation aux runners du
+  projet cible (coût, hors périmètre), sauf superviseur → `run-vitest.mjs`. Les dépôts sont réduits
+  aux fichiers `file:` de `packages/` après chaque fichier de test.
+- Fusion (`scripts/coverage-lib.mjs`) : même convertisseur que Vitest sur la même source ; les
+  structures (instructions, fonctions, branches) doivent être **identiques**, sinon la fusion échoue.
+  Seule exception : une entrée Vitest entièrement à zéro (fichier jamais exécuté dans le processus de
+  test, rapport construit sur la source transformée par Vite) est remplacée.
+- Code exécuté dans un contexte `vm` (sonde sous Jest, transform Jest) : non fusionné (décalages
+  d'enveloppe et de transformation non fiables) ; mesuré par des **tests en processus** directs.
+- `npm run check:coverage-exact` (`scripts/check-coverage-exact.mjs`) juge `coverage-exact.json` contre
+  `coverage-thresholds.json` (fichier unique des seuils, des fichiers d'exécution requis et des
+  exclusions motivées) : tout fichier sous son seuil, tout fichier d'exécution requis à 0 instruction
+  couverte, tout fichier source de paquet ni mesuré ni exclu fait échouer.
+
+## Exclusions (avec raison)
+
+- `packages/dashboard/vite.config.ts` : configuration de build (outil de développement).
+- Hors paquets (non livrés) : tests, `*.d.ts`, `examples/` (fixtures), `scripts/` (outillage).
+
 ## Mesure de base J3 (avant correction)
 
 Commande : `rm -rf coverage && npm run build && npx vitest run --coverage --maxWorkers=2

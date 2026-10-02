@@ -6,3 +6,4 @@ examples/external/
 .varia-tmp/
 *.log
 .DS_Store
+.coverage-children/

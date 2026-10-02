@@ -10,3 +10,9 @@
 - Push : `origin/main` à jour
 - CI GitHub Actions verte sur ubuntu / macos / windows × Node 20 / 22 + external (run 32, `793db7d`)
 - Logo refait (D-023)
+
+## J3 (en cours)
+
+- Outillage de couverture : `npm run test:coverage` (fusion des enfants) puis `npm run check:coverage-exact`.
+  Pas encore branché dans `npm run check` : la sonde (`probe.cjs`) et le transform Jest ne sont pas
+  encore mesurés en processus (F-03 en cours) ⇒ la porte échoue volontairement sur eux.

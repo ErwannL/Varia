@@ -26,47 +26,17 @@ export default defineConfig({
     testTimeout: 120_000,
     hookTimeout: 120_000,
     pool: 'forks',
+    setupFiles: ['tests/setup/child-coverage.ts'],
     coverage: {
       provider: 'v8',
-      reporter: ['text-summary', 'json-summary'],
+      experimentalAstAwareRemapping: true,
+      reporter: ['text-summary', 'json'],
       reportsDirectory: 'coverage',
-      include: [
-        'packages/*/src/**',
-        'packages/adapters/*/src/**',
-        'packages/probe-runtime/runtime/serialize.cjs',
-      ],
-      // Exécutés HORS du processus Vitest (dans Jest ou en sous-processus) : non mesurables par v8 ici,
-      // couverts par les tests d'intégration (docs/notes/couverture.md). Points d'entrée sans logique.
-      // Seuils PAR FICHIER, par axe (lignes, branches, fonctions, instructions), versionnés en J1 :
-      // on ne les baisse JAMAIS, on ajoute des tests (règle qualité n°11, docs/notes/couverture.md).
-      thresholds: {
-        perFile: true,
-        'packages/adapters/jest/**': { lines: 91, branches: 76, functions: 100, statements: 91 },
-        'packages/adapters/vitest/**': { lines: 93, branches: 76, functions: 100, statements: 93 },
-        'packages/api/**': { lines: 93, branches: 84, functions: 75, statements: 93 },
-        'packages/cli/**': { lines: 88, branches: 78, functions: 71, statements: 88 },
-        'packages/config/**': { lines: 100, branches: 100, functions: 100, statements: 100 },
-        'packages/core/**': { lines: 96, branches: 86, functions: 100, statements: 96 },
-        'packages/dashboard/**': { lines: 80, branches: 47, functions: 63, statements: 80 },
-        'packages/database/**': { lines: 100, branches: 95, functions: 100, statements: 100 },
-        'packages/engine/**': { lines: 91, branches: 50, functions: 87, statements: 91 },
-        'packages/i18n/**': { lines: 100, branches: 100, functions: 100, statements: 100 },
-        'packages/probe-protocol/**': {
-          lines: 100,
-          branches: 100,
-          functions: 100,
-          statements: 100,
-        },
-        'packages/probe-runtime/**': { lines: 88, branches: 80, functions: 82, statements: 88 },
-        'packages/reporters/**': { lines: 100, branches: 77, functions: 100, statements: 100 },
-        'packages/testkit/**': { lines: 100, branches: 100, functions: 100, statements: 100 },
-      },
-      exclude: [
-        'packages/cli/src/main.ts',
-        'packages/*/src/write-schema.ts',
-        'packages/dashboard/src/main.tsx',
-        '**/*.d.ts',
-      ],
+      // Tout le code livré des paquets est mesuré (politique J3, docs/notes/couverture.md). Les seuils
+      // et les exclusions motivées vivent dans coverage-thresholds.json, jugés EXACTEMENT par
+      // scripts/check-coverage-exact.mjs après fusion de la couverture des processus enfants.
+      include: ['packages/**/src/**', 'packages/**/runtime/**'],
+      exclude: ['**/*.d.ts', '**/README.md', '**/test/**', '**/node_modules/**', '**/dist/**'],
     },
     fileParallelism: false,
   },

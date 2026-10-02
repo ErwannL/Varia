@@ -1,0 +1,395 @@
+{
+  "$comment": "Seuils de couverture EXACTS par fichier (politique J3, docs/notes/couverture.md). Jamais abaissés : une entrée par fichier encore sous 100 %, supprimée dès qu il atteint 100 ; la règle finale vaut 100 partout. Premier motif correspondant appliqué.",
+  "thresholds": [
+    {
+      "pattern": "packages/adapters/jest/runtime/transform.cjs",
+      "statements": 0,
+      "branches": 0,
+      "functions": 0,
+      "lines": 0
+    },
+    {
+      "pattern": "packages/adapters/jest/src/adapter.ts",
+      "statements": 95,
+      "branches": 82,
+      "functions": 91,
+      "lines": 97
+    },
+    {
+      "pattern": "packages/adapters/jest/src/config.ts",
+      "statements": 86,
+      "branches": 66,
+      "functions": 100,
+      "lines": 87
+    },
+    {
+      "pattern": "packages/adapters/vitest/runtime/plugin.mjs",
+      "statements": 85,
+      "branches": 92,
+      "functions": 60,
+      "lines": 90
+    },
+    {
+      "pattern": "packages/adapters/vitest/runtime/rewrite.mjs",
+      "statements": 100,
+      "branches": 93,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/adapters/vitest/runtime/run-vitest.mjs",
+      "statements": 100,
+      "branches": 91,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/adapters/vitest/src/adapter.ts",
+      "statements": 92,
+      "branches": 78,
+      "functions": 100,
+      "lines": 94
+    },
+    {
+      "pattern": "packages/api/src/server.ts",
+      "statements": 94,
+      "branches": 81,
+      "functions": 93,
+      "lines": 94
+    },
+    {
+      "pattern": "packages/cli/src/io.ts",
+      "statements": 83,
+      "branches": 100,
+      "functions": 75,
+      "lines": 77
+    },
+    {
+      "pattern": "packages/cli/src/main.ts",
+      "statements": 0,
+      "branches": 100,
+      "functions": 0,
+      "lines": 0
+    },
+    {
+      "pattern": "packages/cli/src/program.ts",
+      "statements": 84,
+      "branches": 76,
+      "functions": 87,
+      "lines": 88
+    },
+    {
+      "pattern": "packages/config/src/write-schema.ts",
+      "statements": 0,
+      "branches": 100,
+      "functions": 100,
+      "lines": 0
+    },
+    {
+      "pattern": "packages/core/runtime/supervisor.cjs",
+      "statements": 77,
+      "branches": 54,
+      "functions": 100,
+      "lines": 77
+    },
+    {
+      "pattern": "packages/core/src/acceptances.ts",
+      "statements": 100,
+      "branches": 94,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/core/src/catalog.ts",
+      "statements": 94,
+      "branches": 93,
+      "functions": 100,
+      "lines": 98
+    },
+    {
+      "pattern": "packages/core/src/exec/proc.ts",
+      "statements": 95,
+      "branches": 90,
+      "functions": 92,
+      "lines": 96
+    },
+    {
+      "pattern": "packages/core/src/history.ts",
+      "statements": 96,
+      "branches": 83,
+      "functions": 94,
+      "lines": 95
+    },
+    {
+      "pattern": "packages/core/src/integrity.ts",
+      "statements": 100,
+      "branches": 84,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/core/src/issues.ts",
+      "statements": 100,
+      "branches": 91,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/core/src/observe.ts",
+      "statements": 100,
+      "branches": 90,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/core/src/oracle.ts",
+      "statements": 92,
+      "branches": 91,
+      "functions": 100,
+      "lines": 96
+    },
+    {
+      "pattern": "packages/core/src/plan.ts",
+      "statements": 100,
+      "branches": 93,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/core/src/strategies/index.ts",
+      "statements": 100,
+      "branches": 85,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/App.tsx",
+      "statements": 100,
+      "branches": 96,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/api.ts",
+      "statements": 100,
+      "branches": 90,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/components/Brand.tsx",
+      "statements": 83,
+      "branches": 80,
+      "functions": 69,
+      "lines": 83
+    },
+    {
+      "pattern": "packages/dashboard/src/components/Common.tsx",
+      "statements": 88,
+      "branches": 77,
+      "functions": 81,
+      "lines": 87
+    },
+    {
+      "pattern": "packages/dashboard/src/i18n.tsx",
+      "statements": 71,
+      "branches": 27,
+      "functions": 85,
+      "lines": 78
+    },
+    {
+      "pattern": "packages/dashboard/src/main.tsx",
+      "statements": 0,
+      "branches": 0,
+      "functions": 0,
+      "lines": 0
+    },
+    {
+      "pattern": "packages/dashboard/src/pages/Acceptances.tsx",
+      "statements": 100,
+      "branches": 93,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/pages/Compare.tsx",
+      "statements": 81,
+      "branches": 64,
+      "functions": 70,
+      "lines": 80
+    },
+    {
+      "pattern": "packages/dashboard/src/pages/Issues.tsx",
+      "statements": 100,
+      "branches": 65,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/pages/Mutations.tsx",
+      "statements": 86,
+      "branches": 45,
+      "functions": 85,
+      "lines": 86
+    },
+    {
+      "pattern": "packages/dashboard/src/pages/NotCovered.tsx",
+      "statements": 100,
+      "branches": 50,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/pages/Overview.tsx",
+      "statements": 100,
+      "branches": 71,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/pages/Runs.tsx",
+      "statements": 100,
+      "branches": 50,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/pages/Tests.tsx",
+      "statements": 100,
+      "branches": 83,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/dashboard/src/router.ts",
+      "statements": 94,
+      "branches": 100,
+      "functions": 100,
+      "lines": 93
+    },
+    {
+      "pattern": "packages/database/src/store.ts",
+      "statements": 100,
+      "branches": 94,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/engine/src/baseline.ts",
+      "statements": 89,
+      "branches": 74,
+      "functions": 83,
+      "lines": 93
+    },
+    {
+      "pattern": "packages/engine/src/context.ts",
+      "statements": 90,
+      "branches": 75,
+      "functions": 88,
+      "lines": 94
+    },
+    {
+      "pattern": "packages/engine/src/doctor.ts",
+      "statements": 95,
+      "branches": 79,
+      "functions": 100,
+      "lines": 94
+    },
+    {
+      "pattern": "packages/engine/src/fuzz.ts",
+      "statements": 95,
+      "branches": 76,
+      "functions": 96,
+      "lines": 97
+    },
+    {
+      "pattern": "packages/engine/src/incremental.ts",
+      "statements": 94,
+      "branches": 85,
+      "functions": 100,
+      "lines": 93
+    },
+    {
+      "pattern": "packages/engine/src/integrity.ts",
+      "statements": 85,
+      "branches": 83,
+      "functions": 100,
+      "lines": 85
+    },
+    {
+      "pattern": "packages/engine/src/planning.ts",
+      "statements": 94,
+      "branches": 74,
+      "functions": 100,
+      "lines": 96
+    },
+    {
+      "pattern": "packages/engine/src/replay.ts",
+      "statements": 94,
+      "branches": 61,
+      "functions": 100,
+      "lines": 94
+    },
+    {
+      "pattern": "packages/probe-runtime/runtime/probe.cjs",
+      "statements": 0,
+      "branches": 0,
+      "functions": 0,
+      "lines": 0
+    },
+    {
+      "pattern": "packages/probe-runtime/runtime/serialize.cjs",
+      "statements": 85,
+      "branches": 78,
+      "functions": 79,
+      "lines": 86
+    },
+    {
+      "pattern": "packages/reporters/src/build.ts",
+      "statements": 96,
+      "branches": 77,
+      "functions": 94,
+      "lines": 98
+    },
+    {
+      "pattern": "packages/reporters/src/formats.ts",
+      "statements": 100,
+      "branches": 88,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/reporters/src/policy.ts",
+      "statements": 100,
+      "branches": 89,
+      "functions": 100,
+      "lines": 100
+    },
+    {
+      "pattern": "packages/reporters/src/write-schema.ts",
+      "statements": 0,
+      "branches": 100,
+      "functions": 100,
+      "lines": 0
+    },
+    {
+      "pattern": "packages/**",
+      "statements": 100,
+      "branches": 100,
+      "functions": 100,
+      "lines": 100
+    }
+  ],
+  "required": [
+    "packages/probe-runtime/runtime/probe.cjs",
+    "packages/probe-runtime/runtime/serialize.cjs",
+    "packages/adapters/jest/runtime/transform.cjs",
+    "packages/adapters/vitest/runtime/plugin.mjs",
+    "packages/adapters/vitest/runtime/rewrite.mjs",
+    "packages/adapters/vitest/runtime/run-vitest.mjs",
+    "packages/core/runtime/supervisor.cjs"
+  ],
+  "excluded": {
+    "packages/dashboard/vite.config.ts": "configuration de build du dashboard (outil de développement, non livré à l exécution)"
+  }
+}

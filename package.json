@@ -31,18 +31,21 @@
     "build": "tsc -b packages/cli/tsconfig.json packages/api/tsconfig.json && npm run build -w @varia/dashboard",
     "external:fetch": "node scripts/fetch-external.mjs",
     "acceptance:external": "node scripts/acceptance-external.mjs",
-    "test:coverage": "vitest run --coverage",
+    "test:coverage": "node scripts/coverage.mjs",
     "check:coverage-ignores": "node scripts/check-coverage-ignores.mjs",
     "check:fast": "npm run typecheck && npm run lint && npm run format:check && npm run check:skips && npm run check:lines && npm run check:readmes && npm run check:coverage-ignores && npm run brand:check",
-    "clean": "node scripts/clean.mjs"
+    "clean": "node scripts/clean.mjs",
+    "check:coverage-exact": "node scripts/check-coverage-exact.mjs"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
     "@resvg/resvg-js": "2.6.2",
     "@types/node": "20.19.43",
     "@vitest/coverage-v8": "3.2.7",
+    "ast-v8-to-istanbul": "0.3.12",
     "eslint": "9.39.5",
     "globals": "17.13.0",
+    "istanbul-lib-coverage": "3.2.2",
     "playwright-core": "1.63.0",
     "prettier": "3.3.3",
     "tsx": "4.23.15",
