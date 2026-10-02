@@ -177,3 +177,8 @@ sous reduced-motion, position d'arrêt = logo fixe) inchangées ; dérivés rég
 **Complément D-022 (test modifié)** : `packages/engine/test/context.test.ts` comparait `dataDir` au
 chemin `tmpdir()` brut ; la racine étant désormais canonique (comportement voulu), le test crée sa racine
 canonique. Le cas d'une racine non canonique reste couvert par `tests/j1/paths.test.ts`.
+
+**Complément D-022 (Windows)** : `groupAlive` interrogeait un groupe POSIX (`kill(-pid, 0)`), notion
+absente sous Windows ; il teste désormais le processus lui-même sous `win32`. `waitGroupGone` fonctionne
+ainsi sur toutes les plateformes et son test s'exécute partout (la couverture de `proc.ts` n'est plus
+dépendante de l'OS ; aucun seuil abaissé).

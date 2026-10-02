@@ -48,10 +48,13 @@ export function killTree(
   }
 }
 
-/** Vrai si le groupe de processus (POSIX) a encore un membre vivant. */
-export function groupAlive(pid: number): boolean {
+/**
+ * Vrai si le groupe de processus (POSIX) a encore un membre vivant. Windows n'a pas de groupes : on
+ * teste le processus lui-même (son arbre est tué d'un bloc par `taskkill /T`).
+ */
+export function groupAlive(pid: number, platform: NodeJS.Platform = process.platform): boolean {
   try {
-    process.kill(-pid, 0)
+    process.kill(platform === 'win32' ? pid : -pid, 0)
     return true
   } catch {
     return false

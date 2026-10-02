@@ -84,14 +84,14 @@ describe('exécution supervisée (CDC §16.2)', () => {
     })
     const pid = child.pid ?? -1
     const exited = new Promise((r) => child.on('exit', r))
-    if (process.platform !== 'win32') {
-      // Groupes de processus POSIX uniquement (Windows : arbre tué par taskkill).
-      expect(groupAlive(pid)).toBe(true)
-      expect(await waitGroupGone(pid, 60)).toBe(false)
-    }
+    expect(groupAlive(pid)).toBe(true)
+    expect(await waitGroupGone(pid, 60)).toBe(false)
     killTree(pid)
     await exited
-    if (process.platform !== 'win32') expect(await waitGroupGone(pid, 5000)).toBe(true)
+    expect(await waitGroupGone(pid, 5000)).toBe(true)
+  })
+  it('groupAlive Windows : teste le processus lui-même (pas de groupe)', () => {
+    expect(groupAlive(process.pid, 'win32')).toBe(true)
   })
   it('killTree POSIX sur un groupe inexistant ne lève pas', () => {
     expect(() => killTree(2 ** 22 + 12345, 'linux')).not.toThrow()
