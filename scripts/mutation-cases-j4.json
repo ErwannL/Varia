@@ -547,5 +547,12 @@
     "find": "if (framework === 'junit') return",
     "replace": "if (framework === 'junitX') return",
     "tests": ["packages/cli/test/shared.test.ts"]
+  },
+  {
+    "name": "R-01 : projet ESM sans --no-experimental-require-module (Node 20)",
+    "file": "packages/adapters/mocha/src/adapter.ts",
+    "find": "this.nodeArgs = esm ? ['--no-experimental-require-module'] : []",
+    "replace": "this.nodeArgs = []",
+    "tests": ["packages/adapters/mocha/test/adapter.test.ts"]
   }
 ]

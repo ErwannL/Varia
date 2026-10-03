@@ -1,6 +1,6 @@
 // Tests unitaires de l'adapter Mocha : filtre exact, rapport JSON, configuration générée, détection et
 // lancement (superviseur simulé ; l'exécution réelle est couverte par la conformité et tests/j4).
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
@@ -17,7 +17,7 @@ vi.mock('@varia/core', async (orig) => ({
   runSupervised: (cmd: string, args: string[], opts: Record<string, unknown>) => {
     h.calls.push({ cmd, args, opts })
     // Le « runner » écrit son rapport JSON là où la configuration générée l'indique.
-    const config = JSON.parse(readFileSync(String(args[2]), 'utf8')) as {
+    const config = JSON.parse(readFileSync(String(args[args.indexOf('--config') + 1]), 'utf8')) as {
       'reporter-option': string[]
     }
     if (h.report !== null)
@@ -38,7 +38,8 @@ const {
 } = await import('../src/adapter.js')
 
 function dir(files: Record<string, string> = {}): string {
-  const d = mkdtempSync(join(tmpdir(), 'varia-mocha-'))
+  // Racine canonique (macOS : /var ⇒ /private/var, docs/notes/chemins.md) : Mocha est résolu par realpath.
+  const d = realpathSync(mkdtempSync(join(tmpdir(), 'varia-mocha-')))
   for (const [f, c] of Object.entries(files)) {
     mkdirSync(join(d, f, '..'), { recursive: true })
     writeFileSync(join(d, f), c)
@@ -197,7 +198,8 @@ describe('MochaAdapter', () => {
     expect(setup).not.toContain('esm-hooks')
     // Projet ESM : crochets enregistrés avec la réécriture de l'adapter Vitest (fichier livré).
     const esmTmp = dir()
-    await new MochaAdapter().prepare({
+    const esmAdapter = new MochaAdapter()
+    await esmAdapter.prepare({
       root: dir({ 'package.json': '{"type":"module"}', ...FAKE_MOCHA }),
       tmpDir: esmTmp,
       runId: 'r_1',
@@ -206,6 +208,10 @@ describe('MochaAdapter', () => {
       redact,
     })
     const esmSetup = readFileSync(join(esmTmp, 'varia-mocha-setup.cjs'), 'utf8')
+    // Node ≥ 20.19 : Mocha chargerait les fichiers ESM par require(esm), que les crochets asynchrones
+    // de Node 20 n'interceptent pas ⇒ chargement forcé par import() (docs/notes/sonde-mocha.md).
+    await esmAdapter.run({ mode: 'observe', runDir: dir(), timeoutMs: 5 })
+    expect(h.calls.pop()?.args[0]).toBe('--no-experimental-require-module')
     expect(esmSetup).toContain(
       `require('module').register(${JSON.stringify(pathToFileURL(ESM_HOOKS_PATH).href)}`,
     )

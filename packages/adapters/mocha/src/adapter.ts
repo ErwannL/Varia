@@ -144,6 +144,12 @@ export function mochaRunConfig(
 export class MochaAdapter implements TestAdapter {
   readonly id = 'mocha'
   private ctx: PrepareContext | null = null
+  /**
+   * Arguments Node avant la CLI de Mocha. Projet ESM : Node ≥ 20.19 activerait require(esm), par
+   * lequel Mocha charge les fichiers ESM sans passer par les crochets asynchrones (Node 20) ⇒
+   * chargement forcé par import() (docs/notes/sonde-mocha.md).
+   */
+  private nodeArgs: string[] = []
   private options: MochaOptions = {}
   private cli = ''
 
@@ -189,6 +195,7 @@ export class MochaAdapter implements TestAdapter {
     const esm =
       existsSync(pkgFile) &&
       (JSON.parse(readFileSync(pkgFile, 'utf8')) as { type?: unknown }).type === 'module'
+    this.nodeArgs = esm ? ['--no-experimental-require-module'] : []
     const setup = {
       projectRoot: ctx.root,
       include: ctx.include.map(globToRegExpSource),
@@ -250,7 +257,7 @@ export class MochaAdapter implements TestAdapter {
     })
     const proc = await runSupervised(
       process.execPath,
-      [this.cli, '--config', configFile, '--no-package'],
+      [...this.nodeArgs, this.cli, '--config', configFile, '--no-package'],
       {
         cwd: ctx.cwd ?? ctx.root,
         env,

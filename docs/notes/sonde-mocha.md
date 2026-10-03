@@ -21,3 +21,11 @@
 - Couverture des fichiers `runtime/*.mjs` chargés par `createRequire` : le rapport texte local de
   Vitest est faux pour le code après un `await` ; seule la fusion des couvertures brutes
   (`VARIA_CHILD_COVERAGE` + `mergeChildren`, comme `scripts/coverage.mjs`) fait foi.
+
+## Node ≥ 20.19 : require(esm)
+
+- Mocha 11 charge les fichiers par `require()` quand `process.features.require_module` est vrai
+  (Node 20.19+, 22.12+). Sous Node 20, un module ESM chargé par require(esm) ne passe PAS par les
+  crochets asynchrones de `module.register` : aucune cible ESM n'était enveloppée (CI Node 20 rouge,
+  `observation : []`). Projet ESM ⇒ Node lancé avec `--no-experimental-require-module`, Mocha
+  repasse par `import()`. Reproduction locale : binaire Node 20 (`npm pack node-linux-x64@20`).

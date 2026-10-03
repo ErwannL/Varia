@@ -10,7 +10,7 @@ import {
   seedFor,
   type PluginSession,
 } from '@varia/plugins'
-import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -120,7 +120,8 @@ describe('chargement des extensions', () => {
   })
 
   it('paquet installé résolu depuis la racine du projet ; chemin absolu accepté', () => {
-    const root = mkdtempSync(join(tmpdir(), 'varia-plugin-root-'))
+    // Racine canonique (macOS : /var ⇒ /private/var) : la résolution d'un paquet passe par realpath.
+    const root = realpathSync(mkdtempSync(join(tmpdir(), 'varia-plugin-root-')))
     const pkg = join(root, 'node_modules', 'varia-plugin-demo')
     mkdirSync(pkg, { recursive: true })
     writeFileSync(join(pkg, 'package.json'), '{"name":"varia-plugin-demo","main":"index.cjs"}')
