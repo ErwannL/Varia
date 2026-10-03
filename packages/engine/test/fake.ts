@@ -174,7 +174,7 @@ export function observeRun(tests: FakeTest[], over: Partial<AdapterRun> = {}): A
 /** Comportement simulé de la cible face à une mutation. */
 export type Behavior = (m: PlannedMutation) => {
   returns?: unknown
-  throws?: { name: string; message?: string; chain?: string[] }
+  throws?: { name: string; message?: string; chain?: string[]; stack?: string }
   process?: Partial<AdapterRun['process']>
   extra?: ProbeEvent[]
   testDurationMs?: number
@@ -220,7 +220,7 @@ export function fuzzRun(
             error: {
               name: b.throws.name,
               message: b.throws.message ?? '',
-              stack: '',
+              stack: b.throws.stack ?? '',
               constructorChain: b.throws.chain ?? [b.throws.name, 'Error'],
             },
           })

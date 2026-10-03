@@ -58,3 +58,4 @@ npm test             # vitest
 - `docs/notes/tests-deterministes.md` — scénarios sans dépendance à la vitesse (cibles déterministes, délais explicites).
 - `docs/notes/plateformes.md` — branches de plateforme injectées, tubes asynchrones sous macOS, URL `file:` et shell sous Windows.
 - `docs/notes/zero-ia.md` — aucune IA/LLM dans Varia ; contrôle `check:no-ai` (paquets, manifestes, code de sonde).
+- `docs/notes/navigateur.md` — mesure en Chromium réel (cibles 44 px, focus) ; navigateur absent = échec sauf `VARIA_BROWSER=absent` déclaré.

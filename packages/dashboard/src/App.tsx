@@ -14,7 +14,9 @@ import { Acceptances } from './pages/Acceptances.js'
 import { Compare } from './pages/Compare.js'
 import { Coverage } from './pages/Coverage.js'
 import { History } from './pages/History.js'
-import { Tests } from './pages/Tests.js'
+import { Capabilities } from './pages/Capabilities.js'
+import { Files, Folders, Tests } from './pages/Tests.js'
+import { CallSite, TestDetail } from './pages/Tree.js'
 import { href, useRoute, type Route } from './router.js'
 
 export const DEFAULT_ORQEA_URL = 'https://orqea.dev'
@@ -34,7 +36,9 @@ function Nav({ route, latestRun }: { route: Route; latestRun: string | null }) {
           ['issues', t('dash.nav.issues'), ['runs', runId, 'issues']],
           ['mutations', t('dash.nav.mutations'), ['runs', runId, 'mutations']],
           ['not-covered', t('dash.nav.notCovered'), ['runs', runId, 'not-covered']],
+          ['folders', t('dash.nav.folders'), ['runs', runId, 'folders']],
           ['tests', t('dash.nav.tests'), ['runs', runId, 'tests']],
+          ['capabilities', t('dash.nav.capabilities'), ['runs', runId, 'capabilities']],
           ['coverage', t('dash.nav.coverage'), ['runs', runId, 'coverage']],
         ] as [string, string, string[]][])),
   ]
@@ -51,7 +55,7 @@ function Nav({ route, latestRun }: { route: Route; latestRun: string | null }) {
 }
 
 function Page({ route }: { route: Route }) {
-  const [a, b, c] = route.path
+  const [a, b, c, d] = route.path
   const run = route.query.get('run')
   if (a === undefined) return <Overview />
   if (a === 'runs' && b === undefined) return <Runs />
@@ -61,7 +65,19 @@ function Page({ route }: { route: Route }) {
   if (a === 'runs' && b !== undefined && c === 'mutations')
     return <Mutations runId={b} status={route.query.get('status')} />
   if (a === 'runs' && b !== undefined && c === 'not-covered') return <NotCovered runId={b} />
-  if (a === 'runs' && b !== undefined && c === 'tests') return <Tests runId={b} />
+  if (a === 'runs' && b !== undefined && c === 'tests' && d === undefined)
+    return <Tests runId={b} file={route.query.get('file')} folder={route.query.get('folder')} />
+  if (a === 'runs' && b !== undefined && c === 'tests' && d !== undefined)
+    return <TestDetail runId={b} testId={d} />
+  if (a === 'runs' && b !== undefined && c === 'folders' && d === undefined)
+    return <Folders runId={b} />
+  if (a === 'runs' && b !== undefined && c === 'folders' && d !== undefined)
+    return <Files runId={b} folder={d} />
+  if (a === 'runs' && b !== undefined && c === 'files' && d !== undefined)
+    return <Tests runId={b} file={d} />
+  if (a === 'runs' && b !== undefined && c === 'call-sites' && d !== undefined)
+    return <CallSite runId={b} callSiteId={d} />
+  if (a === 'runs' && b !== undefined && c === 'capabilities') return <Capabilities runId={b} />
   if (a === 'runs' && b !== undefined && c === 'coverage') return <Coverage runId={b} />
   if (a === 'history' && b === undefined) return <History />
   if (a === 'compare' && b === undefined)

@@ -45,7 +45,7 @@ function seeded() {
 describe('migrations', () => {
   it('appliquées une fois, idempotentes', () => {
     const sqlite = new Database(':memory:')
-    expect(migrate(sqlite)).toEqual(['0001', '0002', '0003', '0004', '0005'])
+    expect(migrate(sqlite)).toEqual(['0001', '0002', '0003', '0004', '0005', '0006'])
     expect(migrate(sqlite)).toEqual([])
   })
   it('montée de version d’une base existante (0001 → 0002), données conservées', () => {
@@ -56,7 +56,7 @@ describe('migrations', () => {
     sqlite
       .prepare("INSERT INTO projects (id, name, root, framework) VALUES ('p', 'n', '/r', 'jest')")
       .run()
-    expect(migrate(sqlite)).toEqual(['0002', '0003', '0004', '0005'])
+    expect(migrate(sqlite)).toEqual(['0002', '0003', '0004', '0005', '0006'])
     expect(sqlite.prepare('SELECT name FROM projects').get()).toEqual({ name: 'n' })
   })
   it('0005 : durées de tests et drapeaux ajoutés sans perte (valeurs par défaut)', () => {
@@ -79,7 +79,7 @@ describe('migrations', () => {
         "INSERT INTO mutation_results (run_id, mutation_id, status, duration_ms, timed_out, created_at) VALUES ('r', 'm', 'PASSED', 1, 0, 'x')",
       )
       .run()
-    expect(migrate(sqlite)).toEqual(['0005'])
+    expect(migrate(sqlite)).toEqual(['0005', '0006'])
     expect(sqlite.prepare('SELECT name, duration_ms FROM tests').get()).toEqual({
       name: 'n',
       duration_ms: null,
@@ -88,6 +88,47 @@ describe('migrations', () => {
       flags: '[]',
       test_duration_ms: null,
     })
+  })
+  it('0006 : empreinte secondaire, rapprochement, couverture nullable — sans perte', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'varia-mig-'))
+    for (const f of readdirSync(MIGRATIONS_DIR).filter((x) => /^000[1-5]_/.test(x)))
+      copyFileSync(join(MIGRATIONS_DIR, f), join(dir, f))
+    const sqlite = new Database(':memory:')
+    sqlite.pragma('foreign_keys = ON')
+    migrate(sqlite, dir)
+    sqlite.exec(
+      "INSERT INTO projects (id, name, root, framework) VALUES ('p', 'n', '/r', 'jest');" +
+        "INSERT INTO runs (id, project_id, state, mode, varia_version, config_hash, env_hash, created_at, updated_at) VALUES ('r', 'p', 'COMPLETED', 'normal', '0', 'c', 'e', 'x', 'x');" +
+        "INSERT INTO coverage (run_id, file, lines, statements, functions, branches) VALUES ('r', 'a.js', 90, 80, 70, 60);" +
+        "INSERT INTO issues (id, project_id, kind, severity, target, title, first_seen_run) VALUES ('i', 'p', 'ERROR', 'HIGH', 't', 'x', 'r');" +
+        "INSERT INTO issue_occurrences (run_id, issue_id, state, count, mutation_ids) VALUES ('r', 'i', 'NEW', 1, '[]');",
+    )
+    expect(() =>
+      sqlite.exec(
+        "INSERT INTO coverage (run_id, file, lines, statements, functions, branches) VALUES ('r', 'b.js', NULL, 1, 1, 1)",
+      ),
+    ).toThrow(/NOT NULL/)
+    expect(migrate(sqlite)).toEqual(['0006'])
+    expect(sqlite.prepare('SELECT * FROM coverage').all()).toEqual([
+      { run_id: 'r', file: 'a.js', lines: 90, statements: 80, functions: 70, branches: 60 },
+    ])
+    sqlite.exec(
+      "INSERT INTO coverage (run_id, file, lines, statements, functions, branches) VALUES ('r', 'b.js', NULL, NULL, NULL, NULL)",
+    )
+    expect(sqlite.prepare("SELECT lines FROM coverage WHERE file = 'b.js'").get()).toEqual({
+      lines: null,
+    })
+    expect(sqlite.prepare('SELECT module, stack_files, code_hash FROM issues').get()).toEqual({
+      module: null,
+      stack_files: null,
+      code_hash: null,
+    })
+    expect(sqlite.prepare('SELECT matched_from FROM issue_occurrences').get()).toEqual({
+      matched_from: '[]',
+    })
+    // La clé étrangère vers `runs` survit à la reconstruction de la table.
+    sqlite.exec("DELETE FROM issue_occurrences; DELETE FROM runs WHERE id = 'r'")
+    expect(sqlite.prepare('SELECT COUNT(*) AS n FROM coverage').get()).toEqual({ n: 0 })
   })
   it('le schéma Drizzle correspond exactement aux tables migrées', () => {
     const sqlite = new Database(':memory:')
@@ -228,6 +269,49 @@ describe('écrivaine et lectrice', () => {
       { file: 'src/a.js', lines: 90, statements: 88, functions: 100, branches: 50 },
     ])
     expect(r.coverage('r1')).toMatchObject([{ file: 'src/a.js', branches: 50 }])
+  })
+  it('couverture inconnue conservée NULL, jamais 100 (B-07)', () => {
+    const { w, r } = seeded()
+    w.saveCoverage('r1', [
+      { file: 'src/b.js', lines: 80, statements: null, functions: null, branches: 0 },
+    ])
+    expect(r.coverage('r1')).toEqual([
+      { runId: 'r1', file: 'src/b.js', lines: 80, statements: null, functions: null, branches: 0 },
+    ])
+  })
+  it('empreinte secondaire et rapprochement enregistrés puis relus (C-01)', () => {
+    const { w, r } = seeded()
+    const base = {
+      kind: 'ERROR',
+      severity: 'HIGH',
+      target: 't',
+      title: 'x',
+      errorName: null,
+      frame: null,
+      message: null,
+      mutationIds: ['m'],
+    }
+    const secondary = { module: 'src/a.js', stackFiles: ['src/a.js'], codeHash: 'h1' }
+    w.saveIssues('r1', 'p', [
+      { ...base, fingerprint: 'a', secondary, state: 'AMBIGUOUS_MATCH', matchedFrom: ['o1', 'o2'] },
+      { ...base, fingerprint: 'b' },
+    ])
+    expect(r.issues('r1').map((i) => [i.id, i.secondary, i.matchedFrom, i.state])).toEqual([
+      ['a', secondary, ['o1', 'o2'], 'AMBIGUOUS_MATCH'],
+      ['b', null, [], 'NEW'],
+    ])
+    // Issue connue : l'empreinte secondaire est mise à jour ; sans empreinte, elle est conservée.
+    w.saveIssues('r1', 'p', [
+      {
+        ...base,
+        fingerprint: 'a',
+        secondary: { ...secondary, codeHash: 'h2' },
+        matchedFrom: ['o1'],
+      },
+      { ...base, fingerprint: 'a', secondary: null },
+    ])
+    expect(r.issues('r1')[0]?.secondary?.codeHash).toBe('h2')
+    expect(r.issues('r1')[0]?.matchedFrom).toEqual([])
   })
   it('cache de résultats', () => {
     const { w, r } = seeded()

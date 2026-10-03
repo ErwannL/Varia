@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '../src/App.js'
@@ -159,5 +159,48 @@ describe('sources du dashboard', () => {
     expect(html).toMatch(/property="og:image" content="\/og-image.png"/)
     expect(html).toContain('rel="icon" href="/favicon.ico"')
     expect(html).not.toMatch(/(src|href)="https?:/)
+  })
+})
+
+describe('E-04 / E-05 : byline hors lien, logo animé', () => {
+  it('« par Orqea » : aucun ancêtre <a> ; logo et « Varia » restent dans le lien d’accueil', async () => {
+    await renderApp('fr')
+    const byline = screen.getByTestId('byline')
+    expect(byline.closest('a')).toBeNull()
+    const home = screen.getByTestId('brand-logo').closest('a') as HTMLAnchorElement
+    expect(home.getAttribute('href')).toBe('#/')
+    expect(home.textContent).toBe('Varia')
+  })
+  it('chargeur : logo ANIMÉ pendant le chargement', async () => {
+    let release: () => void = () => undefined
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((ok) => {
+            release = () => ok(new Response('{}', { status: 500 }))
+          }),
+      ),
+    )
+    render(<App locale="fr" />)
+    const logo = screen.getByTestId('loader-logo')
+    expect(logo.getAttribute('src')).toBe('/varia-animated.svg')
+    expect(logo.getAttribute('alt')).toBe('')
+    expect(screen.getByRole('status').textContent).toMatch(/Chargement/)
+    release()
+  })
+  it('en-tête : logo animé au survol et au focus, fixe sinon', async () => {
+    await renderApp('fr')
+    const logo = screen.getByTestId('brand-logo')
+    const link = logo.closest('a') as HTMLAnchorElement
+    expect(logo.getAttribute('src')).toBe('/varia.svg')
+    fireEvent.mouseEnter(link)
+    expect(logo.getAttribute('src')).toBe('/varia-animated.svg')
+    fireEvent.mouseLeave(link)
+    expect(logo.getAttribute('src')).toBe('/varia.svg')
+    fireEvent.focus(link)
+    expect(logo.getAttribute('src')).toBe('/varia-animated.svg')
+    fireEvent.blur(link)
+    expect(logo.getAttribute('src')).toBe('/varia.svg')
   })
 })

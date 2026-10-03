@@ -579,5 +579,285 @@
     "find": "ret[0]?.async === true &&",
     "replace": "ret[0]?.async === false &&",
     "tests": ["packages/adapter-conformance/test/conformance.test.ts"]
+  },
+  {
+    "name": "B-09 : caractères XML interdits conservés",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "String(s).replace(XML_INVALID, '')",
+    "replace": "String(s)",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "B-09 : fins de ligne d'attribut non encodées",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "esc(s).replace(/[\\t\\n\\r]/g,",
+    "replace": "esc(s).replace(/[\\t]/g,",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "B-09 : virgule de propriété GitHub non échappée",
+    "file": "packages/reporters/src/policy.ts",
+    "find": ".replace(/,/g, '%2C')",
+    "replace": "",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "B-09 : deux-points de propriété GitHub non échappés",
+    "file": "packages/reporters/src/policy.ts",
+    "find": ".replace(/:/g, '%3A')",
+    "replace": "",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "E-01 : tracé du logo différent de brand/varia.svg",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "stroke=\"#FFC857\" stroke-width=\"2\"",
+    "replace": "stroke=\"#FFC857\" stroke-width=\"3\"",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "E-01 : étiquette partiel selon l'intention",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "const partial = r.run.partial",
+    "replace": "const partial = r.counts.pending > 0",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "E-05 : byline du pied absente",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "<footer><span class=\"by\">Varia ${tr('byline')}</span> · ",
+    "replace": "<footer>",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "E-02 : capacités absentes du Markdown",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "    ...caps,\n",
+    "replace": "",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "D-01 : vérification doctor ignorée par le rapport",
+    "file": "packages/reporters/src/build.ts",
+    "find": "(checks[k] ?? {",
+    "replace": "({",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "D-01 : couverture VERIFIED sans résumé",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "if ((run.coverage ?? []).length > 0)",
+    "replace": "if (true)",
+    "tests": ["packages/engine/test/doctor-capabilities.test.ts"]
+  },
+  {
+    "name": "D-01 : isolation VERIFIED dans le même processus",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "pids.some((p) => others.has(p))",
+    "replace": "pids.some((p) => p < 0)",
+    "tests": ["packages/engine/test/doctor-capabilities.test.ts"]
+  },
+  {
+    "name": "D-01 : parallélisme sans comparaison des résultats",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "statuses(x) === statuses(f)",
+    "replace": "true",
+    "tests": ["packages/engine/test/doctor-capabilities.test.ts"]
+  },
+  {
+    "name": "D-01 : mocks VERIFIED par défaut",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "else if (NO_SMOKE_TEST.includes(k)) why[k] = 'NO_SMOKE_TEST'",
+    "replace": "else if (NO_SMOKE_TEST.includes(k)) verified[k] = 'VERIFIED'",
+    "tests": ["packages/engine/test/doctor-capabilities.test.ts"]
+  },
+  {
+    "name": "D-01 : vérification doctor non recopiée dans le run",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "    ...(verified !== null ? { verified } : {}),\n",
+    "replace": "",
+    "tests": ["packages/engine/test/doctor-capabilities.test.ts"]
+  },
+  {
+    "name": "B-07 : couverture inconnue affichée 100 %",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "v === null ? t(locale, 'report.unknown')",
+    "replace": "v === null ? '100 %'",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "C-01 : matchedFrom absent du rapport",
+    "file": "packages/reporters/src/build.ts",
+    "find": "matchedFrom: i.matchedFrom,",
+    "replace": "matchedFrom: [] as string[],",
+    "tests": ["packages/reporters/test/build-minimal.test.ts"]
+  },
+  {
+    "name": "C-01 : état d'issue non traduit",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "<td>${trOr(`issue.state.${i.state}`, i.state)}</td>",
+    "replace": "<td>${esc(i.state)}</td>",
+    "tests": ["packages/reporters/test/sections.test.ts"]
+  },
+  {
+    "name": "C-01 : candidats multiples fusionnés (ambiguïté ignorée)",
+    "file": "packages/core/src/history.ts",
+    "find": "if (cands.length === 1 && claims(only.id).length === 1)",
+    "replace": "if (cands.length >= 1)",
+    "tests": ["packages/core/test/history.test.ts"]
+  },
+  {
+    "name": "C-01 : seuil de rapprochement abaissé",
+    "file": "packages/core/src/history.ts",
+    "find": "export const MATCH_THRESHOLD = 0.75",
+    "replace": "export const MATCH_THRESHOLD = 0.5",
+    "tests": ["packages/core/test/history.test.ts"]
+  },
+  {
+    "name": "C-01 : lien de rapprochement perdu",
+    "file": "packages/engine/src/fuzz.ts",
+    "find": "matchedFrom: states.matches.get(d.fingerprint) ?? [],",
+    "replace": "matchedFrom: [],",
+    "tests": ["packages/engine/test/issue-matching.test.ts"]
+  },
+  {
+    "name": "B-07 : couverture inconnue comptée 100",
+    "file": "packages/core/src/adapter.ts",
+    "find": "return typeof v === 'number' ? v : null",
+    "replace": "return typeof v === 'number' ? v : 100",
+    "tests": ["packages/core/test/observe-hints.test.ts"]
+  },
+  {
+    "name": "B-08 : route absente de l'OpenAPI",
+    "file": "packages/api/src/routes.ts",
+    "find": "handler: () => openApi(defs, ctx.version)",
+    "replace": "handler: () => openApi(defs.slice(1), ctx.version)",
+    "tests": ["packages/api/test/openapi.test.ts"]
+  },
+  {
+    "name": "B-08 : schéma de réponse faux",
+    "file": "packages/api/src/routes.ts",
+    "find": "  testId: str,\n  file: str,\n})",
+    "replace": "  testId: str,\n  file: int,\n})",
+    "tests": ["packages/api/test/openapi.test.ts"]
+  },
+  {
+    "name": "B-08 : Origin ignorée",
+    "file": "packages/api/src/server.ts",
+    "find": "if (ok && origin !== undefined) {",
+    "replace": "if (ok && origin === 'jamais') {",
+    "tests": ["packages/api/test/openapi.test.ts"]
+  },
+  {
+    "name": "B-08 : alias /api/v1/health absent",
+    "file": "packages/api/src/routes.ts",
+    "find": "      url: '/api/v1/health',",
+    "replace": "      url: '/api/v1/sante',",
+    "tests": ["packages/api/test/openapi.test.ts"]
+  },
+  {
+    "name": "E-07 : mémoïsation désactivée",
+    "file": "packages/api/src/aggregates.ts",
+    "find": "if (hit?.key === key) return hit.value",
+    "replace": "if (hit?.key === 'x') return hit.value",
+    "tests": ["packages/api/test/e07.test.ts"]
+  },
+  {
+    "name": "E-07 : run en cours mémoïsé",
+    "file": "packages/api/src/aggregates.ts",
+    "find": "if (TERMINAL_STATES.has(run.state)) {",
+    "replace": "if (true) {",
+    "tests": ["packages/api/test/e07.test.ts"]
+  },
+  {
+    "name": "E-07 : pagination non bornée",
+    "file": "packages/api/src/routes.ts",
+    "find": "Number(query['limit']) || 50, 1), 200)",
+    "replace": "Number(query['limit']) || 50, 1), 1e9)",
+    "tests": ["packages/api/test/e07.test.ts"]
+  },
+  {
+    "name": "E-07 : filtre call site ignoré",
+    "file": "packages/api/src/routes.ts",
+    "find": "keep(f['callSite'], m.callSiteId)",
+    "replace": "true",
+    "tests": ["packages/api/test/e07.test.ts"]
+  },
+  {
+    "name": "C-01 : candidats rapprochés absents de l'API",
+    "file": "packages/api/src/routes.ts",
+    "find": "(JSON.parse(String(occurrence.matchedFrom)) as string[])",
+    "replace": "[]",
+    "tests": ["packages/api/test/e07.test.ts"]
+  },
+  {
+    "name": "E-05 : logo du survol figé",
+    "file": "packages/dashboard/src/components/Brand.tsx",
+    "find": "src={hover ? '/varia-animated.svg' : '/varia.svg'}",
+    "replace": "src={'/varia.svg'}",
+    "tests": ["packages/dashboard/test/brand.test.tsx"]
+  },
+  {
+    "name": "E-05 : logo du chargeur figé",
+    "file": "packages/dashboard/src/components/Common.tsx",
+    "find": "<img src=\"/varia-animated.svg\" width={72}",
+    "replace": "<img src=\"/varia.svg\" width={72}",
+    "tests": ["packages/dashboard/test/brand.test.tsx"]
+  },
+  {
+    "name": "E-07 : page hors de l'URL",
+    "file": "packages/dashboard/src/router.ts",
+    "find": "page: String(offset / limit + 1)",
+    "replace": "page: undefined",
+    "tests": ["packages/dashboard/test/e07.test.tsx"]
+  },
+  {
+    "name": "E-07 : fil d'Ariane sans erreur",
+    "file": "packages/dashboard/src/pages/Trail.ts",
+    "find": "if (at.error === true) items.push({ label: t('dash.crumb.error') })",
+    "replace": "",
+    "tests": ["packages/dashboard/test/e07.test.tsx"]
+  },
+  {
+    "name": "D-01 : vérification absente affichée vérifiée",
+    "file": "packages/dashboard/src/pages/Capabilities.tsx",
+    "find": "? t('dash.capsPage.unverified')",
+    "replace": "? t('dash.capsPage.yes')",
+    "tests": ["packages/dashboard/test/e07.test.tsx"]
+  },
+  {
+    "name": "B-07 : couverture null non signalée",
+    "file": "packages/dashboard/src/pages/Coverage.tsx",
+    "find": "value === null ? t('report.unknown')",
+    "replace": "value === undefined ? t('report.unknown')",
+    "tests": ["packages/dashboard/test/e07.test.tsx"]
+  },
+  {
+    "name": "C-01 : état d'issue brut",
+    "file": "packages/dashboard/src/pages/Issues.tsx",
+    "find": "t(`issue.state.${d.occurrence.state}` as MessageKey)",
+    "replace": "d.occurrence.state",
+    "tests": ["packages/dashboard/test/e07.test.tsx"]
+  },
+  {
+    "name": "E-08 : texte en dur",
+    "file": "packages/dashboard/src/pages/Tree.tsx",
+    "find": "<h2>{t('dash.col.callSites')}</h2>",
+    "replace": "<h2>Sites d'appel</h2>",
+    "tests": ["packages/dashboard/test/i18n-pseudo.test.tsx"]
+  },
+  {
+    "name": "E-09 : cible tactile trop petite",
+    "file": "packages/dashboard/src/styles.css",
+    "find": ".crumbs a {\n  display: inline-flex;\n  align-items: center;\n  min-height: 44px;",
+    "replace": ".crumbs a {\n  display: inline-flex;\n  align-items: center;\n  min-height: 20px;",
+    "tests": ["packages/dashboard/test/navigateur.test.ts"]
+  },
+  {
+    "name": "E-09 : focus invisible",
+    "file": "packages/dashboard/src/styles.css",
+    "find": "  outline: 3px solid var(--focus);",
+    "replace": "  outline: none;",
+    "tests": ["packages/dashboard/test/navigateur.test.ts"]
   }
 ]

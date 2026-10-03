@@ -2,6 +2,7 @@ import type { MessageKey } from '@varia/i18n'
 import { useState } from 'react'
 import type { Loadable } from '../api.js'
 import { useI18n } from '../i18n.js'
+import { href } from '../router.js'
 
 /** Chargeur : logo animé (coupé sous prefers-reduced-motion par le SVG lui-même). */
 export function Loader() {
@@ -157,4 +158,35 @@ export function CopyButton({ text }: { text: string }) {
       {done ? t('dash.mutation.copied') : t('dash.mutation.copy')}
     </button>
   )
+}
+
+export interface Crumb {
+  label: string
+  path?: string[]
+  query?: Record<string, string | undefined>
+}
+
+/** Fil d'Ariane Projet → Run → Dossier → Fichier → Test → Call site → Mutation → Erreur (CDC §26). */
+export function Breadcrumbs({ items }: { items: Crumb[] }) {
+  const { t } = useI18n()
+  return (
+    <nav className="crumbs" aria-label={t('dash.crumb.label')}>
+      <ol>
+        {items.map((c, i) => (
+          <li key={`${String(i)}-${c.label}`}>
+            {c.path === undefined ? (
+              <span aria-current="page">{c.label}</span>
+            ) : (
+              <a href={href(c.path, c.query)}>{c.label}</a>
+            )}
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+/** Défaillances d'un nœud de l'arbre : nombre ET libellé, jamais la couleur seule. */
+export function failuresOf(c: { crashes: number; timeouts: number; unexpected: number }): number {
+  return c.crashes + c.timeouts + c.unexpected
 }

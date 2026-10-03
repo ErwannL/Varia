@@ -33,7 +33,7 @@ describe('HTML autonome (CDC §31, prompt §4.2)', () => {
   it('autonome : aucune ressource externe chargée, logo inline accessible', () => {
     expect(html).not.toMatch(/<(script|link|img)\b/)
     expect(html).toContain('role="img"')
-    expect(html).toContain('<title>Varia</title>')
+    expect(html).toContain('<title id="varia-report-logo-title">Varia</title>')
   })
   it('anglais, titres traduits, échappement', () => {
     const en = toHtml(report(), 'en', 'https://orqea.example')
@@ -77,7 +77,7 @@ describe('JUnit, SARIF, Markdown', () => {
   it('Markdown', () => {
     const md = toMarkdown(report(), 'en')
     expect(md).toContain(
-      '| Critical | NEW | src/values.js#repeat: timeout | 1 | `varia replay m_timeout` |',
+      '| Critical | new | src/values.js#repeat: timeout | 1 | `varia replay m_timeout` |',
     )
     expect(md).toContain('Powered by Orqea · Developed by Erwann Laplante')
   })
@@ -122,7 +122,7 @@ describe('politique CI (CDC §28)', () => {
   })
   it('annotations GitHub', () => {
     const lines = githubAnnotations(r)
-    expect(lines[1]).toMatch(/^::error file=src\/users\.js,line=14 title=Varia ERROR::/)
+    expect(lines[1]).toMatch(/^::error file=src\/users\.js,line=14,title=Varia ERROR::/)
     expect(lines[2]).toMatch(/^::warning title=Varia SUSPICIOUS_ACCEPT::/)
   })
 })

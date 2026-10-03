@@ -308,3 +308,55 @@ image par image dans Chromium en `<img>` comme dans le README.
   (manifeste inchangé, aucun processus du run). Résultat par vérification : PASS / FAIL / UNVERIFIED.
 - Les capacités déclarées ne sont pas lues : tout est exigé. `cleanup` sous Windows : UNVERIFIED (pas
   de `ps` ; plateforme injectée). Une exception dans un groupe le fait échouer en entier.
+
+## D-032 — 2026-10-03 — Rapprochement d'issues par empreinte secondaire (C-01)
+
+- Empreinte secondaire d'une issue : module de la target, ensemble trié des fichiers du projet présents
+  dans la pile (sans ligne ni nom de fonction), `codeHash` (sha256 tronqué de la ligne de source du
+  premier cadre, espaces normalisés ; `null` si illisible ou hors projet). Migration 0006.
+- Seules les issues de référence DISPARUES sont candidates ; filtre strict (même nature, même module,
+  empreinte des deux côtés) ; score = ½ Jaccard des fichiers de pile + ½ (même `codeHash`) ; seuil
+  **0,75** : il faut le même extrait de code ET au moins la moitié des fichiers de pile en commun (pile
+  seule ou extrait seul ≤ 0,5). Sans extrait connu, aucun rapprochement : NEW plutôt qu'une fausse
+  certitude.
+- Un candidat unique, revendiqué par une seule issue courante : continuation (UNCHANGED/IMPROVED/
+  WORSENED), l'ancienne n'est ni FIXED ni UNKNOWN, lien gardé dans `matched_from`. Plusieurs candidats
+  (d'un côté ou de l'autre) : `AMBIGUOUS_MATCH` pour l'issue courante, `UNKNOWN` pour les candidats,
+  jamais de fusion.
+
+## D-033 — 2026-10-03 — Capacités vérifiées par doctor (D-01)
+
+- `doctor` exécute un test de fumée par capacité et range `checks[cap] = { status, reason }`
+  (`VERIFIED` / `NOT_VERIFIED` / `UNSUPPORTED`, codes de raison traduits) dans `<dataDir>/doctor.json`
+  (rien n'est écrit si le projet a été modifié) ; la baseline suivante du même adapter et de la même
+  version de Varia le recopie dans `run.info.verified`. Sans doctor : rien n'est VERIFIED
+  (`DOCTOR_NOT_RUN`).
+- `coverage` : VERIFIED seulement si des lignes de couverture reviennent ; `isolatedProcess` : pid de
+  la sonde pendant la mutation distinct de ceux de l'observation et du processus Varia ;
+  `parallelSafe` : deux exécutions simultanées de la même mutation, mêmes statuts ; `mocks` et
+  `testParameters` : NOT_VERIFIED par principe (`NO_SMOKE_TEST`). Vitest déclare désormais
+  `coverage: true` (vérifié sur l'exemple).
+- Schéma du rapport v3 : `capabilities.verified`, `verifiedAt`, `issues[].matchedFrom`, couverture de
+  baseline nullable. Un code de raison ou de limite inconnu est rendu brut, jamais deviné.
+
+## D-034 — 2026-10-03 — Couverture inconnue (B-07) et double exclusion des tests instables (A-14)
+
+- Une métrique de couverture non numérique (« Unknown ») est stockée NULL et affichée « — », jamais
+  100 % ; migration 0006 (table `coverage` reconstruite, colonnes nullables, sans perte).
+- A-14 : un test instable est exclu à la baseline ET à la planification (défense en profondeur) ; un
+  seul retrait ne fait pas échouer le test d'acceptation `packages/cli/test/flaky.test.ts` — aucun cas
+  de mutation à remplacement unique ne peut donc le prouver ; vérifié à la main en retirant les deux.
+
+## D-035 — 2026-10-03 — API décrite par ses routes, tableau de bord niveau 2 (B-08, E-07, E-09)
+
+- Source unique des routes : `defineRoutes` enregistre les routes Fastify ET génère l'OpenAPI 3.1
+  (`/api/v1/openapi.json`) ; un test compare les routes réellement enregistrées au document, et chaque
+  réponse réelle est validée (Ajv 2020) contre le schéma de son code HTTP. Les schémas ne sont pas
+  appliqués à la sérialisation (pas de troncature silencieuse). `Origin` présente : boucle locale http,
+  sinon 403. Alias `/api/v1/health`, `/api/v1/version` ; `/api/v1/tests/:id`.
+- Agrégats mémoïsés par run terminé (clé état + `updatedAt`, états terminaux seulement, 8 runs au
+  plus) ; un run en cours est toujours recalculé. Listes paginées côté serveur (≤ 200, 25 à 50 par
+  défaut), pas de virtualisation ; `/reports/:id` reste un export complet. Dossier d'un test =
+  `dirname` de son fichier.
+- E-09 : mesure en Chromium réel ; navigateur absent = échec, sauf `VARIA_BROWSER=absent` déclaré
+  (vérifié : aucun navigateur trouvable) ⇒ UNVERIFIED. Liens en ligne exclus des 44 px (WCAG 2.5.5).

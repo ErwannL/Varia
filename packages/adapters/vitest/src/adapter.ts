@@ -37,7 +37,7 @@ export const VITEST_CAPABILITIES: AdapterCapabilities = {
   cjs: false,
   mocks: false,
   testParameters: true,
-  coverage: false,
+  coverage: true,
   isolatedProcess: true,
   parallelSafe: false,
 }

@@ -65,14 +65,14 @@ export interface Page<T> {
   items: T[]
 }
 export interface NotCovered {
-  notCovered: {
-    neverCalled: string[]
-    transitiveOnly: string[]
-    unsupported: string[]
-    nonMutableInputs: { target: string; path: string; reason: string }[]
-    flakyTests: string[]
-    skippedMutations: { id: string; reason: string }[]
-    pendingMutations: number
+  sections: {
+    neverCalled: Page<string>
+    transitiveOnly: Page<string>
+    unsupported: Page<string>
+    nonMutableInputs: Page<{ target: string; path: string; reason: string }>
+    flakyTests: Page<string>
+    skippedMutations: Page<{ id: string; reason: string }>
   }
+  pendingMutations: number
   limitations: string[]
 }

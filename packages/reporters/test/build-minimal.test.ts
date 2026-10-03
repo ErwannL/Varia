@@ -85,7 +85,11 @@ function minimalReport() {
   w.saveIssues('r1', 'p1', [
     issue('i_c', 'HIGH', ['m1']),
     issue('i_a', 'HIGH', ['m_fantome']),
-    issue('i_b', 'HIGH', ['m3']),
+    {
+      ...issue('i_b', 'HIGH', ['m3']),
+      state: 'AMBIGUOUS_MATCH',
+      matchedFrom: ['i_old1', 'i_old2'],
+    },
     issue('i_y', 'LOW', ['m1']),
     issue('i_x', 'LOW', ['m1']),
   ])
@@ -104,7 +108,7 @@ describe('rapport sur une base minimale (champs absents)', () => {
   const r = minimalReport()
   it('valeurs par défaut du run : projet, adaptateur, profondeur, capacités', () => {
     expect(r.project).toEqual({ id: 'p1', name: 'p1', root: '' })
-    expect(r.capabilities).toEqual({ adapter: '', declared: {} })
+    expect(r.capabilities).toEqual({ adapter: '', declared: {}, verified: {}, verifiedAt: null })
     expect(r.limitations).toContain('TRANSITIVE_CALLS_NOT_MUTATED')
     expect(r.limitations).toContain('NATIVE_ESM_UNSUPPORTED')
   })
@@ -120,6 +124,12 @@ describe('rapport sur une base minimale (champs absents)', () => {
       replay: 'varia replay m_fantome',
     })
     expect(r.issues[1]).toMatchObject({ depth: 2, transitive: true })
+    // C-01 : candidats du rapprochement exposés ; aucune fusion.
+    expect(r.issues[1]).toMatchObject({
+      state: 'AMBIGUOUS_MATCH',
+      matchedFrom: ['i_old1', 'i_old2'],
+    })
+    expect(r.issues[0]?.matchedFrom).toEqual([])
   })
   it('issues résolues triées par identifiant', () => {
     expect(r.resolvedIssues.map((i) => i.id)).toEqual(['i_x', 'i_y'])

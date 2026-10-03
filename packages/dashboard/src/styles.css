@@ -147,6 +147,11 @@ button,
   margin: 0 auto;
   padding: 0.5rem 1.25rem;
 }
+.brand-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 .brand {
   display: inline-flex;
   align-items: baseline;
@@ -512,4 +517,25 @@ details summary {
     transition: none !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Fil d'Ariane (E-07) : cibles de 44 px, séparateur décoratif. */
+.crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+}
+.crumbs li + li::before {
+  content: '›';
+  margin-right: 0.25rem;
+  color: var(--muted);
+}
+.crumbs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
 }

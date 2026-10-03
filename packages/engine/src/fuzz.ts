@@ -11,8 +11,8 @@ import {
   type PlannedMutation,
 } from '@varia/core'
 import type { RunRecord } from '@varia/database'
-import { mkdirSync } from 'node:fs'
-import { join } from 'node:path'
+import { mkdirSync, readFileSync } from 'node:fs'
+import { isAbsolute, join } from 'node:path'
 import { prepareContext } from './baseline.js'
 import { cacheKey, projectContentHash } from './cache.js'
 import type { EngineContext } from './context.js'
@@ -329,7 +329,7 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
     }
     return [{ mutation, classification }]
   })
-  const drafts = groupIssues(results, ctx.root)
+  const drafts = groupIssues(results, ctx.root, sourceLine(ctx.root))
   // `analyze` suit toujours un fuzz : le run existe.
   const run = ctx.reader.getRun(runId) as RunRecord
   // Référence (C-02) : dernier run COMPLET (ni partiel, ni ayant modifié le projet) de ce projet.
@@ -353,6 +353,8 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
       id: d.fingerprint,
       target: d.target,
       count: d.mutationIds.length,
+      kind: d.kind,
+      secondary: d.secondary ?? null,
     })),
     previous:
       previous === undefined
@@ -365,6 +367,8 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
               target: i.target,
               count: i.count,
               mutationIds: i.mutationIds,
+              kind: i.kind,
+              secondary: i.secondary,
             })),
     everSeen,
     executedTargets: new Set(results.map((r) => `${r.mutation.module}#${r.mutation.export}`)),
@@ -385,6 +389,7 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
       ...d,
       // `issueStates` donne un état à CHAQUE issue courante.
       state: fullyAccepted(d) ? 'ACCEPTED' : (states.present.get(d.fingerprint) as IssueState),
+      matchedFrom: states.matches.get(d.fingerprint) ?? [],
     })),
   )
   ctx.writer.saveAbsentIssues(runId, states.absent)
@@ -402,6 +407,27 @@ export function analyze(ctx: EngineContext, runId: string, plan: Plan): void {
     },
   })
   for (const d of drafts) ctx.writer.event(runId, 'ISSUE_CREATED', { issueId: d.fingerprint })
+}
+
+/**
+ * Lecteur de lignes de source du projet pour l'empreinte secondaire (CDC §20.2) : lecture seule,
+ * fichiers relatifs à la racine uniquement ; illisible ou hors projet ⇒ `null` (inconnu).
+ */
+export function sourceLine(root: string): (file: string, line: number) => string | null {
+  const cache = new Map<string, string[] | null>()
+  return (file, line) => {
+    if (isAbsolute(file) || file.startsWith('..')) return null
+    if (!cache.has(file)) {
+      let lines: string[] | null = null
+      try {
+        lines = readFileSync(join(root, file), 'utf8').split(/\r?\n/)
+      } catch {
+        lines = null
+      }
+      cache.set(file, lines)
+    }
+    return cache.get(file)?.[line - 1] ?? null
+  }
 }
 
 /** Magasin des acceptations du projet (CDC §21) : forme abrégée = fichier. */

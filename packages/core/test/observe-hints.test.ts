@@ -170,7 +170,7 @@ describe('observation', () => {
 })
 
 describe('résumé de couverture istanbul', () => {
-  it('pourcentages par fichier, « Unknown » compté 100, total ignoré', async () => {
+  it('pourcentages par fichier, « Unknown » ou absent ⇒ inconnu (null, jamais 100), total ignoré (B-07)', async () => {
     const { parseCoverageSummary } = await import('../src/adapter.js')
     const json = JSON.stringify({
       total: { lines: { pct: 50 } },
@@ -180,6 +180,7 @@ describe('résumé de couverture istanbul', () => {
         functions: { pct: 'Unknown' },
         branches: { pct: 50 },
       },
+      '/p/src/c.js': { lines: { pct: 0 } },
       '/p/src/a.js': {
         lines: { pct: 100 },
         statements: { pct: 100 },
@@ -189,7 +190,8 @@ describe('résumé de couverture istanbul', () => {
     })
     expect(parseCoverageSummary(json, '/p', (f) => f.replace('/p/', ''))).toEqual([
       { file: 'src/a.js', lines: 100, statements: 100, functions: 100, branches: 100 },
-      { file: 'src/b.js', lines: 80, statements: 81, functions: 100, branches: 50 },
+      { file: 'src/b.js', lines: 80, statements: 81, functions: null, branches: 50 },
+      { file: 'src/c.js', lines: 0, statements: null, functions: null, branches: null },
     ])
   })
 })

@@ -4,6 +4,8 @@ import {
   groupIssues,
   issueOf,
   normalizeMessage,
+  projectFrames,
+  secondaryOf,
   severityOf,
 } from '../src/issues.js'
 import { countResults, resilienceRate } from '../src/metrics.js'
@@ -161,5 +163,50 @@ describe('issue de lenteur (A-10)', () => {
       ['SLOW', 'LOW', ['m_1', 'm_2']],
     ])
     expect(severityOf('SLOW')).toBe('LOW')
+  })
+})
+
+describe('empreinte secondaire (CDC §20.2, C-01)', () => {
+  const stack = [
+    '    at validate (/p/src/users.js:14:24)',
+    '    at createUser (/p/src/users.js:3:10)',
+    '    at Object.<anonymous> (/p/tests/users.test.js:5:1)',
+    '    at run (/p/node_modules/x/index.js:1:1)',
+  ].join('\n')
+  it('module, fichiers de pile du projet (triés, uniques), hash de la ligne normalisée', () => {
+    const seen: string[] = []
+    const src = (file: string, line: number) => {
+      seen.push(`${file}:${String(line)}`)
+      return '   if (!u.age)   throw new TypeError("x") '
+    }
+    const s = secondaryOf('src/users.js', stack, '/p', src)
+    expect(seen).toEqual(['src/users.js:14'])
+    expect(s).toEqual({
+      module: 'src/users.js',
+      stackFiles: ['src/users.js', 'tests/users.test.js'],
+      codeHash: secondaryOf(
+        'src/users.js',
+        stack,
+        '/p',
+        () => 'if (!u.age) throw new TypeError("x")',
+      )?.codeHash,
+    })
+    expect(s?.codeHash).toMatch(/^[0-9a-f]{16}$/)
+  })
+  it('source illisible ou vide ⇒ hash inconnu ; aucune pile du projet ⇒ pas d’empreinte', () => {
+    expect(secondaryOf('m', stack, '/p', () => null)?.codeHash).toBeNull()
+    expect(secondaryOf('m', stack, '/p', () => '   ')?.codeHash).toBeNull()
+    expect(secondaryOf('m', '    at x (node:internal/a:1:1)', '/p', () => 'x')).toBeNull()
+    expect(projectFrames('', '/p')).toEqual([])
+  })
+  it('issueOf : la source lue sert l’empreinte secondaire ; source par défaut ⇒ hash inconnu', () => {
+    const c = crash('boom', stack)
+    const withSrc = issueOf({ mutation: mutation(), classification: c }, '/p', () => 'throw x')
+    const without = issueOf({ mutation: mutation(), classification: c }, '/p')
+    expect(withSrc?.secondary?.codeHash).toMatch(/^[0-9a-f]{16}$/)
+    expect(without?.secondary?.codeHash).toBeNull()
+    expect(withSrc?.fingerprint).toBe(without?.fingerprint)
+    const drafts = groupIssues([{ mutation: mutation(), classification: c }], '/p', () => 'throw x')
+    expect(drafts[0]?.secondary).toEqual(withSrc?.secondary)
   })
 })

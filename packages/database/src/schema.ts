@@ -140,6 +140,10 @@ export const issues = sqliteTable('issues', {
   frame: text('frame'),
   message: text('message'),
   firstSeenRun: text('first_seen_run').notNull(),
+  // Empreinte secondaire (0006, CDC §20.2) : `stackFiles` en JSON.
+  module: text('module'),
+  stackFiles: text('stack_files'),
+  codeHash: text('code_hash'),
 })
 
 export const issueOccurrences = sqliteTable(
@@ -150,6 +154,8 @@ export const issueOccurrences = sqliteTable(
     state: text('state').notNull(),
     count: integer('count').notNull(),
     mutationIds: text('mutation_ids').notNull(),
+    // Issues de référence rapprochées (0006, CDC §20.2-20.3), JSON.
+    matchedFrom: text('matched_from').notNull().default('[]'),
   },
   (t) => ({ pk: primaryKey({ columns: [t.runId, t.issueId] }) }),
 )
@@ -185,10 +191,11 @@ export const coverage = sqliteTable(
   {
     runId: text('run_id').notNull(),
     file: text('file').notNull(),
-    lines: real('lines').notNull(),
-    statements: real('statements').notNull(),
-    functions: real('functions').notNull(),
-    branches: real('branches').notNull(),
+    // NULL = inconnu (0006, B-07).
+    lines: real('lines'),
+    statements: real('statements'),
+    functions: real('functions'),
+    branches: real('branches'),
   },
   (t) => ({ pk: primaryKey({ columns: [t.runId, t.file] }) }),
 )

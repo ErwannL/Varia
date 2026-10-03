@@ -40,3 +40,21 @@ export function inIframe(w: Window = window): boolean {
     return true
   }
 }
+
+/** Page courante lue dans l'URL (`?page=`, à partir de 1) : la pagination est partageable (E-07). */
+export function usePaging(limit: number): {
+  limit: number
+  offset: number
+  go(offset: number): void
+} {
+  const r = parseHash(window.location.hash)
+  const page = Math.max(1, Math.floor(Number(r.query.get('page'))) || 1)
+  return {
+    limit,
+    offset: (page - 1) * limit,
+    go(offset) {
+      const query = Object.fromEntries(r.query)
+      window.location.hash = href(r.path, { ...query, page: String(offset / limit + 1) })
+    },
+  }
+}

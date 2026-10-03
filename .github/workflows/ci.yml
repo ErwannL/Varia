@@ -20,6 +20,8 @@ jobs:
       - run: npm ci
       - run: npm run examples:install
       - run: npx playwright-core --version
+      # E-09 : mesure réelle des cibles tactiles et du focus dans Chromium (packages/dashboard/test/navigateur.test.ts).
+      - run: npx playwright-core install chromium
       # check : typage, lint (0 avertissement), format, tests sautés, 1000 lignes, README, marque, build,
       # tests + couverture par fichier.
       - run: npm run check

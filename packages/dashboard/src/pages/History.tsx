@@ -1,7 +1,8 @@
 import { useApi } from '../api.js'
-import { Load } from '../components/Common.js'
+import { Load, Pager } from '../components/Common.js'
 import { useI18n } from '../i18n.js'
-import { href } from '../router.js'
+import { href, usePaging } from '../router.js'
+import type { Page } from '../types.js'
 
 interface Point {
   id: string
@@ -16,13 +17,16 @@ interface Point {
 /** Historique (CDC §26 niveau 2) : tendance en barres SVG, chaque barre doublée d'un texte (jamais la couleur seule). */
 export function History() {
   const { t } = useI18n()
-  const data = useApi<Point[]>('/api/v1/history?limit=50')
+  const pg = usePaging(50)
+  const data = useApi<Page<Point>>(
+    `/api/v1/history?limit=${String(pg.limit)}&offset=${String(pg.offset)}`,
+  )
   return (
     <section aria-labelledby="hist-title">
       <h1 id="hist-title">{t('dash.history.title')}</h1>
       <Load value={data}>
-        {(points) => {
-          const ordered = [...points].reverse()
+        {(pts) => {
+          const ordered = [...pts.items].reverse()
           const max = Math.max(1, ...ordered.map((p) => p.counts.crashes + p.counts.timeouts))
           return (
             <>
@@ -51,6 +55,7 @@ export function History() {
                   )
                 })}
               </ol>
+              <Pager total={pts.total} limit={pts.limit} offset={pts.offset} onChange={pg.go} />
             </>
           )
         }}

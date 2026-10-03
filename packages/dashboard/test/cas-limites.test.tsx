@@ -229,7 +229,12 @@ describe('issues', () => {
     expect(window.location.hash).toBe('#/runs/r1/issues')
   })
   it('détail sans run, sans cadre, sans occurrence ; propriété supprimée', async () => {
-    routes['/api/v1/issues/i1'] = { issue: ISSUE, occurrence: null, mutations: [MROW] }
+    routes['/api/v1/issues/i1'] = {
+      issue: ISSUE,
+      occurrence: null,
+      matchedFrom: [],
+      mutations: [MROW],
+    }
     await show('#/issues/i1', 'Titre brut')
     expect(calls).toContain('/api/v1/issues/i1')
     expect(screen.getAllByText('—')).toHaveLength(2)
@@ -350,33 +355,48 @@ describe('vue d’ensemble, runs, tests, non couvert', () => {
     await show('#/runs', 'Runs')
     expect(await screen.findByRole('cell', { name: '—' })).toBeTruthy()
   })
-  it('tests : entrée non déterministe signalée', async () => {
-    routes['/api/v1/runs/r1/tests'] = [
-      {
+  it('test : call site à entrée non déterministe signalé', async () => {
+    const counts = { mutations: 0, crashes: 0, timeouts: 0, unexpected: 0 }
+    routes['/api/v1/tests/t1'] = {
+      runId: 'r1',
+      test: {
         testId: 't1',
         file: 'a.test.js',
+        folder: '.',
         name: 'cas',
         status: 'passed',
         flaky: false,
-        callSites: [
-          { callSiteId: 'c1', target: 'src/a.js#f', depth: 0, sequence: 1, nonDeterministic: true },
-        ],
+        callSites: 1,
+        counts,
       },
-    ]
-    await show('#/runs/r1/tests', 'Tests et call sites')
+      callSites: page([
+        {
+          callSiteId: 'c1',
+          testId: 't1',
+          target: 'src/a.js#f',
+          depth: 0,
+          sequence: 1,
+          nonDeterministic: true,
+          counts,
+        },
+      ]),
+    }
+    await show('#/runs/r1/tests/t1', 'Test : cas')
     expect(await screen.findByText(/entrée non déterministe/)).toBeTruthy()
+    expect(screen.getByText(/Stable/)).toBeTruthy()
   })
   it('non couvert : listes vides affichées « Rien. »', async () => {
+    const empty = page([])
     routes['/api/v1/runs/r1/not-covered'] = {
-      notCovered: {
-        neverCalled: [],
-        transitiveOnly: [],
-        unsupported: [],
-        nonMutableInputs: [],
-        flakyTests: [],
-        skippedMutations: [],
-        pendingMutations: 0,
+      sections: {
+        neverCalled: empty,
+        transitiveOnly: empty,
+        unsupported: empty,
+        nonMutableInputs: empty,
+        flakyTests: empty,
+        skippedMutations: empty,
       },
+      pendingMutations: 0,
       limitations: [],
     }
     await show('#/runs/r1/not-covered', "Ce qui n'a pas été testé")

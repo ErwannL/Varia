@@ -176,6 +176,15 @@ export class Reader {
         state: r.issue_occurrences.state,
         count: r.issue_occurrences.count,
         mutationIds: JSON.parse(r.issue_occurrences.mutationIds) as string[],
+        matchedFrom: JSON.parse(r.issue_occurrences.matchedFrom) as string[],
+        secondary:
+          r.issues.module === null || r.issues.stackFiles === null
+            ? null
+            : {
+                module: r.issues.module,
+                stackFiles: JSON.parse(r.issues.stackFiles) as string[],
+                codeHash: r.issues.codeHash,
+              },
       }))
   }
 

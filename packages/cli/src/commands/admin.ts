@@ -62,8 +62,16 @@ export function registerAdmin(s: Shared): void {
             version: r.adapterVersion ?? '?',
             node: r.node,
           })
-          for (const [name, status] of Object.entries(r.verified))
-            p.say('cli.doctor.capability', { name, status })
+          for (const [name, status] of Object.entries(r.verified)) {
+            const reason = r.checks[name as keyof typeof r.checks].reason
+            if (reason === null) p.say('cli.doctor.capability', { name, status })
+            else
+              p.say('cli.doctor.capabilityReason', {
+                name,
+                status,
+                reason: t(p.locale, `report.capReason.${reason}` as MessageKey),
+              })
+          }
           for (const reason of r.reasons)
             p.say('cli.doctor.reason', {
               reason: t(p.locale, `doctor.reason.${reason}` as MessageKey),

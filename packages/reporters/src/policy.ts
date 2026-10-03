@@ -41,19 +41,22 @@ export function ciVerdict(r: Report, p: CiPolicy): CiVerdict {
   return { fail: reasons.length > 0, reasons }
 }
 
-/** Annotations GitHub Actions (`::error file=…,line=…::…`). */
+/** Échappement GitHub du message d'une commande de workflow : `%`, CR, LF. */
+export const ghData = (s: string): string =>
+  s.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A')
+
+/** Échappement GitHub d'une valeur de propriété (`file=`, `title=`) : en plus, `:` et `,`. */
+export const ghProperty = (s: string): string => ghData(s).replace(/:/g, '%3A').replace(/,/g, '%2C')
+
+/** Annotations GitHub Actions (`::error file=…,line=…,title=…::…`), propriétés et message échappés. */
 export function githubAnnotations(r: Report): string[] {
   return r.issues.map((i) => {
     const m = i.frame === null ? null : /\(([^():]+):(\d+)\)$/.exec(i.frame)
-    const where = m ? ` file=${String(m[1])},line=${String(m[2])}` : ''
+    const props = [
+      ...(m ? [`file=${ghProperty(String(m[1]))}`, `line=${String(m[2])}`] : []),
+      `title=${ghProperty(`Varia ${i.kind}`)}`,
+    ]
     const level = i.severity === 'CRITICAL' || i.severity === 'HIGH' ? 'error' : 'warning'
-    const text = `${i.title} (${String(i.count)} mutations) — ${i.replay}`
-      .replace(/%/g, '%25')
-      .replace(/\r/g, '%0D')
-      .replace(/\n/g, '%0A')
-    return `::${level}${where.length > 0 ? where : ''} title=Varia ${i.kind}::${text}`.replace(
-      `::${level} file`,
-      `::${level} file`,
-    )
+    return `::${level} ${props.join(',')}::${ghData(`${i.title} (${String(i.count)} mutations) — ${i.replay}`)}`
   })
 }

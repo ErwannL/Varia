@@ -1,14 +1,13 @@
-import { useState } from 'react'
 import { useApi } from '../api.js'
 import { Load, Pager } from '../components/Common.js'
 import { useI18n } from '../i18n.js'
-import { href } from '../router.js'
+import { href, usePaging } from '../router.js'
 import type { Page, Run } from '../types.js'
 
 export function Runs() {
   const { t } = useI18n()
-  const [offset, setOffset] = useState(0)
-  const runs = useApi<Page<Run>>(`/api/v1/runs?limit=25&offset=${String(offset)}`)
+  const pg = usePaging(25)
+  const runs = useApi<Page<Run>>(`/api/v1/runs?limit=25&offset=${String(pg.offset)}`)
   return (
     <section aria-labelledby="runs-title">
       <h1 id="runs-title">{t('dash.runs.title')}</h1>
@@ -42,7 +41,7 @@ export function Runs() {
                   ))}
                 </tbody>
               </table>
-              <Pager total={p.total} limit={p.limit} offset={p.offset} onChange={setOffset} />
+              <Pager total={p.total} limit={p.limit} offset={p.offset} onChange={pg.go} />
             </>
           )
         }

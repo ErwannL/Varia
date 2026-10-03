@@ -10,27 +10,30 @@ export function Header({ orqeaUrl, nav }: { orqeaUrl: string; nav: React.ReactNo
   return (
     <header className="header">
       <div className="header-row">
-        <a
-          className="brand"
-          href={href([])}
-          onMouseEnter={() => setHover(true)}
-          onMouseLeave={() => setHover(false)}
-          onFocus={() => setHover(true)}
-          onBlur={() => setHover(false)}
-        >
-          <img
-            className="brand-logo"
-            src={hover ? '/varia-animated.svg' : '/varia.svg'}
-            width={36}
-            height={36}
-            alt=""
-            data-testid="brand-logo"
-          />
-          <span className="brand-name">Varia</span>
+        <div className="brand-wrap">
+          <a
+            className="brand"
+            href={href([])}
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            onFocus={() => setHover(true)}
+            onBlur={() => setHover(false)}
+          >
+            <img
+              className="brand-logo"
+              src={hover ? '/varia-animated.svg' : '/varia.svg'}
+              width={36}
+              height={36}
+              alt=""
+              data-testid="brand-logo"
+            />
+            <span className="brand-name">Varia</span>
+          </a>
+          {/* La byline est du texte hors du lien (E-04). */}
           <span className="brand-byline" data-testid="byline">
             {t('byline')}
           </span>
-        </a>
+        </div>
         <div className="header-tools">
           {framed ? null : (
             <a className="back-link" href={orqeaUrl} target="_top" data-testid="back-to-orqea">

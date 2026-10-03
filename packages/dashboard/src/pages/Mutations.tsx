@@ -1,10 +1,10 @@
-import { useState } from 'react'
 import { useApi } from '../api.js'
 import { Segmented } from '../components/Brand.js'
-import { CopyButton, Load, Pager, StatusBadge, Value } from '../components/Common.js'
+import { Breadcrumbs, CopyButton, Load, Pager, StatusBadge, Value } from '../components/Common.js'
 import { useI18n } from '../i18n.js'
-import { href } from '../router.js'
+import { href, usePaging } from '../router.js'
 import type { MutationRow, Page } from '../types.js'
+import { trail } from './Trail.js'
 
 const STATUSES = [
   'ALL',
@@ -18,10 +18,10 @@ const STATUSES = [
 
 export function Mutations({ runId, status }: { runId: string; status: string | null }) {
   const { t } = useI18n()
-  const [offset, setOffset] = useState(0)
+  const pg = usePaging(50)
   const st = status ?? 'ALL'
   const rows = useApi<Page<MutationRow>>(
-    `/api/v1/runs/${encodeURIComponent(runId)}/mutations?limit=50&offset=${String(offset)}${st === 'ALL' ? '' : `&status=${st}`}`,
+    `/api/v1/runs/${encodeURIComponent(runId)}/mutations?limit=50&offset=${String(pg.offset)}${st === 'ALL' ? '' : `&status=${st}`}`,
   )
   return (
     <section aria-labelledby="mutations-title">
@@ -34,7 +34,6 @@ export function Mutations({ runId, status }: { runId: string; status: string | n
           label: s === 'ALL' ? t('dash.issues.all') : t(`dash.status.${s}`),
         }))}
         onChange={(v) => {
-          setOffset(0)
           window.location.hash = href(['runs', runId, 'mutations'], {
             status: v === 'ALL' ? undefined : v,
           })
@@ -43,43 +42,51 @@ export function Mutations({ runId, status }: { runId: string; status: string | n
       <Load value={rows}>
         {(p) => (
           <>
-            <table>
-              <thead>
-                <tr>
-                  <th scope="col">{t('dash.mutation.result')}</th>
-                  <th scope="col">{t('dash.mutation.target')}</th>
-                  <th scope="col">{t('dash.mutation.path')}</th>
-                  <th scope="col">{t('dash.mutation.strategy')}</th>
-                  <th scope="col">{t('dash.mutations.title')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {p.items.map((m) => (
-                  <tr key={m.id}>
-                    <td>
-                      <StatusBadge status={m.status} subtype={m.subtype} />
-                    </td>
-                    <td>
-                      <code>{m.target}</code>
-                    </td>
-                    <td>
-                      <code>{m.path}</code>
-                    </td>
-                    <td>{m.strategy}</td>
-                    <td>
-                      <a href={href(['mutations', m.id], { run: runId })}>
-                        <code>{m.id}</code>
-                      </a>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <Pager total={p.total} limit={p.limit} offset={p.offset} onChange={setOffset} />
+            <MutationTable runId={runId} rows={p.items} />
+            <Pager total={p.total} limit={p.limit} offset={p.offset} onChange={pg.go} />
           </>
         )}
       </Load>
     </section>
+  )
+}
+
+/** Tableau de mutations (page courante uniquement : la liste est paginée côté serveur). */
+export function MutationTable({ runId, rows }: { runId: string; rows: MutationRow[] }) {
+  const { t } = useI18n()
+  return (
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">{t('dash.mutation.result')}</th>
+          <th scope="col">{t('dash.mutation.target')}</th>
+          <th scope="col">{t('dash.mutation.path')}</th>
+          <th scope="col">{t('dash.mutation.strategy')}</th>
+          <th scope="col">{t('dash.mutations.title')}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map((m) => (
+          <tr key={m.id}>
+            <td>
+              <StatusBadge status={m.status} subtype={m.subtype} />
+            </td>
+            <td>
+              <code>{m.target}</code>
+            </td>
+            <td>
+              <code>{m.path}</code>
+            </td>
+            <td>{m.strategy}</td>
+            <td>
+              <a href={href(['mutations', m.id], { run: runId })}>
+                <code>{m.id}</code>
+              </a>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
 
@@ -90,6 +97,9 @@ interface MutationDetailData {
     module: string
     export: string
     testName: string
+    testId: string
+    testFile: string
+    callSiteId: string
     pathStr: string
     strategy: string
     original: unknown
@@ -115,6 +125,18 @@ export function MutationDetail({ id, runId }: { id: string; runId: string | null
     <Load value={data}>
       {(d) => (
         <section aria-labelledby="mutation-title">
+          <Breadcrumbs
+            items={trail(t, d.runId, {
+              file: d.mutation.testFile,
+              test: { id: d.mutation.testId, name: d.mutation.testName },
+              callSite: {
+                id: d.mutation.callSiteId,
+                target: `${d.mutation.module}#${d.mutation.export}`,
+              },
+              mutation: id,
+              error: (d.result?.error ?? null) !== null,
+            })}
+          />
           <h1 id="mutation-title">{t('dash.mutation.title', { id })}</h1>
           <StatusBadge status={d.result?.status ?? null} subtype={d.result?.subtype ?? null} />
           <dl className="facts">
@@ -158,7 +180,7 @@ export function MutationDetail({ id, runId }: { id: string; runId: string | null
           </div>
           {d.result?.error ? (
             <>
-              <h2>{t('dash.mutation.error')}</h2>
+              <h2 id="error">{t('dash.mutation.error')}</h2>
               <p>
                 <code>
                   {d.result.error.name}: {d.result.error.message}

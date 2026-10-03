@@ -41,6 +41,32 @@ export function limitationsOf(
   ]
 }
 
+type Verified = Report['capabilities']['verified']
+
+/**
+ * Capacités déclarées ET vérifiées (D-01). La vérification vient de `varia doctor`, recopiée dans le
+ * run (`info.verified`) ; sans elle, rien n'est VERIFIED : déclarée ⇒ NOT_VERIFIED (`DOCTOR_NOT_RUN`).
+ */
+export function capabilitiesOf(
+  adapter: string,
+  declared: Partial<AdapterCapabilities>,
+  stored: unknown,
+): Report['capabilities'] {
+  const v = stored as { at?: unknown; checks?: Verified } | undefined
+  const checks = v?.checks ?? {}
+  const verified: Verified = {}
+  for (const [k, on] of Object.entries(declared))
+    verified[k] = on
+      ? (checks[k] ?? { status: 'NOT_VERIFIED', reason: 'DOCTOR_NOT_RUN' })
+      : { status: 'UNSUPPORTED', reason: 'NOT_DECLARED' }
+  return {
+    adapter,
+    declared: { ...declared } as Record<string, boolean>,
+    verified,
+    verifiedAt: typeof v?.at === 'string' ? v.at : null,
+  }
+}
+
 /** Construit le rapport JSON d'un run à partir de la base (lecture seule). */
 export function buildReport(reader: Reader, runId: string): Report {
   const run = reader.getRun(runId)
@@ -116,7 +142,7 @@ export function buildReport(reader: Reader, runId: string): Report {
         .map((t) => ({ testId: t.testId, name: t.name, reasons: t.flakyReasons })),
       calls: callSites.size,
     },
-    capabilities: { adapter: o.adapter, declared: { ...o.capabilities } },
+    capabilities: capabilitiesOf(o.adapter, o.capabilities, info['verified']),
     plan: planInfo ?? null,
     counts,
     resilienceRate: resilienceRate(counts),
@@ -153,6 +179,7 @@ export function buildReport(reader: Reader, runId: string): Report {
         replay: `varia replay ${String(i.mutationIds[0])}`,
         depth: Math.min(...depths(i.mutationIds)),
         transitive: depths(i.mutationIds).every((d) => d > 0),
+        matchedFrom: i.matchedFrom,
       }))
       .sort(
         (a, b) =>

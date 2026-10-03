@@ -3,6 +3,7 @@ import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterAll, describe, expect, it } from 'vitest'
+import { REPORT_SCHEMA_VERSION } from '@varia/reporters'
 import { buildServer } from '../src/index.js'
 
 const dashboardDir = mkdtempSync(join(tmpdir(), 'varia-dash-'))
@@ -70,7 +71,9 @@ describe('/api/v1 (lecture seule)', () => {
     expect((await get(`/api/v1/runs/${SEED_RUN}/issues?severity=HIGH`)).json?.['total']).toBe(1)
     expect((await get(`/api/v1/runs/${SEED_RUN}/mutations?status=CRASH`)).json?.['total']).toBe(2)
     expect((await get(`/api/v1/runs/${SEED_RUN}/not-covered`)).json).toHaveProperty('limitations')
-    expect((await get(`/api/v1/reports/${SEED_RUN}`)).json?.['schemaVersion']).toBe(2)
+    expect((await get(`/api/v1/reports/${SEED_RUN}`)).json?.['schemaVersion']).toBe(
+      REPORT_SCHEMA_VERSION,
+    )
   })
   it('issue, historique, mutation', async () => {
     const issues = (await get(`/api/v1/runs/${SEED_RUN}/issues`)).json?.['items'] as {
@@ -204,25 +207,30 @@ describe('acceptations (seules écritures publiques, §25.1)', () => {
 })
 
 describe('niveau 2 : historique et tests', () => {
-  it('/history résume chaque run', async () => {
-    const h = (await app.inject({ url: '/api/v1/history' })).json() as {
-      id: string
-      issues: number
-      critical: number
-      counts: { crashes: number }
-    }[]
-    expect(h[0]).toMatchObject({ id: SEED_RUN, issues: 3, critical: 1, counts: { crashes: 2 } })
+  it('/history résume chaque run (paginé)', async () => {
+    const h = (await app.inject({ url: '/api/v1/history?limit=10' })).json() as {
+      total: number
+      items: { id: string; issues: number; critical: number; counts: { crashes: number } }[]
+    }
+    expect(h.total).toBe(1)
+    expect(h.items[0]).toMatchObject({
+      id: SEED_RUN,
+      issues: 3,
+      critical: 1,
+      counts: { crashes: 2 },
+    })
   })
-  it('/runs/:id/tests : tests et call sites', async () => {
+  it('/runs/:id/tests : tests paginés, nombre de call sites', async () => {
     const t = (await app.inject({ url: `/api/v1/runs/${SEED_RUN}/tests` })).json() as {
-      name: string
-      flaky: boolean
-      callSites: { target: string }[]
-    }[]
-    expect(t.find((x) => x.callSites.length > 0)?.callSites[0]?.target).toBe(
-      'src/users.js#createUser',
-    )
-    expect(t.some((x) => x.flaky)).toBe(true)
+      total: number
+      items: { name: string; flaky: boolean; callSites: number; folder: string }[]
+    }
+    expect(t.total).toBe(2)
+    expect(t.items.map((x) => [x.folder, x.callSites])).toEqual([
+      ['tests', 1],
+      ['tests', 0],
+    ])
+    expect(t.items.some((x) => x.flaky)).toBe(true)
     expect((await app.inject({ url: '/api/v1/runs/zz/tests' })).statusCode).toBe(404)
     expect((await app.inject({ url: `/api/v1/runs/${SEED_RUN}/coverage` })).json()).toMatchObject({
       baseline: { status: 'DISABLED' },

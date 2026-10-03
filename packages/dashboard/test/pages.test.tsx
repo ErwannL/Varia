@@ -174,7 +174,9 @@ describe('pages du niveau 2 (CDC §26)', () => {
   })
   it('tests et call sites', async () => {
     await open(`#/runs/${SEED_RUN}/tests`, 'Tests et call sites')
-    expect(await screen.findByText('src/users.js#createUser')).toBeTruthy()
+    expect(
+      await screen.findByRole('link', { name: 'createUser crée un utilisateur valide' }),
+    ).toBeTruthy()
     expect(screen.getByText(/instable/)).toBeTruthy()
   })
   it('couverture : statut honnête', async () => {

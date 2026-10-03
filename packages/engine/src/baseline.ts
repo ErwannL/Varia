@@ -12,6 +12,7 @@ import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { printableConfig } from '@varia/config'
 import type { EngineContext } from './context.js'
+import { lastDoctorVerification } from './doctor.js'
 import { VariaError } from './errors.js'
 import { guardProject } from './integrity.js'
 import { probeErrorCount } from './signals.js'
@@ -211,7 +212,10 @@ async function baselineOf(
       : o.force === true
         ? 'BASELINE_PARTIAL'
         : 'BASELINE_FAILED'
+  // Capacités VÉRIFIÉES par le dernier `varia doctor` du même adapter (D-01) ; sans lui, aucune.
+  const verified = lastDoctorVerification(ctx.dataDir, ctx.adapter.id)
   const info = {
+    ...(verified !== null ? { verified } : {}),
     adapterVersion: detect.version,
     projectName: ctx.config.projectName,
     projectRoot: ctx.root,

@@ -60,6 +60,10 @@ export interface IssueDraftRecord {
   frame: string | null
   message: string | null
   mutationIds: string[]
+  /** Empreinte secondaire (CDC §20.2). */
+  secondary?: { module: string; stackFiles: string[]; codeHash: string | null } | null
+  /** Issues de référence rapprochées (une seule, ou les candidats si `AMBIGUOUS_MATCH`). */
+  matchedFrom?: string[]
 }
 
 export const toRun = (r: typeof t.runs.$inferSelect): RunRecord => ({

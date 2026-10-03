@@ -1,20 +1,20 @@
-import { useState } from 'react'
+import type { MessageKey } from '@varia/i18n'
 import { useApi } from '../api.js'
 import { Segmented } from '../components/Brand.js'
 import { Load, Pager, SeverityBadge, StatusBadge, Value } from '../components/Common.js'
 import { issueTitle } from '@varia/i18n'
 import { useI18n } from '../i18n.js'
-import { href } from '../router.js'
+import { href, usePaging } from '../router.js'
 import type { Issue, MutationRow, Page } from '../types.js'
 
 const SEVERITIES = ['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const
 
 export function Issues({ runId, severity }: { runId: string; severity: string | null }) {
   const { t, locale } = useI18n()
-  const [offset, setOffset] = useState(0)
+  const pg = usePaging(25)
   const sev = severity ?? 'ALL'
   const issues = useApi<Page<Issue>>(
-    `/api/v1/runs/${encodeURIComponent(runId)}/issues?limit=25&offset=${String(offset)}${sev === 'ALL' ? '' : `&severity=${sev}`}`,
+    `/api/v1/runs/${encodeURIComponent(runId)}/issues?limit=25&offset=${String(pg.offset)}${sev === 'ALL' ? '' : `&severity=${sev}`}`,
   )
   return (
     <section aria-labelledby="issues-title">
@@ -27,7 +27,6 @@ export function Issues({ runId, severity }: { runId: string; severity: string | 
           label: s === 'ALL' ? t('dash.issues.all') : t(`dash.severity.${s}`),
         }))}
         onChange={(v) => {
-          setOffset(0)
           window.location.hash = href(['runs', runId, 'issues'], {
             severity: v === 'ALL' ? undefined : v,
           })
@@ -50,7 +49,7 @@ export function Issues({ runId, severity }: { runId: string; severity: string | 
                   </li>
                 ))}
               </ul>
-              <Pager total={p.total} limit={p.limit} offset={p.offset} onChange={setOffset} />
+              <Pager total={p.total} limit={p.limit} offset={p.offset} onChange={pg.go} />
             </>
           )
         }
@@ -62,6 +61,7 @@ export function Issues({ runId, severity }: { runId: string; severity: string | 
 interface IssueDetailData {
   issue: Issue
   occurrence: { state: string; count: number } | null
+  matchedFrom: string[]
   mutations: MutationRow[]
 }
 
@@ -85,7 +85,25 @@ export function IssueDetail({ id, runId }: { id: string; runId: string | null })
               <code>{d.issue.frame ?? '—'}</code>
             </dd>
             <dt>{t('dash.issue.state')}</dt>
-            <dd>{d.occurrence?.state ?? '—'}</dd>
+            <dd data-state={d.occurrence?.state}>
+              {d.occurrence ? t(`issue.state.${d.occurrence.state}` as MessageKey) : '—'}
+            </dd>
+            {d.matchedFrom.length > 0 ? (
+              <>
+                <dt>{t('dash.issue.matchedFrom')}</dt>
+                <dd>
+                  <ul className="plain">
+                    {d.matchedFrom.map((m) => (
+                      <li key={m}>
+                        <a href={href(['issues', m])}>
+                          <code>{m}</code>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </>
+            ) : null}
           </dl>
           <SeverityBadge severity={d.issue.severity} />
           <h2>{t('dash.issue.mutations')}</h2>

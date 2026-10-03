@@ -88,12 +88,13 @@ export interface AdapterRun {
   coverage?: CoverageRow[]
 }
 
+/** Pourcentages de couverture ; `null` = inconnu (istanbul « Unknown », métrique absente). */
 export interface CoverageRow {
   file: string
-  lines: number
-  statements: number
-  functions: number
-  branches: number
+  lines: number | null
+  statements: number | null
+  functions: number | null
+  branches: number | null
 }
 
 /** Lit un `coverage-summary.json` (format istanbul, commun à Jest et Vitest). */
@@ -107,7 +108,11 @@ export function parseCoverageSummary(
   return Object.entries(data)
     .filter(([k]) => k !== 'total')
     .map(([file, m]) => {
-      const pct = (k: string) => (typeof m[k]?.pct === 'number' ? (m[k]?.pct as number) : 100)
+      // Valeur non numérique (« Unknown » : rien à mesurer) ⇒ inconnu, jamais 100 % (B-07).
+      const pct = (k: string) => {
+        const v = m[k]?.pct
+        return typeof v === 'number' ? v : null
+      }
       return {
         file: rel(file),
         lines: pct('lines'),

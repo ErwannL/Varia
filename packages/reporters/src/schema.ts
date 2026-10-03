@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const REPORT_SCHEMA_VERSION = 2
+export const REPORT_SCHEMA_VERSION = 3
 
 const counts = z.object({
   mutations: z.number().int(),
@@ -49,7 +49,21 @@ export const reportSchema = z
       ),
       calls: z.number().int(),
     }),
-    capabilities: z.object({ adapter: z.string(), declared: z.record(z.string(), z.boolean()) }),
+    /** Capacités déclarées par l'adapter ET vérifiées par `varia doctor` (D-01, v3). */
+    capabilities: z.object({
+      adapter: z.string(),
+      declared: z.record(z.string(), z.boolean()),
+      /** Statut du test de fumée et raison (code) de tout ce qui n'est pas VERIFIED. */
+      verified: z.record(
+        z.string(),
+        z.object({
+          status: z.enum(['VERIFIED', 'NOT_VERIFIED', 'UNSUPPORTED']),
+          reason: z.string().nullable(),
+        }),
+      ),
+      /** Date de la vérification `doctor` recopiée dans le run ; `null` : jamais vérifiée. */
+      verifiedAt: z.string().nullable(),
+    }),
     plan: z
       .object({
         possible: z.number().int(),
@@ -94,6 +108,8 @@ export const reportSchema = z
         /** Toutes ses mutations portent sur des appels transitifs (CDC §10.11) : valeur peut-être
          * impossible en production ; hors `ci.fail_on` sauf `ci.include_transitive`. */
         transitive: z.boolean(),
+        /** Issues précédentes rapprochées (une, ou les candidats d'un `AMBIGUOUS_MATCH`, C-01). */
+        matchedFrom: z.array(z.string()),
       }),
     ),
     /** Issues connues absentes de ce run : FIXED (cible rejouée) ou UNKNOWN (non rejouée). */
@@ -106,10 +122,11 @@ export const reportSchema = z
       files: z.array(
         z.object({
           file: z.string(),
-          lines: z.number(),
-          statements: z.number(),
-          functions: z.number(),
-          branches: z.number(),
+          /** `null` : métrique inconnue (rien à mesurer), jamais 100 % par défaut. */
+          lines: z.number().nullable(),
+          statements: z.number().nullable(),
+          functions: z.number().nullable(),
+          branches: z.number().nullable(),
         }),
       ),
     }),

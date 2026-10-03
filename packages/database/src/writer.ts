@@ -208,6 +208,11 @@ export class Writer {
           .from(t.issues)
           .where(eq(t.issues.id, d.fingerprint))
           .get()
+        const secondary = {
+          module: d.secondary?.module ?? null,
+          stackFiles: d.secondary == null ? null : J(d.secondary.stackFiles),
+          codeHash: d.secondary?.codeHash ?? null,
+        }
         if (!existing) {
           tx.insert(t.issues)
             .values({
@@ -221,9 +226,14 @@ export class Writer {
               frame: d.frame,
               message: d.message,
               firstSeenRun: runId,
+              ...secondary,
             })
             .run()
+        } else if (d.secondary != null) {
+          // Dernière empreinte secondaire connue (l'extrait de code peut avoir changé).
+          tx.update(t.issues).set(secondary).where(eq(t.issues.id, d.fingerprint)).run()
         }
+        const matchedFrom = J(d.matchedFrom ?? [])
         const state = d.state ?? (existing ? 'UNCHANGED' : 'NEW')
         tx.insert(t.issueOccurrences)
           .values({
@@ -232,10 +242,11 @@ export class Writer {
             state,
             count: d.mutationIds.length,
             mutationIds: J(d.mutationIds),
+            matchedFrom,
           })
           .onConflictDoUpdate({
             target: [t.issueOccurrences.runId, t.issueOccurrences.issueId],
-            set: { state, count: d.mutationIds.length, mutationIds: J(d.mutationIds) },
+            set: { state, count: d.mutationIds.length, mutationIds: J(d.mutationIds), matchedFrom },
           })
           .run()
       }
@@ -261,10 +272,10 @@ export class Writer {
     runId: string,
     rows: {
       file: string
-      lines: number
-      statements: number
-      functions: number
-      branches: number
+      lines: number | null
+      statements: number | null
+      functions: number | null
+      branches: number | null
     }[],
   ): void {
     this.db.transaction((tx) => {

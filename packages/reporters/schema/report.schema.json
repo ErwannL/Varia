@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
-    "schemaVersion": { "type": "number", "const": 2 },
+    "schemaVersion": { "type": "number", "const": 3 },
     "varia": {
       "type": "object",
       "properties": {
@@ -127,9 +127,26 @@
           "type": "object",
           "propertyNames": { "type": "string" },
           "additionalProperties": { "type": "boolean" }
-        }
+        },
+        "verified": {
+          "type": "object",
+          "propertyNames": { "type": "string" },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": ["VERIFIED", "NOT_VERIFIED", "UNSUPPORTED"]
+              },
+              "reason": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+            },
+            "required": ["status", "reason"],
+            "additionalProperties": false
+          }
+        },
+        "verifiedAt": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
       },
-      "required": ["adapter", "declared"],
+      "required": ["adapter", "declared", "verified", "verifiedAt"],
       "additionalProperties": false
     },
     "plan": {
@@ -333,7 +350,8 @@
             "minimum": 0,
             "maximum": 9007199254740991
           },
-          "transitive": { "type": "boolean" }
+          "transitive": { "type": "boolean" },
+          "matchedFrom": { "type": "array", "items": { "type": "string" } }
         },
         "required": [
           "id",
@@ -349,7 +367,8 @@
           "mutationIds",
           "replay",
           "depth",
-          "transitive"
+          "transitive",
+          "matchedFrom"
         ],
         "additionalProperties": false
       }
@@ -382,10 +401,16 @@
             "type": "object",
             "properties": {
               "file": { "type": "string" },
-              "lines": { "type": "number" },
-              "statements": { "type": "number" },
-              "functions": { "type": "number" },
-              "branches": { "type": "number" }
+              "lines": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+              "statements": {
+                "anyOf": [{ "type": "number" }, { "type": "null" }]
+              },
+              "functions": {
+                "anyOf": [{ "type": "number" }, { "type": "null" }]
+              },
+              "branches": {
+                "anyOf": [{ "type": "number" }, { "type": "null" }]
+              }
             },
             "required": [
               "file",

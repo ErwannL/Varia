@@ -18,6 +18,9 @@ describe('Vitest (ESM natif, TypeScript)', () => {
       argumentMutation: 'VERIFIED',
       perTestSelection: 'VERIFIED',
       esm: 'VERIFIED',
+      // D-01 : couverture et isolation vérifiées par test de fumée (déclaration Vitest corrigée).
+      coverage: 'VERIFIED',
+      isolatedProcess: 'VERIFIED',
     })
   })
   it('varia test : HANDLED / CRASH / ECHO, appel interne non observé, projet intact', async () => {
