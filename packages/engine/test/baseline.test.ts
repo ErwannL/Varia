@@ -1,8 +1,9 @@
 // Baseline (CDC §12) : options transmises au runner, filtres de targets, échecs honnêtes.
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { planRun, runBaseline } from '../src/index.js'
-import { context, FakeAdapter, observeRun, proc, scripted, type FakeTest } from './fake.js'
+import { context, FakeAdapter, observeRun, proc, project, scripted, type FakeTest } from './fake.js'
 
 const TESTS: FakeTest[] = [
   { name: 'a', calls: [{ export: 'f', args: [{ name: 'Ada' }] }] },
@@ -61,6 +62,22 @@ describe('baseline', () => {
     const ctx = context(new FakeAdapter(() => observeRun(TESTS, { events: [] })))
     await expect(runBaseline(ctx)).rejects.toMatchObject({ kind: 'UNSUPPORTED_PROBE' })
     expect(ctx.reader.listRuns(1)[0]?.state).toBe('FAILED')
+    ctx.close()
+  })
+})
+
+describe('cibles mockées (E-03)', () => {
+  it('un fichier de test qui mocke une cible du projet : listée dans le run', async () => {
+    const root = project()
+    mkdirSync(join(root, 'src'), { recursive: true })
+    mkdirSync(join(root, 'tests'), { recursive: true })
+    writeFileSync(join(root, 'src', 'a.js'), 'module.exports = {}\n')
+    writeFileSync(join(root, 'tests', 'a.test.js'), "jest.mock('../src/a')\n")
+    const ctx = context(scripted([{ name: 'a', calls: [{ args: [1] }] }]), undefined, root)
+    const b = await runBaseline(ctx)
+    expect(ctx.reader.getRun(b.runId)?.info['mockedTargets']).toEqual([
+      { module: 'src/a.js', testFile: 'tests/a.test.js' },
+    ])
     ctx.close()
   })
 })

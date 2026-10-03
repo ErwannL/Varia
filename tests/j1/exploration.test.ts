@@ -1,5 +1,6 @@
 // Périmètre J1 déduit de J0-19/J0-20, désormais vérifié avec le produit (CLI) et non plus le spike.
-import { resolve } from 'node:path'
+import { readFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { newDataDir, varia, withReader } from './helpers.js'
 
@@ -44,6 +45,17 @@ describe('resetModules, isolateModules, mocks, constructeurs — J0-20', () => {
       expect(sites('après resetModules')).toEqual(['greet@0#0', 'greet@0#1'])
       expect(sites('welcome avec users mocké par fabrique')).toEqual(['welcome@0#0'])
       expect(sites('constructeur ES5')).toEqual(['Counter@0#0'])
+      // E-03 : les deux fichiers qui mockent src/users.js sont listés, cible non observée là.
+      expect(rd.getRun(id)?.info['mockedTargets']).toEqual([
+        { module: 'src/users.js', testFile: 'tests/automock.test.js' },
+        { module: 'src/users.js', testFile: 'tests/factory-mock.test.js' },
+      ])
     })
+    const report = await varia(
+      ['--data-dir', D, '--lang', 'en', 'report', '--markdown', join(D, 'r.md')],
+      resolve('examples/mocks-project'),
+    )
+    expect(report.code, report.err).toBe(0)
+    expect(readFileSync(join(D, 'r.md'), 'utf8')).toContain('src/users.js (tests/automock.test.js)')
   })
 })

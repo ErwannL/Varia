@@ -394,13 +394,35 @@ describe('vue d’ensemble, runs, tests, non couvert', () => {
         unsupported: empty,
         nonMutableInputs: empty,
         flakyTests: empty,
+        mockedTargets: empty,
         skippedMutations: empty,
       },
       pendingMutations: 0,
       limitations: [],
     }
     await show('#/runs/r1/not-covered', "Ce qui n'a pas été testé")
-    expect(screen.getAllByText('Rien.')).toHaveLength(6)
+    expect(screen.getAllByText('Rien.')).toHaveLength(7)
+  })
+  it('non couvert : cible mockée affichée avec son fichier de test (E-03)', async () => {
+    const empty = page([])
+    routes['/api/v1/runs/r1/not-covered'] = {
+      sections: {
+        neverCalled: empty,
+        transitiveOnly: empty,
+        unsupported: empty,
+        nonMutableInputs: empty,
+        flakyTests: empty,
+        mockedTargets: page([{ module: 'src/users.js', testFile: 'tests/automock.test.js' }]),
+        skippedMutations: empty,
+      },
+      pendingMutations: 0,
+      limitations: [],
+    }
+    await show('#/runs/r1/not-covered', "Ce qui n'a pas été testé")
+    expect(
+      screen.getByText('Cibles mockées par un test (non observées dans ce test) (1)'),
+    ).toBeTruthy()
+    expect(screen.getByText('src/users.js — tests/automock.test.js')).toBeTruthy()
   })
 })
 

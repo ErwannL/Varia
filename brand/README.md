@@ -27,7 +27,7 @@ La tuile porte son propre fond : lisible sur clair comme sur sombre (voir `previ
 - **Sources :** `varia.svg` (fixe), `varia-animated.svg` (animé), `og-image.svg` (partage 1200×630).
 - **Dérivés** (ne pas éditer) : `png/varia-{16,32,48,180,192,512,1024}.png`, `png/og-image.png`,
   `favicon.ico` (16/32/48), copies dans `docs/assets/` et `packages/dashboard/public/`.
-- `previews/` : captures réelles Chromium sans interface (mouvement normal / réduit).
+- `previews/` : captures réelles Chromium sans interface : logos (mouvement normal / réduit, `node scripts/brand-preview.mjs`) ; survol de l'en-tête, chargeur et rapport HTML (`npm run build && npx tsx scripts/brand-preview-ui.ts`).
 
 ## Usage
 

@@ -859,5 +859,33 @@
     "find": "  outline: 3px solid var(--focus);",
     "replace": "  outline: none;",
     "tests": ["packages/dashboard/test/navigateur.test.ts"]
+  },
+  {
+    "name": "E-03 : jest.mock non reconnu",
+    "file": "packages/core/src/mocks.ts",
+    "find": "(?:mock|doMock|unstable_mockModule)",
+    "replace": "(?:doMock|unstable_mockModule)",
+    "tests": ["packages/core/test/mocks.test.ts"]
+  },
+  {
+    "name": "E-03 : cibles hors include acceptées",
+    "file": "packages/core/src/mocks.ts",
+    "find": "if (!inc.some((r) => r.test(module)) || exc.some((r) => r.test(module))) continue",
+    "replace": "",
+    "tests": ["packages/core/test/mocks.test.ts"]
+  },
+  {
+    "name": "E-03 : cibles mockées non enregistrées dans le run",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "    mockedTargets: mockedTargets(\n",
+    "replace": "    mockedTargetsIgnored: mockedTargets(\n",
+    "tests": ["packages/engine/test/baseline.test.ts"]
+  },
+  {
+    "name": "E-03 : cibles mockées absentes du rapport",
+    "file": "packages/reporters/src/build.ts",
+    "find": "      mockedTargets: (info['mockedTargets'] ?? []) as { module: string; testFile: string }[],\n",
+    "replace": "      mockedTargets: [] as { module: string; testFile: string }[],\n",
+    "tests": ["tests/j1/exploration.test.ts"]
   }
 ]

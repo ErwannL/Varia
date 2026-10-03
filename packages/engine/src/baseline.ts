@@ -1,4 +1,5 @@
 import {
+  mockedTargets,
   buildCatalog,
   compareBaselines,
   observationOf,
@@ -229,6 +230,12 @@ async function baselineOf(
     probeErrors,
     unhandledRejections,
     failing,
+    // Cibles déclarées mockées par un fichier de test : jamais observables là (E-03, §10.10).
+    mockedTargets: mockedTargets(
+      ctx.root,
+      first.tests.map((t) => t.file),
+      ctx.config.parsed.targets,
+    ),
     coverage: ctx.config.parsed.coverage.baseline
       ? coverageRows === null
         ? 'UNAVAILABLE'

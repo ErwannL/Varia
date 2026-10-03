@@ -71,6 +71,7 @@ export interface NotCovered {
     unsupported: Page<string>
     nonMutableInputs: Page<{ target: string; path: string; reason: string }>
     flakyTests: Page<string>
+    mockedTargets: Page<{ module: string; testFile: string }>
     skippedMutations: Page<{ id: string; reason: string }>
   }
   pendingMutations: number

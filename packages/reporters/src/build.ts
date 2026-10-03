@@ -246,6 +246,7 @@ export function buildReport(reader: Reader, runId: string): Report {
           }
         }),
       flakyTests: tests.filter((t) => t.flaky).map((t) => t.name),
+      mockedTargets: (info['mockedTargets'] ?? []) as { module: string; testFile: string }[],
       skippedMutations: [...results.values()]
         .filter((r) => r.status === 'SKIPPED')
         .map((r) => ({ id: r.mutationId, reason: r.reason ?? '' })),

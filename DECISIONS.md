@@ -360,3 +360,14 @@ image par image dans Chromium en `<img>` comme dans le README.
   `dirname` de son fichier.
 - E-09 : mesure en Chromium réel ; navigateur absent = échec, sauf `VARIA_BROWSER=absent` déclaré
   (vérifié : aucun navigateur trouvable) ⇒ UNVERIFIED. Liens en ligne exclus des 44 px (WCAG 2.5.5).
+
+## D-036 — 2026-10-03 — Cibles mockées (E-03)
+
+- Détection STATIQUE et déterministe dans les fichiers de test exécutés en baseline : appels
+  `jest.mock`, `jest.doMock`, `jest.unstable_mockModule`, `vi.mock`, `vi.doMock` à spécificateur
+  littéral relatif, résolu sur disque (extensions et `index.*`), gardé s'il correspond à
+  `targets.include` et pas à `targets.exclude`. Rangé dans `run.info.mockedTargets`, exposé dans
+  `notCovered.mockedTargets` (rapport JSON, HTML, Markdown, API, tableau de bord).
+- Le rapport dit « déclarée mockée par le test » : un mock construit autrement (chemin calculé,
+  `moduleNameMapper`, paquet externe) n'est pas détecté — la limite `MOCKED_TARGETS_NOT_OBSERVED` reste
+  affichée. Preuve : `examples/mocks-project` (deux fichiers mockent `src/users.js`).

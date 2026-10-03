@@ -352,3 +352,20 @@ describe('B-07 / C-01 : couverture inconnue, rapprochement d’issues', () => {
     expect(r.issues.every((x) => Array.isArray(x.matchedFrom))).toBe(true)
   })
 })
+
+describe('cibles mockées dans le non-couvert (E-03)', () => {
+  it('JSON vide par défaut ; HTML et Markdown listent module et fichier de test', () => {
+    const base = report()
+    expect(base.notCovered.mockedTargets).toEqual([])
+    const r: Report = {
+      ...base,
+      notCovered: {
+        ...base.notCovered,
+        mockedTargets: [{ module: 'src/users.js', testFile: 'tests/automock.test.js' }],
+      },
+    }
+    for (const out of [toHtml(r, 'en', 'https://orqea.example'), toMarkdown(r, 'en')])
+      expect(out).toContain('src/users.js (tests/automock.test.js)')
+    expect(toMarkdown(r, 'fr')).toContain('Cibles mockées par un test')
+  })
+})

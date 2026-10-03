@@ -132,7 +132,7 @@ footer{border-top:1px solid var(--bo);text-align:center;color:var(--mu);font-siz
 <p class="mu">${tr('report.run', { id: r.run.id, seed: r.run.seed ?? '—', state: r.run.state, date: r.run.updatedAt })}</p>
 <p id="partial">${partial === '' ? tr('report.complete') : tr('report.partial', { pending: c.pending })}</p>
 <section id="mutations"><h2>${tr('report.mutations')}</h2>
-<p>${tr('cli.summary.executed', { planned: c.mutations, executed: c.mutations - c.pending, skipped: c.skipped, pending: c.pending })} ${tr('report.resilience', { rate: r.resilienceRate === null ? '—' : `${String(Math.round(r.resilienceRate * 1000) / 10)} %` })}</p>
+<p>${tr('cli.summary.executed', { planned: c.mutations, executed: c.mutations - c.pending, skipped: c.skipped, pending: c.pending })} · ${tr('report.resilience', { rate: r.resilienceRate === null ? '—' : `${String(Math.round(r.resilienceRate * 1000) / 10)} %` })}</p>
 <h3>${tr('report.counts')}</h3><div class="cs">${counts}</div></section>
 <section id="baseline"><h2>${tr('report.baseline')}</h2>
 <p>${tr('report.baseline.summary', { tests: b.tests, passed: b.passed, failing: b.failing.length, flaky: b.flaky.length, calls: b.calls })}</p>
@@ -145,6 +145,9 @@ ${coverage}
 <section id="acceptances"><h2>${tr('report.acceptances')}</h2>${acceptances}</section>
 <section id="not-covered"><h2>${tr('report.notCovered')}</h2>
 ${list('dash.notCovered.neverCalled', nc.neverCalled)}${list('dash.notCovered.transitiveOnly', nc.transitiveOnly)}${list('dash.notCovered.unsupported', nc.unsupported)}${list('dash.notCovered.flaky', nc.flakyTests)}${list(
+    'dash.notCovered.mocked',
+    nc.mockedTargets.map((m) => `${m.module} (${m.testFile})`),
+  )}${list(
     'report.nc.nonMutable',
     nc.nonMutableInputs.map((i) => `${i.target} ${i.path} (${i.reason})`),
   )}${list(
@@ -300,6 +303,10 @@ export function toMarkdown(r: Report, locale: Locale): string {
     ncLine('dash.notCovered.transitiveOnly', nc.transitiveOnly),
     ncLine('dash.notCovered.unsupported', nc.unsupported),
     ncLine('dash.notCovered.flaky', nc.flakyTests),
+    ncLine(
+      'dash.notCovered.mocked',
+      nc.mockedTargets.map((m) => `${m.module} (${m.testFile})`),
+    ),
     ncLine(
       'report.nc.nonMutable',
       nc.nonMutableInputs.map((i) => `${i.target} ${i.path}`),

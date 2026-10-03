@@ -185,6 +185,8 @@ export const reportSchema = z
         z.object({ target: z.string(), path: z.string(), reason: z.string() }),
       ),
       flakyTests: z.array(z.string()),
+      /** Cibles déclarées mockées par un fichier de test : jamais observées là (E-03, §10.10). */
+      mockedTargets: z.array(z.object({ module: z.string(), testFile: z.string() })),
       skippedMutations: z.array(z.object({ id: z.string(), reason: z.string() })),
       pendingMutations: z.number().int(),
     }),

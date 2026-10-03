@@ -99,6 +99,7 @@ describe('E-07 : arbre Projet → Run → Dossier → Fichier → Test → Call 
       'unsupported',
       'nonMutableInputs',
       'flakyTests',
+      'mockedTargets',
       'skippedMutations',
     ])
     expect(all.sections['neverCalled']).toEqual({

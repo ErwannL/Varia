@@ -89,6 +89,10 @@ export function NotCovered({ runId }: { runId: string }) {
               return `${i.target} ${i.path} — ${i.reason}`
             })}
             {list('flakyTests', 'dash.notCovered.flaky')}
+            {list('mockedTargets', 'dash.notCovered.mocked', (x) => {
+              const m = x as { module: string; testFile: string }
+              return `${m.module} — ${m.testFile}`
+            })}
             {list('skippedMutations', 'dash.notCovered.skipped', (x) => {
               const m = x as { id: string; reason: string }
               return `${m.id} — ${m.reason}`

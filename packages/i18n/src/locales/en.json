@@ -437,5 +437,6 @@
   "issue.state.WORSENED": "worsened",
   "issue.state.UNKNOWN": "unknown (not observed in this run)",
   "dash.issue.matchedFrom": "Matched previous issues",
-  "cli.doctor.capabilityReason": "  {name}: {status} — {reason}"
+  "cli.doctor.capabilityReason": "  {name}: {status} — {reason}",
+  "dash.notCovered.mocked": "Targets mocked by a test (not observed in that test)"
 }

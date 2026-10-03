@@ -33,4 +33,9 @@ RESOURCE_LIMIT`). `parallelism` : 1 seulement (autre valeur refusée) ; `isolati
   drapeau `SLOW` quand la durée du test muté dépasse les deux.
 - `redaction.fields` / `patterns` (motifs sur les noms de champs) ; `store_raw_values: true` est refusé.
 - `storage.location: project` : dossier `.varia/` ajouté à `.git/info/exclude` (jamais `.gitignore`).
+- `storage.retention_runs` (défaut 50) : en fin de run, seuls les N derniers runs du projet sont
+  gardés ; la purge supprime les tables filles (résultats, mutations, call sites…) mais **conserve les
+  issues et les acceptations**, et elle est journalisée (événement `RUNS_PRUNED`). À la demande :
+  `varia prune [--keep N]` ; sauvegarde et contrôle de la base : `varia db backup [--out f]`,
+  `varia db check` (code 4 si l'intégrité SQLite échoue).
 - `integrity.ignore_for_integrity` : dossiers non surveillés (git ou manifeste) ; `watch_ignored`.

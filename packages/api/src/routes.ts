@@ -159,6 +159,7 @@ const NC_SECTIONS = [
   'unsupported',
   'nonMutableInputs',
   'flakyTests',
+  'mockedTargets',
   'skippedMutations',
 ] as const
 
@@ -536,6 +537,7 @@ export function defineRoutes(ctx: RouteContext): RouteDef[] {
           unsupported: n.unsupported,
           nonMutableInputs: n.nonMutableInputs,
           flakyTests: n.flakyTests,
+          mockedTargets: n.mockedTargets,
           skippedMutations: n.skippedMutations,
         }
         const sections = Object.fromEntries(

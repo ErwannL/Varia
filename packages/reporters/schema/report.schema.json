@@ -592,6 +592,18 @@
           }
         },
         "flakyTests": { "type": "array", "items": { "type": "string" } },
+        "mockedTargets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "module": { "type": "string" },
+              "testFile": { "type": "string" }
+            },
+            "required": ["module", "testFile"],
+            "additionalProperties": false
+          }
+        },
         "skippedMutations": {
           "type": "array",
           "items": {
@@ -616,6 +628,7 @@
         "unsupported",
         "nonMutableInputs",
         "flakyTests",
+        "mockedTargets",
         "skippedMutations",
         "pendingMutations"
       ],

@@ -277,6 +277,7 @@ describe('E-07 : pagination côté serveur, page dans l’URL', () => {
           reason: 'REDACTED',
         })),
         flakyTests: empty,
+        mockedTargets: empty,
         skippedMutations: page(1, 25, 0, () => ({ id: 'm1', reason: 'R' })),
       },
       pendingMutations: 0,
