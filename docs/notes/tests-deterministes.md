@@ -9,3 +9,12 @@
   (`shout` écrit en synchrone avec reprise sur EAGAIN), sinon une course entre deux limites rend le
   résultat aléatoire.
 - Vérifier sous charge : lancer la suite pendant qu'une autre tourne (`--maxWorkers=2`).
+
+## Rendu asynchrone et mesures de durée (J3, CI multi-OS)
+
+- Tableau de bord : un titre statique peut s'afficher avant les données. Les assistants d'ouverture
+  attendent le titre PUIS la disparition du chargeur (`loader-logo`) ; sinon `findBy…`, jamais
+  `getBy…` juste après un rendu.
+- Une assertion qui dépend d'une durée mesurée (drapeau `SLOW`) n'est faite de bout en bout que dans
+  le sens robuste (charge ≫ référence) ; les cas limites (au-dessous, plancher) sont prouvés par des
+  tests déterministes de l'oracle, avec des durées injectées.
