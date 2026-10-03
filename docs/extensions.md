@@ -137,7 +137,7 @@ plugin** est désactivé (`TIMEOUT`).
 
 - Une extension est du **code de l'utilisateur**, exécuté dans le processus Varia **avec ses droits**
   (fichiers, réseau, processus). Le thread sert au délai, **pas** à l'isolation : Varia ne prétend
-  offrir aucun bac à sable. N'installez que des extensions dont vous faites confiance à la source.
+  offrir aucun bac à sable ni aucune isolation de sécurité forte. N'installez que des extensions dont vous faites confiance à la source.
 - Ce que Varia garantit par construction : une extension **ne reçoit jamais** de valeur non masquée
   (entrées et rapports viennent de la base, où la sonde n'écrit que des valeurs redigées ; une entrée
   masquée n'est pas mutable et n'est pas transmise) ; elle **ne reçoit aucun accès à la base** (seul
@@ -156,6 +156,21 @@ plugin** est désactivé (`TIMEOUT`).
                  "phase": "plan", "code": "TIMEOUT", "message": "aucune réponse en 5000 ms (…)" }]
 }
 ```
+
+## Exemples (`examples/plugins/`)
+
+| Dossier         | `name`  | Extension                                                    |
+| --------------- | ------- | ------------------------------------------------------------ |
+| `iban/`         | `iban`  | stratégie `iban/invalid-iban` (IBAN invalides, déterministe) |
+| `oracle-codes/` | `codes` | règle `codes/validation-code` (`E_VALIDATION*` ⇒ `HANDLED`)  |
+| `csv-reporter/` | `csv`   | rapporteur `csv/mutations` (`.csv`)                          |
+
+Testés avec la seule API de `@varia/testkit` (`tests/j4/plugins-examples.test.ts`) et dans un vrai
+run sur `examples/plugins-project` (`tests/j4/plugins-e2e.test.ts`).
+
+Sources des valeurs citées dans cette page : `PLUGIN_API_VERSION` (`packages/plugins/src/contracts.ts`),
+`MAX_CANDIDATES_PER_INPUT` = 100 et message borné à 500 caractères (`packages/plugins/src/session.ts`),
+attente `Atomics.wait` bornée par le délai reçu (`packages/plugins/src/host.ts`).
 
 ## Tester une extension : `@varia/testkit` (T-01)
 

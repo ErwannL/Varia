@@ -247,3 +247,22 @@ Une sonde est conforme à la version 1.2 si :
    concept absent de son langage est déclaré non rejouable, jamais compté réussi) ;
 3. elle respecte les règles non vérifiables par schéma : écriture vidée ligne à ligne, redaction avant
    écriture, au plus une mutation sur une copie, profondeur par contexte asynchrone, défense (§1).
+
+## 13. Sondes fournies et rejeu de la conformité
+
+Chaque sonde rejoue les 65 cas du jeu (`conformance/cases/*.json`, version et empreinte dans
+`manifest.json` ; décompte : somme des tableaux `cases` des 7 fichiers). Un cas non rejouable est listé
+**nommément** avec sa raison, et le test vérifie que la liste n'a ni plus ni moins d'éléments que
+prévu : il n'est jamais compté réussi.
+
+| Sonde                 | Où                                                                  | Rejeu (lancé par `npm test`)                                                                                                                                              | Non rejouables (source)                                                                                                                                                                                                               |
+| --------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| JavaScript (réf.)     | `packages/probe-runtime/runtime/`                                   | `packages/probe-runtime/test/conformance.test.ts`                                                                                                                         | aucun                                                                                                                                                                                                                                 |
+| Lanceur custom (fac.) | `examples/custom-project/runner.cjs`                                | `packages/adapters/custom/test/protocol.test.ts`                                                                                                                          | aucun                                                                                                                                                                                                                                 |
+| Python (pytest)       | `packages/adapters/pytest/runtime/varia_probe/`                     | `test/python/test_conformance.py`, lancé par `packages/adapters/pytest/test/python.test.ts` (interpréteur de `examples/pytest-project`, coverage.py 100 %)                | **1** : `values/set` (ensemble sans ordre d'insertion ; xfail strict) — `NOT_REPLAYABLE` de `test_conformance.py`                                                                                                                     |
+| PHP (PHPUnit)         | `packages/adapters/phpunit/runtime/src/`                            | `runtime/tests/ConformanceTest.php`, lancé par `packages/adapters/phpunit/test/runtime.test.ts` (PHPUnit de l'exemple, pcov 100 % des lignes)                             | **6** : `values/bigint`, `values/map`, `values/set`, `values/bytes-vide`, `objects/circulaire-tableau`, `redaction/cle-de-map` — `NOT_APPLICABLE` de `ConformanceTest.php`                                                            |
+| Java (JUnit)          | `packages/adapters/junit/agent/src/main/java/com/orqea/varia/probe` | `agent/src/test/java/…/ConformanceTest.java`, lancé par `mvn -o verify` depuis `packages/adapters/junit/test/agent.test.ts` (60 réussies, 5 non rejouables, JaCoCo 100 %) | **5** : `values/undefined`, `values/set`, `values/tableau`, `fingerprint/etiquetees` (pas de valeur absente distincte de `null`), `redaction/cle-de-map` (Map à clés textuelles = objet) — `NOT_REPLAYABLE` de `ConformanceTest.java` |
+
+Outils requis (à installer soi-même) : Python 3.11, PHP 8.3 + pcov + composer, Java 21 + Maven ;
+`npm run examples:install` crée ensuite le venv de l'exemple pytest, fait `composer install` des
+exemples PHP, construit l'agent Java (`mvn verify`) et résout les dépendances Maven.

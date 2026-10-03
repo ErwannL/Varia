@@ -1,11 +1,38 @@
 # Écrire un adapter
 
-Implémenter `TestAdapter` (`packages/core/src/adapter.ts`) dans `packages/adapters/<nom>` :
-`detect(root)`, `capabilities()`, `prepare(ctx)` (configuration éphémère **hors du projet**),
-`run(options)` (un processus supervisé via `runSupervised`, renvoie résultats de tests + événements
-JSONL validés par `parseProbeLog`). La sonde respecte `docs/probe-protocol.md`. Aucun code propre au
-runner hors de `packages/adapters/*` (vérifié par `tests/architecture.test.ts`). Le CLI choisit
-l'adapter ; le moteur et le cœur ne le connaissent pas.
+Un adapter branche un lanceur de tests sur Varia. Deux voies :
+
+- **adapter TypeScript** (`TestAdapter`, paquet `packages/adapters/<nom>`) : pas à pas ci-dessous ;
+- **adaptateur `custom`** : aucun code TypeScript, le lanceur implémente lui-même le
+  [protocole de sonde](probe-protocol.md) (section « Adaptateur custom »).
+
+Capacités déclarées et **vérifiées** de chaque adaptateur existant : [`adapter-capabilities.md`](adapter-capabilities.md)
+(matrice générée par `npm run capabilities`, non recopiée ici pour ne pas diverger).
+
+## Pas à pas (adapter TypeScript)
+
+1. **Générer le squelette** : `varia scaffold adapter mon-lanceur [--dir <dossier>]` (voir
+   « Squelette scaffold » ci-dessous). Il compile et passe la conformité dès la génération.
+2. **Implémenter `TestAdapter`** (`packages/core/src/adapter.ts`) :
+   `id`, `detect(root)` (lanceur et version présents ?), `capabilities()` (capacités **déclarées**),
+   `prepare(ctx)` (configuration éphémère **hors du projet**, dans `ctx.tmpDir`), `run(options)` (un
+   processus supervisé via `runSupervised`, qui renvoie les résultats de tests et les événements JSONL
+   validés par `parseProbeLog`). La sonde chargée dans le processus de test respecte
+   [`probe-protocol.md`](probe-protocol.md) : réutilisez `@varia/probe-runtime` en JavaScript, ou écrivez
+   une sonde dans le langage du lanceur (exemples : Python, PHP, Java, §13 de la norme).
+3. **Passer la suite de conformité** (`@varia/adapter-conformance`, section suivante) sur un projet
+   d'exemple réel, à chaque étape.
+4. **Rejouer le jeu de conformité du protocole** si la sonde est nouvelle (§12 et §13 de la norme).
+5. **Brancher l'adapter dans Varia** : aucun code propre au lanceur hors de `packages/adapters/*`
+   (vérifié par `tests/architecture.test.ts`) ; le choix se fait par `test.framework` du `varia.yml`
+   (énumération dans `packages/config/src/schema.ts`) et `adapterFor` (`packages/cli/src/shared.ts`).
+   Le moteur et le cœur ne connaissent aucun adapter. Un adapter hors du dépôt ne peut pas être chargé
+   par le CLI sans cette modification : pour un lanceur externe sans modifier Varia, utilisez `custom`.
+6. **Vérifier avec `varia doctor`** sur le projet d'exemple : tests de fumée qui confirment ou
+   infirment chaque capacité déclarée (`VERIFIED`, `NOT_VERIFIED`, `UNSUPPORTED`) ; une sonde qui
+   n'enveloppe aucun module cible ⇒ `UNSUPPORTED_PROBE` (code de sortie 5). Ajoutez ensuite l'adapter à
+   la matrice : `npm run capabilities` régénère `docs/adapter-capabilities.md`, `npm run
+capabilities:check` vérifie qu'elle correspond à la mesure.
 
 ## Conformité (`@varia/adapter-conformance`, CDC §9.3)
 
@@ -42,8 +69,10 @@ tests du projet. Vérifications, toutes sur un projet jetable, via le moteur ré
 
 `cleanup` est `UNVERIFIED` là où les processus ne peuvent pas être listés (Windows) : dit, jamais
 simulé. Une exception pendant un groupe fait échouer tout le groupe. La suite tourne dans `npm test`
-contre Jest et Vitest (`packages/adapter-conformance/test/conformance.test.ts`) et elle échoue contre
-des adapters volontairement défaillants (`broken.test.ts`).
+contre chaque adaptateur réel : Jest et Vitest (`packages/adapter-conformance/test/conformance.test.ts`),
+puis `packages/adapters/<nom>/test/conformance.test.ts` pour Mocha (CJS et ESM), pytest, PHPUnit,
+JUnit et custom. Elle échoue contre des adapters volontairement défaillants (`broken.test.ts`).
+Seule exception connue et assertée : PHPUnit échoue à `async` (PHP n'a pas de promesse, voir plus bas).
 
 ## Squelette scaffold (`varia scaffold adapter`, T-02)
 
@@ -67,6 +96,66 @@ Point de départ fonctionnel, généré sans réseau et à l'identique pour un m
 Preuve : `tests/j4/scaffold.test.ts` génère chaque type dans un dossier temporaire, puis exécute
 Prettier, `tsc --noEmit` et `vitest run` sur le squelette (paquets `@varia/*` résolus vers les sources
 du dépôt par une configuration temporaire posée à côté du squelette).
+
+## Adaptateurs existants
+
+Pour chacun : capacités mesurées dans [`adapter-capabilities.md`](adapter-capabilities.md) ; détail
+dans le `README.md` du paquet. Les limites ci-dessous sont dites, jamais simulées.
+
+### Jest (`packages/adapters/jest`)
+
+- **Injection** (stratégie D1, J0) : transform temporaire `runtime/transform.cjs` qui délègue au
+  transform du projet (babel-jest, ts-jest via `preset`…) puis enveloppe les exports des modules
+  `targets.include` ; configuration Jest éphémère hors du projet (cache propre au run).
+- **Exécution** : un processus Jest par exécution, `--runTestsByPath` + `--testNamePattern`, `--json`.
+- **Limites** : appels internes à un module non observés ; ESM natif non déclaré ; pièges connus :
+  `docs/notes/sonde-jest.md`.
+
+### Vitest (`packages/adapters/vitest`)
+
+- **Injection** : plugin Vite `enforce: pre` (`runtime/plugin.mjs`) limité à `targets.include`, qui
+  réécrit les exports ESM (`runtime/rewrite.mjs`, source maps) ; lanceur `runtime/run-vitest.mjs`
+  (API `startVitest` de la copie de Vitest **du projet**), setup et cache hors du projet.
+- **Limites** : appels internes à un module non observés ; CommonJS non déclaré.
+
+### Mocha (`packages/adapters/mocha`)
+
+- **Injection** : `--require` d'un crochet CommonJS (`runtime/register.cjs`) + `mochaHooks` ; ESM par
+  `module.register` (`runtime/esm-hooks.mjs`). Configuration générée hors du projet, `--grep` exact,
+  rapporteur JSON vers un fichier. Voir `docs/notes/sonde-mocha.md`.
+- **Limites** : pas de couverture (Mocha ne la mesure pas) ; code chargé par `vm`/`eval` non enveloppé
+  (`doctor` ⇒ `UNSUPPORTED_PROBE`).
+
+### Pytest (`packages/adapters/pytest`) — Python 3.11
+
+- **Injection** : plugin `-p varia_probe.plugin` (sonde Python fournie dans `runtime/varia_probe/`,
+  rien n'est installé dans le projet) et crochet `sys.meta_path` qui publie un module mandataire
+  enveloppant les fonctions exportées (D-040). `PYTHONDONTWRITEBYTECODE=1`, `-p no:cacheprovider`.
+- **Interpréteur** : `.venv`, `venv` du projet, sinon `python3`.
+- **Limites** : appels internes non observés ; classes non enveloppées ; `exec`/`runpy` non
+  enveloppés ; `sys.exit` = levée synchrone, seule `os._exit` est une sortie de processus.
+
+### PHPUnit (`packages/adapters/phpunit`) — PHP 8.3, composer
+
+- **Injection** : chargeur d'autoload en tête de pile qui charge une **copie réécrite** des classes
+  cibles (méthodes publiques enveloppées, corps dans `m__varia`) dans le dossier du run (D-041).
+- **Limites** : fonctions globales, `require` direct, méthodes non publiques, traits, magiques non
+  observés ; pas d'asynchrone (`asyncTargets` non déclaré ; la vérification de conformité `async`
+  échoue, assertée dans `packages/adapters/phpunit/test/conformance.test.ts`).
+
+### JUnit 5 (`packages/adapters/junit`) — Java 21, Maven
+
+- **Injection** : agent `-javaagent` ByteBuddy (Advice sur méthodes publiques) ; préparation hors ligne
+  (`mvn -o dependency:build-classpath`, `javac` dans le dossier du run) ; console JUnit Platform 1.11.4
+  (D-042). L'agent est construit par `npm run examples:install`.
+- **Limites** : méthodes publiques seulement, constructeurs non observés ; une mutation d'un type
+  impossible pour le paramètre Java n'est jamais forcée (`MUTATE_CALL applied:false` ⇒ `SKIPPED`) ; pas
+  de valeur « absente » distincte de `null`.
+
+### custom (`packages/adapters/custom`)
+
+- **Injection** : aucune côté Varia ; le lanceur déclaré dans `varia.yml` écrit lui-même les journaux
+  de sonde. Contrat complet : section suivante.
 
 ## Adaptateur custom
 
