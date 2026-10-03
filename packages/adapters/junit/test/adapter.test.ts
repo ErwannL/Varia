@@ -125,6 +125,12 @@ describe('adaptateur JUnit : préparation', () => {
       stderr: '',
     })
     expect(spawnExec('win32')('node', ['-e', '1'], '.').status).toBe(0)
+    // Sans shell (branche non Windows, injectée : vraie sur toute plateforme), une commande
+    // introuvable ne donne ni sortie ni code, seulement `error` (ENOENT) : rendue dans stderr.
+    const missing = spawnExec('linux')('varia-commande-introuvable', [], '.')
+    expect(missing.status).toBeNull()
+    expect(missing.stdout).toBe('')
+    expect(missing.stderr).toMatch(/ENOENT/)
   })
 
   it('commande par défaut (spawnSync) : commande introuvable ⇒ échec Maven', async () => {

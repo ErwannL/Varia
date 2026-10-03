@@ -652,5 +652,12 @@
     "find": "return this.runner.run(options)",
     "replace": "return this.runner.run({ ...options, mode: 'observe' })",
     "tests": ["tests/j4/scaffold.test.ts"]
+  },
+  {
+    "name": "junit : commande introuvable sans shell ⇒ sortie vide, erreur dans stderr",
+    "file": "packages/adapters/junit/src/adapter.ts",
+    "find": "stdout: r.stdout ?? ''",
+    "replace": "stdout: r.stdout",
+    "tests": ["packages/adapters/junit/test/adapter.test.ts"]
   }
 ]
