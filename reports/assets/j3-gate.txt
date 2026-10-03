@@ -1,0 +1,50 @@
+$ npm ci
+npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated glob@10.5.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+npm warn deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+added 467 packages, and audited 483 packages in 10s
+(code 0)
+$ npm run examples:install
+npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+npm warn deprecated glob@7.2.3: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+added 280 packages in 3s
+added 52 packages in 1s
+(code 0)
+$ npm run typecheck
+(code 0)
+$ npm run lint
+(code 0)
+$ npm run format:check
+Checking formatting...
+All matched files use Prettier code style!
+(code 0)
+$ npm run check:skips
+check:skips OK (aucun test sauté)
+(code 0)
+$ npm run check:lines
+check:lines OK
+(code 0)
+$ npm run check:readmes
+check:readmes OK (100 dossiers)
+(code 0)
+$ npm run check:coverage-ignores
+check:coverage-ignores OK
+(code 0)
+$ npm run check:no-ai
+check:no-ai OK (aucune dépendance, clé ni appel IA)
+(code 0)
+$ npm run brand:check
+brand --check OK (16 fichiers)
+(code 0)
+$ npm run build
+✓ built in 1.10s
+(code 0)
+$ npm run test:coverage
+   ✓ varia doctor (exemple CommonJS) > verdict OK, capacités vérifiées et non supportées distinguées  2437ms
+ Test Files  94 passed (94)
+      Tests  856 passed (856)
+   Duration  648.59s (transform 2.49s, setup 1.00s, collect 43.17s, tests 565.15s, environment 3.78s, prepare 8.54s)
+(code 0)
+$ npm run check:coverage-exact
+check:coverage-exact OK (104 fichiers mesurés)
+(code 0)
