@@ -447,5 +447,12 @@
   "cli.list.adapter.custom": "External launcher (command declared in varia.yml, probe protocol)",
   "cli.list.adapter.pytest": "Pytest (Python, plugin probe)",
   "cli.list.adapter.phpunit": "PHPUnit (PHP, autoload probe)",
-  "cli.list.adapter.junit": "JUnit 5 (Java, ByteBuddy agent)"
+  "cli.list.adapter.junit": "JUnit 5 (Java, ByteBuddy agent)",
+  "cli.cmd.scaffold": "generate a working adapter or extension skeleton (scaffold adapter|strategy|rule|reporter <name> [--dir <dir>])",
+  "cli.scaffold.created": "{kind} skeleton created: {path} ({count} files)",
+  "cli.scaffold.next": "Next: cd {path} && npm install && npm run typecheck && npm test",
+  "cli.scaffold.BAD_KIND": "Unknown skeleton type: {kind} (expected: {kinds})",
+  "cli.scaffold.BAD_NAME": "Invalid name: \"{name}\" (lowercase letters, digits and dashes, starting with a letter, at most {max} characters)",
+  "cli.scaffold.NOT_DIRECTORY": "The target exists and is not a directory: {path}",
+  "cli.scaffold.NOT_EMPTY": "The target directory exists and is not empty: {path}"
 }

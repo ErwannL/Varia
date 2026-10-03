@@ -37,7 +37,9 @@
     "clean": "node scripts/clean.mjs",
     "check:coverage-exact": "node scripts/check-coverage-exact.mjs",
     "schemas": "tsx scripts/write-schemas.ts",
-    "check:no-ai": "node scripts/check-no-ai.mjs"
+    "check:no-ai": "node scripts/check-no-ai.mjs",
+    "capabilities": "tsx scripts/write-capabilities.ts",
+    "capabilities:check": "tsx scripts/write-capabilities.ts --check"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",

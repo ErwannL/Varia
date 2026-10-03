@@ -21,6 +21,7 @@ import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
+import { tsxArgs, tsxEnv } from './tsx-child.js'
 
 const PHPUNIT = resolve('examples/phpunit-project')
 const tmp = (p: string) => mkdtempSync(join(tmpdir(), p))
@@ -223,11 +224,11 @@ describe('PHPUnit (14) : reprise après arrêt brutal du processus Varia', () =>
         '',
       ].join('\n'),
     )
-    const child = spawn(
-      process.execPath,
-      [resolve('node_modules/tsx/dist/cli.mjs'), '--tsconfig', resolve('tsconfig.json'), script],
-      { cwd: resolve('.'), stdio: ['ignore', 'ignore', 'pipe'] },
-    )
+    const child = spawn(process.execPath, tsxArgs(script), {
+      cwd: resolve('.'),
+      env: tsxEnv(),
+      stdio: ['ignore', 'ignore', 'pipe'],
+    })
     let stderr = ''
     child.stderr.on('data', (d: Buffer) => (stderr += d.toString()))
     const persisted = await new Promise<Set<string>>((done, fail) => {

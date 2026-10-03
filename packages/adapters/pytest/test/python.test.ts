@@ -57,7 +57,8 @@ describe('sonde Python : suite pytest, conformité, couverture coverage.py', () 
     const files = (JSON.parse(readFileSync(join(work, 'coverage.json'), 'utf8')) as CoverageJson)
       .files
     const rows = Object.entries(files).map(([f, { summary: s }]) => [
-      f.slice(f.indexOf('varia_probe')),
+      // coverage.py écrit des chemins natifs (`varia_probe\\probe.py` sous Windows) : POSIX ici.
+      f.slice(f.indexOf('varia_probe')).replaceAll('\\', '/'),
       `${String(s.covered_lines)}/${String(s.num_statements)}`,
       `${String(s.covered_branches)}/${String(s.num_branches)}`,
     ])

@@ -18,3 +18,7 @@ Outils de développement (jamais exécutés par Varia à l'exécution) :
 - `check-coverage-exact.mjs` — porte exacte par fichier contre `coverage-thresholds.json`.
 - `coverage-gaps.mjs`, `coverage-ratchet.mjs` — liste de ce qui manque ; montée des seuils (jamais à la baisse).
 - `write-schemas.ts` — régénère les schémas JSON publiés (configuration, rapport).
+- `write-capabilities.ts` — matrice mesurée des adaptateurs (S-01) : vrai `doctor` sur chaque projet
+  d'exemple ⇒ `docs/adapter-capabilities.md` (`npm run capabilities`) ; `--check` compare sans écrire
+  (`npm run capabilities:check`). Adaptateur non mesuré (outil absent) : écrit « non mesuré », exit 1.
+  Testé par `tests/j4/capabilities.test.ts`.

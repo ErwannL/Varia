@@ -575,5 +575,82 @@
     "find": "return rel if rel is not None else real.replace(pathmod.sep, \"/\")",
     "replace": "return rel if rel is not None else real",
     "tests": ["packages/adapters/pytest/test/python.test.ts"]
+  },
+  {
+    "name": "S-01 : ordre des capacités non stable",
+    "file": "scripts/write-capabilities.ts",
+    "find": "r.caps.map((c) => c.name)))].sort()",
+    "replace": "r.caps.map((c) => c.name)))]",
+    "tests": ["tests/j4/capabilities.test.ts"]
+  },
+  {
+    "name": "S-01 : doctor ne tente que la première entrée (refus de la sonde)",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "catalog.slice(0, SMOKE_INPUTS)",
+    "replace": "catalog.slice(0, 1)",
+    "tests": ["packages/engine/test/doctor-capabilities.test.ts"]
+  },
+  {
+    "name": "S-01 : doctor déclare VERIFIED une mutation non appliquée",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "if (applied(f)) verified.argumentMutation = 'VERIFIED'",
+    "replace": "if (applied(f) || f.tests !== null) verified.argumentMutation = 'VERIFIED'",
+    "tests": ["packages/engine/test/doctor-capabilities.test.ts"]
+  },
+  {
+    "name": "S-01 : lanceur introuvable présenté comme mesuré",
+    "file": "scripts/write-capabilities.ts",
+    "find": "if (r.verdict === 'RUNNER_NOT_FOUND')",
+    "replace": "if (r.verdict === ('NEVER' as string))",
+    "tests": ["tests/j4/capabilities.test.ts"]
+  },
+  {
+    "name": "S-01 : adaptateur non mesuré sans échec",
+    "file": "scripts/write-capabilities.ts",
+    "find": "o.log(`non mesuré : ${r.adapter} (${r.why})`)\n      code = 1",
+    "replace": "o.log(`non mesuré : ${r.adapter} (${r.why})`)",
+    "tests": ["tests/j4/capabilities.test.ts"]
+  },
+  {
+    "name": "T-02 : scaffold — dossier cible non vide accepté",
+    "file": "packages/cli/src/scaffold/index.ts",
+    "find": "return readdirSync(path).length === 0 ? 'free' : 'NOT_EMPTY'",
+    "replace": "return readdirSync(path).length >= 0 ? 'free' : 'NOT_EMPTY'",
+    "tests": ["tests/j4/scaffold.test.ts"]
+  },
+  {
+    "name": "T-02 : scaffold — longueur du nom non bornée",
+    "file": "packages/cli/src/scaffold/common.ts",
+    "find": "return name.length <= NAME_MAX && NAME_PATTERN.test(name)",
+    "replace": "return NAME_PATTERN.test(name)",
+    "tests": ["tests/j4/scaffold.test.ts"]
+  },
+  {
+    "name": "T-02 : scaffold — refus avec code de sortie 0",
+    "file": "packages/cli/src/commands/scaffold.ts",
+    "find": "s.setExit(EXIT.CONFIG)",
+    "replace": "s.setExit(EXIT.OK)",
+    "tests": ["tests/j4/scaffold.test.ts"]
+  },
+  {
+    "name": "T-02 : scaffold — fichiers non triés",
+    "file": "packages/cli/src/scaffold/index.ts",
+    "find": "Object.entries(files).sort(([a], [b]) => (a < b ? -1 : 1))",
+    "replace": "Object.entries(files)",
+    "tests": ["tests/j4/scaffold.test.ts"]
+  },
+  {
+    "name": "T-02 : squelette de stratégie — Math.random au lieu du RNG semé",
+    "file": "packages/cli/src/scaffold/plugin.ts",
+    "find": "const at = Math.floor(random() * s.length)",
+    "replace": "const at = Math.floor(Math['random']() * s.length)",
+    "tests": ["tests/j4/scaffold.test.ts"]
+  },
+  {
+    "name": "T-02 : squelette d'adaptateur — mode d'exécution ignoré (conformité)",
+    "file": "packages/cli/src/scaffold/adapter.ts",
+    "find": "return this.runner.run(options)",
+    "replace": "return this.runner.run({ ...options, mode: 'observe' })",
+    "tests": ["tests/j4/scaffold.test.ts"]
   }
 ]

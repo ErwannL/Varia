@@ -163,6 +163,29 @@ describe('doctor : un test de fumée par capacité (D-01)', () => {
     const cjs = await check({ esm: true })
     expect(cjs.r.checks.esm).toEqual({ status: 'NOT_VERIFIED', reason: 'OTHER_MODULE_SYSTEM' })
   })
+  it('mutation refusée par la sonde (type impossible) : entrée suivante tentée, au plus 3', async () => {
+    const two = [{ name: 'a', calls: [{ args: [1, { name: 'Ada' }] }] }]
+    const refuseFirst = (n: number) => {
+      let calls = 0
+      return (f: AdapterRun) => {
+        calls += 1
+        return calls <= n
+          ? { ...otherPid(f), events: f.events.filter((e) => e.type !== 'MUTATE_CALL') }
+          : otherPid(f)
+      }
+    }
+    const second = await check({}, () => observeRun(two), refuseFirst(1))
+    expect(second.r.checks.argumentMutation).toEqual({ status: 'VERIFIED', reason: null })
+    expect(second.adapter.runs.filter((o) => o.mode === 'fuzz')).toHaveLength(2)
+    // Toutes refusées : NOT_VERIFIED, jamais plus de 3 entrées tentées.
+    const many = [{ name: 'a', calls: [{ args: [1, 2, 3, 4] }] }]
+    const none = await check({}, () => observeRun(many), refuseFirst(99))
+    expect(none.r.checks.argumentMutation).toEqual({
+      status: 'NOT_VERIFIED',
+      reason: 'MUTATION_NOT_APPLIED',
+    })
+    expect(none.adapter.runs.filter((o) => o.mode === 'fuzz')).toHaveLength(3)
+  })
   it('raisons des échecs de mutation et de sélection', async () => {
     const { r } = await check({}, undefined, (f) => ({
       ...otherPid(f),
@@ -217,7 +240,7 @@ describe('doctor : un test de fumée par capacité (D-01)', () => {
   })
   it('parallélisme : exécution séquentielle sans rapport de tests ⇒ non vérifié', async () => {
     const { r } = await check({ parallelSafe: true }, undefined, (f, o) =>
-      o.runDir.endsWith('fuzz') ? { ...otherPid(f), tests: null } : otherPid(f),
+      /fuzz-\d+$/.test(o.runDir) ? { ...otherPid(f), tests: null } : otherPid(f),
     )
     expect(r.checks.parallelSafe.reason).toBe('PARALLEL_RESULTS_DIFFER')
   })

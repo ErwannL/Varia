@@ -1,7 +1,7 @@
 // Règles d'architecture (CDC §6) : le cœur ne connaît aucun runner ; aucun cycle entre paquets.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 // Chemins POSIX : les comparaisons de préfixes (`packages/adapters/`) valent aussi sous Windows.
-import { posix } from 'node:path'
+import { posix, sep } from 'node:path'
 
 const { join } = posix
 import { describe, expect, it } from 'vitest'
@@ -33,6 +33,9 @@ describe('architecture', () => {
           ? files(join(dir, 'runtime'))
           : [],
       )) {
+        // Gabarits de `varia scaffold` (T-02) : le texte des squelettes générés (leurs tests importent
+        // vitest) est une chaîne, jamais un import exécuté par le CLI.
+        if (f.split(sep).join('/').includes('packages/cli/src/scaffold/')) continue
         const src = readFileSync(f, 'utf8')
         if (
           /(from\s+|require\()\s*['"](jest|@jest\/[\w-]+|jest-[\w-]+|vitest|babel-jest|ts-jest)['"]/.test(

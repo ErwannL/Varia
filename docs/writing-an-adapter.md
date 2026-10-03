@@ -45,6 +45,29 @@ simulé. Une exception pendant un groupe fait échouer tout le groupe. La suite 
 contre Jest et Vitest (`packages/adapter-conformance/test/conformance.test.ts`) et elle échoue contre
 des adapters volontairement défaillants (`broken.test.ts`).
 
+## Squelette scaffold (`varia scaffold adapter`, T-02)
+
+Point de départ fonctionnel, généré sans réseau et à l'identique pour un même nom (aucune date) :
+
+1. `varia scaffold adapter mon-lanceur [--dir <dossier>]` crée `<dossier>/mon-lanceur/` (défaut :
+   dossier courant). Nom : minuscules, chiffres, tirets isolés, commençant par une lettre, 30 caractères
+   au plus. Type ou nom invalide, cible non vide ou qui n'est pas un dossier : refus, rien n'est écrit,
+   code de sortie 3.
+2. Contenu : `src/index.ts` (`MonLanceurAdapter implements TestAdapter`, identifiant `mon-lanceur`),
+   `test/adapter.test.ts` (test unitaire avec un lanceur factice), `test/conformance.test.ts` (la suite
+   `runConformance` telle quelle, 9 vérifications), `example/` (projet de conformité Vitest), README,
+   `tsconfig.json` strict, `.prettierrc.json` de Varia.
+3. `npm install && (cd example && npm install)`, puis `npm run typecheck` et `npm test` : tout passe dès
+   la génération, car chaque méthode **délègue** à `VitestAdapter` (forme la plus simple qui passe
+   réellement la conformité).
+4. Remplacez la délégation méthode par méthode (`detect`, `capabilities`, `prepare`, `run`) par le
+   pilotage de votre lanceur, puis adaptez `example/` et le `dialect` de `test/conformance.test.ts`. La
+   suite de conformité doit rester verte à chaque étape.
+
+Preuve : `tests/j4/scaffold.test.ts` génère chaque type dans un dossier temporaire, puis exécute
+Prettier, `tsc --noEmit` et `vitest run` sur le squelette (paquets `@varia/*` résolus vers les sources
+du dépôt par une configuration temporaire posée à côté du squelette).
+
 ## Adaptateur custom
 
 Pour brancher un lanceur **sans écrire de code TypeScript ni modifier Varia** (J4 X-01, CDC §9.4) :

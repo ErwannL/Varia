@@ -31,6 +31,7 @@ import {
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { tsxArgs, tsxEnv } from './tsx-child.js'
 
 const JUNIT = resolve('examples/junit-project')
 
@@ -193,9 +194,9 @@ describe('JUnit (13) : doctor', () => {
       expect([d.adapter, d.verdict, d.adapterVersion]).toEqual(['junit', 'OK', '5.11.4'])
       expect(d.verified).toEqual({
         observation: 'VERIFIED',
-        // Le test de fumée du moteur mute la PREMIÈRE entrée du catalogue avec `null` : ici le
-        // paramètre `double count` de repeat ; Java ne peut pas recevoir null (jamais forcé).
-        argumentMutation: 'NOT_VERIFIED',
+        // `null` refusé pour le `double count` de repeat (Java, jamais forcé) : le test de fumée tente
+        // l'entrée suivante du catalogue (D-043), acceptée.
+        argumentMutation: 'VERIFIED',
         perTestSelection: 'VERIFIED',
         asyncTargets: 'VERIFIED',
         esm: 'UNSUPPORTED',
@@ -206,10 +207,7 @@ describe('JUnit (13) : doctor', () => {
         isolatedProcess: 'VERIFIED',
         parallelSafe: 'UNSUPPORTED',
       })
-      expect(d.checks.argumentMutation).toEqual({
-        status: 'NOT_VERIFIED',
-        reason: 'MUTATION_NOT_APPLIED',
-      })
+      expect(d.checks.argumentMutation).toEqual({ status: 'VERIFIED', reason: null })
       expect(d.checks.testParameters).toEqual({ status: 'NOT_VERIFIED', reason: 'NO_SMOKE_TEST' })
       expect(d.checks.cjs).toEqual({ status: 'UNSUPPORTED', reason: 'NOT_DECLARED' })
     } finally {
@@ -272,13 +270,11 @@ describe('JUnit (14) : reprise après arrêt brutal du processus Varia', () => {
         '',
       ].join('\n'),
     )
-    // Node de Varia + CLI JS de tsx : `node_modules/.bin/tsx` est un script shell, introuvable par
-    // spawn sous Windows (ENOENT, seul `tsx.cmd` y existe).
-    const child = spawn(
-      process.execPath,
-      [resolve('node_modules/tsx/dist/cli.mjs'), '--tsconfig', resolve('tsconfig.json'), script],
-      { cwd: resolve('.'), stdio: ['ignore', 'ignore', 'pipe'] },
-    )
+    const child = spawn(process.execPath, tsxArgs(script), {
+      cwd: resolve('.'),
+      env: tsxEnv(),
+      stdio: ['ignore', 'ignore', 'pipe'],
+    })
     let stderr = ''
     child.stderr.on('data', (d: Buffer) => (stderr += d.toString()))
     const persisted = await new Promise<Set<string>>((done, fail) => {

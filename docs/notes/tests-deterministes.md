@@ -18,3 +18,10 @@
 - Une assertion qui dépend d'une durée mesurée (drapeau `SLOW`) n'est faite de bout en bout que dans
   le sens robuste (charge ≫ référence) ; les cas limites (au-dessous, plancher) sont prouvés par des
   tests déterministes de l'oracle, avec des durées injectées.
+
+## Enfant tué par SIGKILL (scénarios de reprise)
+
+- Jamais la CLI de tsx pour un enfant à tuer : elle lance un petit-enfant Node qui survit au SIGKILL
+  et continue d'écrire des résultats pendant la reprise (CI macOS : 9 mutations rejouées au lieu de
+  8). Utiliser `tests/j4/tsx-child.ts` (`node --import <loader tsx>`, un seul processus). Preuve
+  locale : `kill -9` du parent ⇒ 0 processus restant avec `--import`, 1 avec la CLI.

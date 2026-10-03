@@ -426,3 +426,24 @@ image par image dans Chromium en `<img>` comme dans le README.
 - doctor laisse `argumentMutation` NOT_VERIFIED sur l'exemple (fumée par `null` sur un `double`) :
   écart accepté et signalé, pas de contournement.
 - 5 fixtures non rejouables (4 `undefined`, `redaction/cle-de-map` — Map à clés textuelles = objet).
+
+## D-043 — 2026-10-03 — Matrice de capacités générée (S-01) et test de fumée de mutation
+
+- `docs/adapter-capabilities.md` est généré (`npm run capabilities`) en lançant le vrai `doctor` sur
+  chaque projet d'exemple ; `npm run capabilities:check` et `tests/j4/capabilities.test.ts` échouent
+  si le fichier diverge ou si un adaptateur n'a pas pu être mesuré (outil absent ⇒ « non mesuré »,
+  jamais une valeur inventée, et échec). Aucune copie du projet : `guardProject` prouve l'absence
+  de modification.
+- Test de fumée de `argumentMutation` : mutation `null` sur la première entrée du catalogue ; si la
+  sonde la refuse (type impossible, jamais forcé — paramètre primitif Java), l'entrée suivante est
+  tentée, au plus 3. Constat qui l'a motivé : JUnit `NOT_VERIFIED (MUTATION_NOT_APPLIED)`.
+
+## D-044 — 2026-10-03 — `varia scaffold` (T-02)
+
+- Cible `<dir>/<nom>` ; nom en kebab-case ≤ 30 caractères (lignes générées conformes à Prettier) ;
+  refus (type, nom, cible non vide ou fichier) ⇒ code 3, rien écrit. Sortie déterministe.
+- Squelette d'adaptateur : délègue à `VitestAdapter` (forme la plus simple qui passe réellement la
+  conformité) ; extensions en `.mjs` + `// @ts-check` (le chargeur importe sans transpiler).
+- Gabarits = chaînes dans le code. Preuve : chaque type généré passe Prettier, `tsc` et ses tests
+  (conformité incluse) avec `@varia/*` résolus vers les sources du dépôt ; un `npm install` hors
+  dépôt (paquets non publiés) est UNVERIFIED.

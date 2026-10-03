@@ -447,5 +447,12 @@
   "cli.list.adapter.custom": "Lanceur externe (commande déclarée dans varia.yml, protocole de sonde)",
   "cli.list.adapter.pytest": "Pytest (Python, sonde par plugin)",
   "cli.list.adapter.phpunit": "PHPUnit (PHP, sonde par autoload)",
-  "cli.list.adapter.junit": "JUnit 5 (Java, agent ByteBuddy)"
+  "cli.list.adapter.junit": "JUnit 5 (Java, agent ByteBuddy)",
+  "cli.cmd.scaffold": "générer le squelette fonctionnel d'un adaptateur ou d'une extension (scaffold adapter|strategy|rule|reporter <nom> [--dir <dossier>])",
+  "cli.scaffold.created": "Squelette {kind} créé : {path} ({count} fichiers)",
+  "cli.scaffold.next": "Ensuite : cd {path} && npm install && npm run typecheck && npm test",
+  "cli.scaffold.BAD_KIND": "Type de squelette inconnu : {kind} (attendu : {kinds})",
+  "cli.scaffold.BAD_NAME": "Nom invalide : « {name} » (minuscules, chiffres et tirets, commençant par une lettre, {max} caractères au plus)",
+  "cli.scaffold.NOT_DIRECTORY": "La cible existe et n'est pas un dossier : {path}",
+  "cli.scaffold.NOT_EMPTY": "Le dossier cible existe et n'est pas vide : {path}"
 }

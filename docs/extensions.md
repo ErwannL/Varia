@@ -200,3 +200,23 @@ assertStatus(r.classification, 'HANDLED', { reason: 'RULE:codes/validation-code:
 
 Exemple complet : `tests/j4/plugins-examples.test.ts` (n'importe que `@varia/testkit`) ; run réel :
 `tests/j4/plugins-e2e.test.ts`.
+
+## Squelette scaffold (`varia scaffold strategy|rule|reporter`, T-02)
+
+1. `varia scaffold strategy mon-plugin [--dir <dossier>]` (ou `rule`, `reporter`) crée
+   `<dossier>/mon-plugin/` (défaut : dossier courant) ; même nom ⇒ mêmes octets, aucune date. Nom :
+   minuscules, chiffres, tirets isolés, commençant par une lettre, 30 caractères au plus ; c'est aussi le
+   `name` du plugin. Type ou nom invalide, cible non vide ou qui n'est pas un dossier : refus, rien
+   n'est écrit, code de sortie 3.
+2. `src/index.mjs` : module d'extension `apiVersion: 1` (JavaScript `// @ts-check`, typé par
+   `@varia/plugins`) avec une extension d'exemple :
+   - `strategy` → `mon-plugin/variants` : variantes d'une chaîne, position tirée par `ctx.random` (RNG
+     semé, jamais `Math.random`) ;
+   - `rule` → `mon-plugin/invalid-input-code` : erreur de code `E_INVALID_INPUT` ⇒ `HANDLED` ;
+   - `reporter` → `mon-plugin/summary` (`.txt`) : nombre de mutations par statut.
+3. `test/plugin.test.ts` charge l'extension par `@varia/testkit` (`generateWith` +
+   `assertDeterministic`, `evaluateRules` ou `renderWith`) : mêmes chargement et contrôles qu'un run.
+4. `npm install`, `npm run typecheck`, `npm test` ; puis déclarer `./…/mon-plugin/src/index.mjs` dans
+   `plugins:` de `varia.yml` et remplacer l'extension d'exemple par la vôtre.
+
+Preuve : `tests/j4/scaffold.test.ts` (Prettier, `tsc --noEmit`, `vitest run` sur chaque squelette).

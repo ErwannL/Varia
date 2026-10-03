@@ -5,6 +5,7 @@ import {
   generatePlan,
   serializePlan,
   buildCatalog,
+  type PlannedMutation,
 } from '@varia/core'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -36,6 +37,8 @@ export interface DoctorVerification {
 const NO_SMOKE_TEST: Capability[] = ['mocks', 'testParameters']
 
 const DOCTOR_FILE = 'doctor.json'
+/** Entrées du catalogue tentées par le test de fumée de mutation (refus de la sonde ⇒ entrée suivante). */
+const SMOKE_INPUTS = 3
 
 export interface DoctorReport {
   node: string
@@ -185,33 +188,45 @@ async function smoke(
     const catalog = buildCatalog(obs.calls.filter((c) => passing.has(c.testId))).filter(
       (i) => i.mutable,
     )
-    const first = catalog[0]
-    if (first !== undefined) {
+    if (catalog.length > 0) {
       const tests = new Map(obs.tests.map((t) => [t.testId, { file: t.file, name: t.name }]))
-      const plan = generatePlan([first], {
-        seed: 1,
-        perInput: 1,
-        strategies: ['null'],
-        variaVersion: VARIA_VERSION,
-        configHash: '',
-        tests,
-      })
-      const m = plan.mutations[0]
-      if (m !== undefined) {
-        const planPath = join(tmpDir, 'plan.json')
+      const applied = (x: AdapterRun) =>
+        x.events.some((e) => e.type === 'MUTATE_CALL' && e.applied === true)
+      // Mutation `null` de la première entrée ; refusée par la sonde (type impossible, jamais forcé :
+      // p. ex. paramètre primitif Java), l'entrée suivante est tentée, au plus SMOKE_INPUTS entrées.
+      let smoke: { m: PlannedMutation; f: AdapterRun; planPath: string } | null = null
+      for (const [k, item] of catalog.slice(0, SMOKE_INPUTS).entries()) {
+        const plan = generatePlan([item], {
+          seed: 1,
+          perInput: 1,
+          strategies: ['null'],
+          variaVersion: VARIA_VERSION,
+          configHash: '',
+          tests,
+        })
+        const m = plan.mutations[0]
+        if (m === undefined) continue
+        const planPath = join(tmpDir, `plan-${k}.json`)
         writeFileSync(planPath, serializePlan(plan))
-        mkdirSync(join(tmpDir, 'fuzz'), { recursive: true })
+        const runDir = join(tmpDir, `fuzz-${k}`)
+        mkdirSync(runDir, { recursive: true })
         const f = await ctx.adapter.run({
           mode: 'fuzz',
-          runDir: join(tmpDir, 'fuzz'),
+          runDir,
           timeoutMs: mutationTimeoutMs(ctx, run.process.durationMs),
           testFile: m.testFile,
           testName: m.testName,
           planPath,
           mutationId: m.id,
         })
-        const applied = (x: AdapterRun) =>
-          x.events.some((e) => e.type === 'MUTATE_CALL' && e.applied === true)
+        smoke ??= { m, f, planPath }
+        if (applied(f)) {
+          smoke = { m, f, planPath }
+          break
+        }
+      }
+      if (smoke !== null) {
+        const { m, f, planPath } = smoke
         if (applied(f)) verified.argumentMutation = 'VERIFIED'
         else why.argumentMutation = 'MUTATION_NOT_APPLIED'
         const ran = (f.tests ?? []).filter((t) => t.status !== 'skipped')

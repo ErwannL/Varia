@@ -20,6 +20,7 @@ import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileS
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { tsxArgs, tsxEnv } from './tsx-child.js'
 
 const CUSTOM = resolve('examples/custom-project')
 const newDir = (p: string) => mkdtempSync(join(tmpdir(), p))
@@ -247,15 +248,8 @@ describe('custom (14) : reprise après arrêt brutal du processus Varia', () => 
     first.close()
     const child = spawn(
       process.execPath,
-      [
-        resolve('node_modules/tsx/dist/cli.mjs'),
-        resolve('tests/j4/custom-fuzz-child.ts'),
-        CUSTOM,
-        dataDir,
-        cfg,
-        b.runId,
-      ],
-      { cwd: resolve('.'), stdio: 'ignore' },
+      tsxArgs(resolve('tests/j4/custom-fuzz-child.ts'), CUSTOM, dataDir, cfg, b.runId),
+      { cwd: resolve('.'), env: tsxEnv(), stdio: 'ignore' },
     )
     const persisted = await new Promise<Set<string>>((done, fail) => {
       const started = Date.now()

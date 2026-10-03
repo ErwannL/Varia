@@ -6,6 +6,7 @@ import { resolve } from 'node:path'
 import { registerAdmin } from './commands/admin.js'
 import { registerResults } from './commands/results.js'
 import { registerRun } from './commands/run.js'
+import { registerScaffold } from './commands/scaffold.js'
 import { printer, type Io, type Printer } from './io.js'
 import {
   adapterFor,
@@ -91,6 +92,7 @@ export async function runCli(argv: string[], io: Io, cli: CliEnv): Promise<numbe
   registerAdmin(shared)
   registerRun(shared)
   registerResults(shared)
+  registerScaffold(shared)
 
   try {
     await program.parseAsync(['node', 'varia', ...argv])
