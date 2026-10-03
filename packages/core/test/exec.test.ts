@@ -91,6 +91,17 @@ describe('exécution supervisée (CDC §16.2)', () => {
     expect([r.outputTruncated, r.timedOut]).toEqual([true, false])
     expect(performance.now() - t0).toBeLessThan(10000)
   })
+  it('plateforme POSIX injectée dans runSupervised : nettoyage du groupe après fermeture (toute plateforme)', async () => {
+    const d = dir()
+    const r = await runSupervised(process.execPath, ['-e', 'process.exit(0)'], {
+      cwd: d,
+      env: process.env,
+      timeoutMs: 5000,
+      statusFile: statusFileIn(d),
+      platform: 'linux',
+    })
+    expect([r.exitCode, r.timedOut]).toEqual([0, false])
+  })
   it('plateforme POSIX injectée sur un processus terminé : rien à tuer, groupe absent (toute plateforme)', async () => {
     const r = await node('process.exit(0)')
     const pid = r.pid ?? -1
