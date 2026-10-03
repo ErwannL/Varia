@@ -23,15 +23,15 @@
   {
     "name": "timeout ignoré",
     "file": "packages/core/runtime/supervisor.cjs",
-    "find": "}, timeoutMs)",
-    "replace": "}, timeoutMs * 20)",
-    "tests": ["packages/core/test/exec.test.ts"]
+    "find": "}, Number(timeoutArg))",
+    "replace": "}, Number(timeoutArg) * 20)",
+    "tests": ["packages/core/test/supervisor.test.ts", "packages/core/test/exec.test.ts"]
   },
   {
     "name": "plan non trié",
     "file": "packages/core/src/plan.ts",
-    "find": "mutations.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))",
-    "replace": "mutations.reverse()",
+    "find": "  mutations.sort((a, b) => (a.id < b.id ? -1 : 1))",
+    "replace": "  mutations.reverse()",
     "tests": ["packages/core/test/plan.test.ts"]
   },
   {
@@ -151,7 +151,7 @@
     "file": "packages/engine/src/baseline.ts",
     "find": "    memoryMb: p.mutations.limits.memory_mb,\n",
     "replace": "",
-    "tests": ["tests/j3/limits.test.ts"]
+    "tests": ["packages/engine/test/baseline.test.ts", "tests/j3/limits.test.ts"]
   },
   {
     "name": "A-03 dépassement de sortie seulement tronqué",
@@ -268,7 +268,7 @@
   {
     "name": "B-10 repli complet étiqueté partiel",
     "file": "packages/engine/src/planning.ts",
-    "find": "partial: run.partial || reduced,",
+    "find": "partial: run.partial || targeted || reduced,",
     "replace": "partial: true,",
     "tests": ["packages/engine/test/incremental.test.ts"]
   },
@@ -450,7 +450,7 @@
   {
     "name": "API : port de l'hôte non vérifié",
     "file": "packages/api/src/server.ts",
-    "find": "(bound === null || Number(m[2]) === bound)",
+    "find": "(bound === null || Number(port) === bound)",
     "replace": "true",
     "tests": ["packages/api/test/b08.test.ts"]
   },
@@ -463,8 +463,8 @@
   },
   {
     "name": "API : historique d'issue inconnue sans 404",
-    "file": "packages/api/src/server.ts",
-    "find": "if (r.issue(req.params.id) === null) return reply.code(404).send({ error: 'ISSUE_NOT_FOUND' })",
+    "file": "packages/api/src/routes.ts",
+    "find": "        if (r.issue(id) === null) return reply.code(404).send({ error: 'ISSUE_NOT_FOUND' })",
     "replace": "",
     "tests": ["packages/api/test/b08.test.ts"]
   },

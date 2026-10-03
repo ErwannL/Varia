@@ -11,12 +11,16 @@ const TESTS: FakeTest[] = [
 ]
 
 describe('baseline', () => {
-  it('test.node_options transmis au runner', async () => {
+  it('test.node_options et mutations.limits.memory_mb transmis au runner (A-03)', async () => {
     const adapter = scripted(TESTS)
-    const ctx = context(adapter, "version: 1\ntest: { node_options: '--no-warnings' }\n")
+    const ctx = context(
+      adapter,
+      "version: 1\ntest: { node_options: '--no-warnings' }\nmutations: { limits: { memory_mb: 384 } }\n",
+    )
     await runBaseline(ctx)
     ctx.close()
     expect(adapter.prepared[0]?.nodeOptions).toBe('--no-warnings')
+    expect(adapter.prepared[0]?.memoryMb).toBe(384)
   })
   it('targets.mode hybrid : les targets retirées ne sont jamais mutées', async () => {
     const ctx = context(
