@@ -118,9 +118,24 @@ describe('adapter défaillant', () => {
 })
 
 describe('outils', () => {
-  it('processus du système : listés sous POSIX, non listables sous Windows', () => {
-    expect(systemProcesses('win32')).toBeNull()
-    expect(systemProcesses('linux')?.some((l) => l.includes('node'))).toBe(true)
+  it('processus du système : commande par plateforme, échec ⇒ non listables (null)', () => {
+    const calls: string[][] = []
+    const exec = (cmd: string, args: string[]) => {
+      calls.push([cmd, ...args])
+      return 'a\r\nb\n'
+    }
+    expect(systemProcesses('linux', exec)).toEqual(['a', 'b', ''])
+    expect(systemProcesses('win32', exec)).toEqual(['a', 'b', ''])
+    expect(calls.map((c) => c[0])).toEqual(['ps', 'powershell'])
+    expect(calls[1]?.at(-1)).toContain('Win32_Process')
+    expect(
+      systemProcesses('linux', () => {
+        throw new Error('absent')
+      }),
+    ).toBeNull()
+  })
+  it('processus du système réels sur cette machine : le processus de test y figure', () => {
+    expect(systemProcesses()?.some((l) => l.toLowerCase().includes('node'))).toBe(true)
   })
   it('fichiers de conformité : dialectes CommonJS et ESM', () => {
     const cjs = conformanceFiles(DIALECT)

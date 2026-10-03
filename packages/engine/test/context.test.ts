@@ -134,7 +134,8 @@ describe('contexte du moteur', () => {
       ctx.close()
       expect(ctx.dataDir).toBe(projectDataDir(d))
       expect(existsSync(join(d, '.varia'))).toBe(false)
-      rmSync(ctx.dataDir, { recursive: true, force: true })
+      // Windows : suppression parfois refusée un instant après la fermeture (antivirus, index) ⇒ réessais.
+      rmSync(ctx.dataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
     } finally {
       vi.unstubAllEnvs()
     }

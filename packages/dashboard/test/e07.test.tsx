@@ -149,7 +149,7 @@ describe('E-07 : capacités et limites', () => {
       limitations: [],
     }
     await open('#/runs/r9/capabilities', 'Capacités et limites du run')
-    expect(screen.getByText('Vérifiées par varia doctor le 2026-10-01.')).toBeTruthy()
+    expect(await screen.findByText('Vérifiées par varia doctor le 2026-10-01.')).toBeTruthy()
     const row = (name: string) => within(screen.getByRole('row', { name: new RegExp(`^${name}`) }))
     expect(row('ESM').getByText('Vérifiée')).toBeTruthy()
     expect(row('CommonJS').getByText('CODE_X')).toBeTruthy()
@@ -284,7 +284,7 @@ describe('E-07 : pagination côté serveur, page dans l’URL', () => {
       limitations: [],
     }
     await open('#/runs/r9/not-covered', "Ce qui n'a pas été testé")
-    expect(screen.getByText('m#f arg0 — REDACTED')).toBeTruthy()
+    expect(await screen.findByText('m#f arg0 — REDACTED')).toBeTruthy()
     expect(screen.getByText('m1 — R')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Suivant' }))
     expect(window.location.hash).toBe('#/runs/r9/not-covered?section=neverCalled&page=2')

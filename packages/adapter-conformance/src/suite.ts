@@ -69,9 +69,26 @@ export interface ConformanceOptions {
 }
 
 /** Processus vivants via `ps` (POSIX) ; `null` sous Windows (non vérifié, dit comme tel). */
-export function systemProcesses(platform: NodeJS.Platform = process.platform): string[] | null {
-  if (platform === 'win32') return null
-  return execFileSync('ps', ['-eo', 'args'], { encoding: 'utf8' }).split('\n')
+export function systemProcesses(
+  platform: NodeJS.Platform = process.platform,
+  exec: (cmd: string, args: string[]) => string = (cmd, args) =>
+    execFileSync(cmd, args, { encoding: 'utf8' }),
+): string[] | null {
+  // Lignes de commande de tous les processus : `ps` (POSIX) ; sous Windows, PowerShell (le `ps` de
+  // Git Bash n'accepte pas `-o`). Indisponible ⇒ null : nettoyage des processus UNVERIFIED.
+  try {
+    const out =
+      platform === 'win32'
+        ? exec('powershell', [
+            '-NoProfile',
+            '-Command',
+            'Get-CimInstance Win32_Process | ForEach-Object { $_.CommandLine }',
+          ])
+        : exec('ps', ['-eo', 'args'])
+    return out.split(/\r?\n/)
+  } catch {
+    return null
+  }
 }
 
 /** Projet jetable : fichiers de premier niveau de l'exemple, `node_modules` lié, fichiers de conformité. */

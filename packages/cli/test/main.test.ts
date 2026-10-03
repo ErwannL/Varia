@@ -55,10 +55,21 @@ describe('bin/varia (main.ts)', () => {
       const ctrlC = setInterval(() => {
         if (lines.some((l) => l.startsWith('Dashboard :'))) process.emit('SIGINT')
       }, 20)
+      let timer: NodeJS.Timeout | undefined
       try {
-        await import('../src/main.js')
+        // Diagnostic : si l'arrêt n'arrive pas, échec rapide avec les sorties capturées.
+        await Promise.race([
+          import('../src/main.js'),
+          new Promise((_, reject) => {
+            timer = setTimeout(
+              () => reject(new Error(`dashboard non arrêté ; sorties : ${JSON.stringify(lines)}`)),
+              30_000,
+            )
+          }),
+        ])
       } finally {
         clearInterval(ctrlC)
+        clearTimeout(timer)
       }
       expect(lines.join('')).toMatch(/^Dashboard : http:\/\/127\.0\.0\.1:\d+/m)
       expect(process.exitCode).toBe(0)

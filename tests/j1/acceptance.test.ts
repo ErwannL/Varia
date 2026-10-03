@@ -56,7 +56,8 @@ describe('J1-2 : `varia test` sur l’exemple', () => {
     ).toContain('HANDLED')
     expect(report.counts.pending).toBe(0)
     expect(report.notCovered.neverCalled).toContain('src/math.js#helper')
-  })
+    // Exemple complet (baseline + fuzz rapide) : jusqu'à 5 min sur un runner Windows chargé.
+  }, 300_000)
 })
 
 describe('J1-4 : `varia doctor` sur un projet ESM natif', () => {
