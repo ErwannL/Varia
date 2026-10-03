@@ -295,3 +295,16 @@ image par image dans Chromium en `<img>` comme dans le README.
   l'entrée à ajouter. `store: db` avec des `items` est refusé (ils seraient ignorés).
 - Constat en route : l'empreinte de contenu du cache incluait le stockage de Varia quand il est dans le
   projet (`--data-dir` interne, `storage.path`) : tout le cache était invalidé à chaque run. Exclu.
+
+## D-031 — 2026-10-03 — Suite de conformité d'adaptateur (D-02)
+
+- `@varia/adapter-conformance` : `runConformance({ adapter, example, dialect })` exécute le moteur
+  réel (baseline, sélection, plan filtré, fuzz) sur un **projet jetable** construit dans le dossier
+  temporaire : fichiers de l'exemple + `node_modules` lié + fichiers de conformité identiques pour tout
+  runner (seul le dialecte change : CommonJS/ESM, extension, import des fonctions de test). L'exemple
+  n'est jamais modifié ; l'exemple Vitest n'avait pas de test d'exception, d'où ce choix.
+- Vérifications : baseline, observation, async, appels multiples (rangs), exception (`constructorChain`),
+  test paramétré, sélection d'un test, mutation appliquée (aucun `SKIPPED`/`INFRA_ERROR`), nettoyage
+  (manifeste inchangé, aucun processus du run). Résultat par vérification : PASS / FAIL / UNVERIFIED.
+- Les capacités déclarées ne sont pas lues : tout est exigé. `cleanup` sous Windows : UNVERIFIED (pas
+  de `ps` ; plateforme injectée). Une exception dans un groupe le fait échouer en entier.

@@ -551,5 +551,33 @@
     "find": "<rect x=\"2\" y=\"2\" width=\"60\" height=\"60\" rx=\"15\" fill=\"#4B32D6\"/>",
     "replace": "<rect x=\"2\" y=\"2\" width=\"60\" height=\"60\" rx=\"15\" fill=\"#F4F4F8\"/>",
     "tests": ["tests/brand.test.ts"]
+  },
+  {
+    "name": "conformité : processus survivant non détecté",
+    "file": "packages/adapter-conformance/src/suite.ts",
+    "find": "l.includes(id)",
+    "replace": "false",
+    "tests": ["packages/adapter-conformance/test/broken.test.ts"]
+  },
+  {
+    "name": "conformité : mutation non appliquée acceptée",
+    "file": "packages/adapter-conformance/src/suite.ts",
+    "find": "!s.startsWith('SKIPPED') && ",
+    "replace": "",
+    "tests": ["packages/adapter-conformance/test/broken.test.ts"]
+  },
+  {
+    "name": "conformité : sélection sans nom de test",
+    "file": "packages/adapter-conformance/src/suite.ts",
+    "find": "testName: TESTS.observe,",
+    "replace": "",
+    "tests": ["packages/adapter-conformance/test/conformance.test.ts"]
+  },
+  {
+    "name": "conformité : async non vérifié",
+    "file": "packages/adapter-conformance/src/suite.ts",
+    "find": "ret[0]?.async === true &&",
+    "replace": "ret[0]?.async === false &&",
+    "tests": ["packages/adapter-conformance/test/conformance.test.ts"]
   }
 ]
