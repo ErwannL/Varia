@@ -1,0 +1,13 @@
+{
+  "name": "varia-example-mocha-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Projet d'exemple de Varia pour Mocha (mêmes comportements que jest-project), CommonJS",
+  "license": "MIT",
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "mocha": "11.7.6"
+  }
+}

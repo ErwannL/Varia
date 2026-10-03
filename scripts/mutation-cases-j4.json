@@ -1,0 +1,551 @@
+[
+  {
+    "name": "P-01 : schéma HELLO — mode non énuméré",
+    "file": "packages/probe-protocol/src/messages.ts",
+    "find": "mode: z.enum(['observe', 'fuzz']),",
+    "replace": "mode: z.string(),",
+    "tests": ["packages/probe-protocol/test/protocol.test.ts"]
+  },
+  {
+    "name": "P-01 : champs inconnus rejetés",
+    "file": "packages/probe-protocol/src/messages.ts",
+    "find": "z.object({ ...envelope, type: z.literal(type), ...shape })",
+    "replace": "z.strictObject({ ...envelope, type: z.literal(type), ...shape })",
+    "tests": ["packages/probe-protocol/test/protocol.test.ts"]
+  },
+  {
+    "name": "P-01 : JSON Schema publiés différents de la génération",
+    "file": "packages/probe-protocol/src/index.ts",
+    "find": "io: 'input', target: 'draft-2020-12'",
+    "replace": "io: 'output', target: 'draft-2020-12'",
+    "tests": ["packages/probe-protocol/test/schema.test.ts"]
+  },
+  {
+    "name": "P-01 : JSONL réels hors schéma",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "    pid: process.pid,",
+    "replace": "    pid: -process.pid,",
+    "tests": ["tests/j4/probe-logs.test.ts"]
+  },
+  {
+    "name": "P-01 : statut non numérique écrit",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "...(Number.isFinite(status) ? { status } : {}),",
+    "replace": "...{ status },",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "P-02 : fixture modifiée sans changer la version",
+    "file": "packages/probe-protocol/conformance/cases/identity.json",
+    "find": "\"t_3c8f2c0f03c5e247\"",
+    "replace": "\"t_3c8f2c0f03c5e248\"",
+    "tests": ["packages/probe-protocol/test/conformance.test.ts"]
+  },
+  {
+    "name": "P-02 : la sonde JS perd -0",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "if (Object.is(value, -0)) return { $t: 'number', v: '-0' }",
+    "replace": "if (Object.is(value, -0)) return 0",
+    "tests": ["packages/probe-runtime/test/conformance.test.ts"]
+  },
+  {
+    "name": "P-02 : motifs de redaction sensibles à la casse",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "(redact.patterns ?? []).map((p) => new RegExp(p, 'i'))",
+    "replace": "(redact.patterns ?? []).map((p) => new RegExp(p))",
+    "tests": ["packages/probe-runtime/test/conformance.test.ts"]
+  },
+  {
+    "name": "P-02 : clé de Map « password » écrite en clair",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "typeof k === 'string' && redactedKey(k, `${path}.${k}`, opts)",
+    "replace": "false",
+    "tests": ["packages/probe-runtime/test/conformance.test.ts"]
+  },
+  {
+    "name": "P-03 : HELLO de majeure étrangère perdu",
+    "file": "packages/probe-protocol/src/index.ts",
+    "find": "if (foreign.success && foreign.data.protocolVersion !== PROTOCOL_VERSION) {",
+    "replace": "if (foreign.success && foreign.data.protocolVersion === -1) {",
+    "tests": [
+      "packages/probe-protocol/test/protocol.test.ts",
+      "packages/engine/test/protocol-version.test.ts"
+    ]
+  },
+  {
+    "name": "P-03 : type inconnu compté à tort",
+    "file": "packages/probe-protocol/src/index.ts",
+    "find": "if (env.success && !KNOWN.has(env.data.type)) unknownTypeLines++",
+    "replace": "if (env.success && KNOWN.has(env.data.type)) unknownTypeLines++",
+    "tests": ["packages/probe-protocol/test/protocol.test.ts"]
+  },
+  {
+    "name": "P-03 : baseline accepte une majeure inconnue",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "    if (foreign !== null) {",
+    "replace": "    if (foreign === -1) {",
+    "tests": ["packages/engine/test/protocol-version.test.ts"]
+  },
+  {
+    "name": "P-03 : doctor accepte une majeure inconnue",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "    if (foreign !== null) {",
+    "replace": "    if (foreign === -1) {",
+    "tests": ["packages/engine/test/protocol-version.test.ts"]
+  },
+  {
+    "name": "P-03 : la sonde n'annonce pas sa mineure",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "    protocolMinor: PROTOCOL_MINOR,\n",
+    "replace": "",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "R-01 : exports des cibles CJS non enveloppés",
+    "file": "packages/adapters/mocha/runtime/register.cjs",
+    "find": "module.exports = v.wrapExports(module.exports, id)",
+    "replace": "void id",
+    "tests": ["packages/adapters/mocha/test/register.test.ts"]
+  },
+  {
+    "name": "R-01 : chargeur .js non enveloppé (scénarios CLI)",
+    "file": "packages/adapters/mocha/runtime/register.cjs",
+    "find": "for (const ext of ['.js', '.cjs'])",
+    "replace": "for (const ext of ['.cjs'])",
+    "tests": ["tests/j4/mocha.test.ts"]
+  },
+  {
+    "name": "R-01 : test courant non lu",
+    "file": "packages/adapters/mocha/runtime/register.cjs",
+    "find": "current = this.currentTest ?? null",
+    "replace": "current = null",
+    "tests": ["packages/adapters/mocha/test/register.test.ts"]
+  },
+  {
+    "name": "R-01 : --grep non ancré",
+    "file": "packages/adapters/mocha/src/adapter.ts",
+    "find": "return `^${escaped}$`",
+    "replace": "return escaped",
+    "tests": ["packages/adapters/mocha/test/adapter.test.ts"]
+  },
+  {
+    "name": "R-01 : fichier de test non sélectionné",
+    "file": "packages/adapters/mocha/src/adapter.ts",
+    "find": "files: o.testFile !== undefined ? [join(ctx.root, o.testFile)] : [],",
+    "replace": "files: [],",
+    "tests": ["packages/adapters/mocha/test/adapter.test.ts"]
+  },
+  {
+    "name": "R-01 : test en échec lu comme réussi",
+    "file": "packages/adapters/mocha/src/adapter.ts",
+    "find": "? 'failed' : 'passed'",
+    "replace": "? 'passed' : 'passed'",
+    "tests": ["packages/adapters/mocha/test/adapter.test.ts"]
+  },
+  {
+    "name": "R-01 : exécution parallèle",
+    "file": "packages/adapters/mocha/src/adapter.ts",
+    "find": "parallel: false,",
+    "replace": "parallel: true,",
+    "tests": ["packages/adapters/mocha/test/adapter.test.ts"]
+  },
+  {
+    "name": "R-01 : processus tué avec résultats",
+    "file": "packages/adapters/mocha/src/adapter.ts",
+    "find": "proc.timedOut || !existsSync(reportFile)",
+    "replace": "!existsSync(reportFile)",
+    "tests": ["packages/adapters/mocha/test/adapter.test.ts"]
+  },
+  {
+    "name": "R-01 : crochets ESM inversés",
+    "file": "packages/adapters/mocha/src/adapter.ts",
+    "find": "...(esm",
+    "replace": "...(!esm",
+    "tests": ["packages/adapters/mocha/test/adapter.test.ts"]
+  },
+  {
+    "name": "R-01 : réécriture ESM ignorée",
+    "file": "packages/adapters/mocha/runtime/esm-hooks.mjs",
+    "find": "return code === null ? r : { ...r, source: code }",
+    "replace": "return r",
+    "tests": ["packages/adapters/mocha/test/esm-hooks.test.ts"]
+  },
+  {
+    "name": "R-01 : dépendance mocha seule ignorée",
+    "file": "packages/cli/src/shared.ts",
+    "find": "'mocha' in deps ? 'mocha' : 'jest'",
+    "replace": "'jest'",
+    "tests": ["packages/cli/test/shared.test.ts"]
+  },
+  {
+    "name": "R-01 : test.command mocha non reconnue",
+    "file": "packages/cli/src/shared.ts",
+    "find": "if (/\\bmocha\\b/.test(command)) return 'mocha'",
+    "replace": "",
+    "tests": ["packages/cli/test/cli.test.ts"]
+  },
+  {
+    "name": "R-01 : mocha absent de list adapters",
+    "file": "packages/cli/src/commands/admin.ts",
+    "find": "'vitest', 'mocha', ",
+    "replace": "'vitest', ",
+    "tests": ["packages/cli/test/commands.test.ts"]
+  },
+  {
+    "name": "R-01 : suffixe d'import ESM de la conformité",
+    "file": "packages/adapter-conformance/src/fixture.ts",
+    "find": "${d.importSuffix ?? ''}",
+    "replace": "",
+    "tests": ["packages/adapter-conformance/test/fixture.test.ts"]
+  },
+  {
+    "name": "X-02 : apiVersion non vérifiée",
+    "file": "packages/plugins/src/session.ts",
+    "find": "if (d['apiVersion'] !== PLUGIN_API_VERSION)",
+    "replace": "if (d['apiVersion'] === -1)",
+    "tests": ["packages/plugins/test/session.test.ts"]
+  },
+  {
+    "name": "X-02 : non-déterminisme non détecté",
+    "file": "packages/plugins/src/session.ts",
+    "find": "if (stableStringify(first.value as Json) !== stableStringify(second.value as Json)) {",
+    "replace": "if (stableStringify(first.value as Json) === '<jamais>') {",
+    "tests": ["packages/plugins/test/session.test.ts"]
+  },
+  {
+    "name": "X-02 : Math.random toléré",
+    "file": "packages/plugins/runtime/host.cjs",
+    "find": "    used = true\n",
+    "replace": "    used = false\n",
+    "tests": ["packages/plugins/test/host.test.ts", "packages/plugins/test/session.test.ts"]
+  },
+  {
+    "name": "X-03 : délai dépassé ignoré",
+    "file": "packages/plugins/src/host.ts",
+    "find": "if (got === undefined) {",
+    "replace": "if (got === null) {",
+    "tests": ["packages/plugins/test/session.test.ts"]
+  },
+  {
+    "name": "X-02 : plafond de tableau ignoré",
+    "file": "packages/plugins/src/session.ts",
+    "find": "if (v.length > limits.arrayLength) return 'LIMIT_EXCEEDED'",
+    "replace": "if (v.length < 0) return 'LIMIT_EXCEEDED'",
+    "tests": ["packages/plugins/test/session.test.ts"]
+  },
+  {
+    "name": "X-02 : conflit de nom non résolu",
+    "file": "packages/plugins/src/session.ts",
+    "find": "if (this.loaded.some((p) => p.name === name))",
+    "replace": "if (this.loaded.some((p) => p.name === '<jamais>'))",
+    "tests": ["packages/plugins/test/session.test.ts"]
+  },
+  {
+    "name": "X-02 : verdict de règle inversé",
+    "file": "packages/plugins/src/oracle.ts",
+    "find": "if (v.status === c.status) return c",
+    "replace": "if (v.status !== c.status) return c",
+    "tests": ["packages/plugins/test/oracle.test.ts"]
+  },
+  {
+    "name": "X-02 : règle consultée sur signal de processus",
+    "file": "packages/plugins/src/oracle.ts",
+    "find": "const PROCESS_SUBTYPES = ['RESOURCE_LIMIT', 'PROCESS_EXIT', 'UNHANDLED_REJECTION']",
+    "replace": "const PROCESS_SUBTYPES: string[] = []",
+    "tests": ["packages/plugins/test/oracle.test.ts"]
+  },
+  {
+    "name": "T-01 : harnais sans règles",
+    "file": "packages/testkit/src/harness.ts",
+    "find": "const classification = verdict === null ? builtIn : withVerdict(builtIn, verdict)",
+    "replace": "const classification = verdict === null ? builtIn : builtIn",
+    "tests": ["tests/j4/plugins-examples.test.ts", "packages/testkit/test/kit.test.ts"]
+  },
+  {
+    "name": "T-01 : checkDeterminism ignore les échecs",
+    "file": "packages/testkit/src/extensions.ts",
+    "find": "return { deterministic: same && failures.length === 0, failures, candidates: a.candidates }",
+    "replace": "return { deterministic: same, failures, candidates: a.candidates }",
+    "tests": ["packages/testkit/test/kit.test.ts"]
+  },
+  {
+    "name": "X-02 : exemple IBAN — clé juste",
+    "file": "examples/plugins/iban/index.mjs",
+    "find": "const wrong = String((Number(good) + 1) % 100).padStart(2, '0')",
+    "replace": "const wrong = good",
+    "tests": ["tests/j4/plugins-examples.test.ts"]
+  },
+  {
+    "name": "X-02 : candidats externes absents du plan",
+    "file": "packages/engine/src/planning.ts",
+    "find": "extraCandidates: (i) => extra.get(`${i.callSiteId}|${i.pathStr}`) ?? [],",
+    "replace": "extraCandidates: () => [],",
+    "tests": ["tests/j4/plugins-e2e.test.ts"]
+  },
+  {
+    "name": "X-02 : règles externes ignorées en fuzz",
+    "file": "packages/engine/src/fuzz.ts",
+    "find": "const classification = applyPluginRules(ctx, m, builtIn, mutatedCall)",
+    "replace": "const classification = builtIn",
+    "tests": ["tests/j4/plugins-e2e.test.ts"]
+  },
+  {
+    "name": "X-03 : extensions absentes du rapport",
+    "file": "packages/reporters/src/build.ts",
+    "find": "plugins: (info['plugins'] ?? { loaded: [], failures: [] }) as Report['plugins'],",
+    "replace": "plugins: { loaded: [], failures: [] },",
+    "tests": ["tests/j4/plugins-e2e.test.ts"]
+  },
+  {
+    "name": "X-03 : erreurs dupliquées",
+    "file": "packages/engine/src/plugins.ts",
+    "find": "    if (seen.has(k)) return false\n",
+    "replace": "",
+    "tests": ["packages/engine/test/plugins.test.ts"]
+  },
+  {
+    "name": "custom: résultats transmis",
+    "file": "packages/adapters/custom/src/adapter.ts",
+    "find": "[CUSTOM_ENV.results]: results,",
+    "replace": "",
+    "tests": ["packages/adapters/custom/test/adapter.test.ts"]
+  },
+  {
+    "name": "custom: rang des homonymes",
+    "file": "packages/adapters/custom/src/adapter.ts",
+    "find": "ranks.set(key, rank + 1)",
+    "replace": "ranks.set(key, rank)",
+    "tests": ["packages/adapters/custom/test/adapter.test.ts"]
+  },
+  {
+    "name": "custom: capacités déclarées",
+    "file": "packages/adapters/custom/src/adapter.ts",
+    "find": "return { ...NO_CAPABILITY, ...this.options.capabilities }",
+    "replace": "return { ...NO_CAPABILITY }",
+    "tests": ["packages/adapters/custom/test/adapter.test.ts"]
+  },
+  {
+    "name": "custom: PATHEXT",
+    "file": "packages/adapters/custom/src/adapter.ts",
+    "find": "...(env['PATHEXT'] ?? '')",
+    "replace": "...('')",
+    "tests": ["packages/adapters/custom/test/adapter.test.ts"]
+  },
+  {
+    "name": "custom: sélection transmise",
+    "file": "packages/adapters/custom/src/adapter.ts",
+    "find": "[CUSTOM_ENV.testName]: o.testName",
+    "replace": "[CUSTOM_ENV.testName + '_X']: o.testName",
+    "tests": ["packages/adapters/custom/test/conformance.test.ts"]
+  },
+  {
+    "name": "config: custom obligatoire",
+    "file": "packages/config/src/schema.ts",
+    "find": "t.framework !== 'custom' || t.custom !== undefined",
+    "replace": "true",
+    "tests": ["packages/config/test/config.test.ts"]
+  },
+  {
+    "name": "lanceur factice: empreinte divergente",
+    "file": "examples/custom-project/runner.cjs",
+    "find": "if (m.argsFingerprint !== argsFingerprint)",
+    "replace": "if (false)",
+    "tests": ["tests/j4/custom.test.ts"]
+  },
+  {
+    "name": "lanceur factice: redaction",
+    "file": "examples/custom-project/runner.cjs",
+    "find": "o.fields.has(key.toLowerCase()) ||",
+    "replace": "",
+    "tests": ["packages/adapters/custom/test/protocol.test.ts"]
+  },
+  {
+    "name": "CLI: framework custom branché",
+    "file": "packages/cli/src/shared.ts",
+    "find": "if (framework === 'custom') return",
+    "replace": "if (framework === 'customX') return",
+    "tests": ["packages/cli/test/shared.test.ts"]
+  },
+  {
+    "name": "pytest: aucun bytecode écrit dans le projet",
+    "file": "packages/adapters/pytest/src/adapter.ts",
+    "find": "PYTHONDONTWRITEBYTECODE: '1',",
+    "replace": "PYTHONDONTWRITEBYTECODE: '',",
+    "tests": ["packages/adapters/pytest/test/adapter.test.ts"]
+  },
+  {
+    "name": "sonde Python: grand entier hors plage sûre => bigint",
+    "file": "packages/adapters/pytest/runtime/varia_probe/serialize.py",
+    "find": "MAX_SAFE_INTEGER = 2**53 - 1",
+    "replace": "MAX_SAFE_INTEGER = 2**63 - 1",
+    "tests": ["packages/adapters/pytest/test/python.test.ts"]
+  },
+  {
+    "name": "sonde Python: profondeur par contextvars",
+    "file": "packages/adapters/pytest/runtime/varia_probe/probe.py",
+    "find": "depth = parent.depth + 1 if parent else 0",
+    "replace": "depth = 0",
+    "tests": ["packages/adapters/pytest/test/python.test.ts"]
+  },
+  {
+    "name": "sonde Python: empreinte divergente => AMBIGUOUS_CALL_SITE",
+    "file": "packages/adapters/pytest/runtime/varia_probe/probe.py",
+    "find": "if args_fp != m.get(\"argsFingerprint\"):",
+    "replace": "if False:",
+    "tests": ["packages/adapters/pytest/test/python.test.ts"]
+  },
+  {
+    "name": "plugin pytest: sélection exacte du test",
+    "file": "packages/adapters/pytest/runtime/varia_probe/plugin.py",
+    "find": "keep = [i for i in items if test_name(i.nodeid) == wanted]",
+    "replace": "keep = list(items)",
+    "tests": ["packages/adapters/pytest/test/python.test.ts"]
+  },
+  {
+    "name": "sonde Python: exception de tâche jamais récupérée",
+    "file": "packages/adapters/pytest/runtime/varia_probe/probe.py",
+    "find": "if exc is not None and \"never retrieved\"",
+    "replace": "if False and \"never retrieved\"",
+    "tests": ["packages/adapters/pytest/test/python.test.ts"]
+  },
+  {
+    "name": "sonde Python: porte de couverture coverage.py à 100 %",
+    "file": "packages/adapters/pytest/runtime/varia_probe/plugin.py",
+    "find": "    return \"other\"",
+    "replace": "    if not kinds:\n        return \"none\"\n    return \"other\"",
+    "tests": ["packages/adapters/pytest/test/python.test.ts"]
+  },
+  {
+    "name": "sonde Python: appels internes non observés (module mandataire)",
+    "file": "packages/adapters/pytest/runtime/varia_probe/probe.py",
+    "find": "    return ProxyModule(module, wrappers) if wrappers else module",
+    "replace": "    module.__dict__.update(wrappers)\n    return module",
+    "tests": ["tests/j4/pytest.test.ts"]
+  },
+  {
+    "name": "CLI: framework pytest branché",
+    "file": "packages/cli/src/shared.ts",
+    "find": "if (framework === 'pytest') return",
+    "replace": "if (framework === 'pytestX') return",
+    "tests": ["packages/cli/test/shared.test.ts"]
+  },
+  {
+    "name": "phpunit-sonde-redaction-champs",
+    "file": "packages/adapters/phpunit/runtime/src/Serializer.php",
+    "find": "if (isset($this->fields[strtolower($key)]) || isset($this->paths[$path])) {",
+    "replace": "if (isset($this->paths[$path])) {",
+    "tests": ["packages/adapters/phpunit/test/runtime.test.ts"]
+  },
+  {
+    "name": "phpunit-sonde-ambiguous-call-site",
+    "file": "packages/adapters/phpunit/runtime/src/Probe.php",
+    "find": "if ($fingerprint !== ($m['argsFingerprint'] ?? null)) {",
+    "replace": "if (false) {",
+    "tests": ["packages/adapters/phpunit/test/runtime.test.ts"]
+  },
+  {
+    "name": "phpunit-reecriture-methodes-privees",
+    "file": "packages/adapters/phpunit/runtime/src/Rewriter.php",
+    "find": "$public = !in_array('private', $mods, true) && !in_array('protected', $mods, true);",
+    "replace": "$public = true;",
+    "tests": ["packages/adapters/phpunit/test/runtime.test.ts"]
+  },
+  {
+    "name": "phpunit-filtre-exact-vide",
+    "file": "packages/adapters/phpunit/src/adapter.ts",
+    "find": "ids.length === 0 ? '/(?!)/' :",
+    "replace": "ids.length === 0 ? '//' :",
+    "tests": ["packages/adapters/phpunit/test/adapter.test.ts"]
+  },
+  {
+    "name": "phpunit-nom-testdox",
+    "file": "packages/adapters/phpunit/runtime/src/Extension.php",
+    "find": "return $t->testDox()->prettifiedMethodName();",
+    "replace": "return $t->methodName();",
+    "tests": ["packages/adapters/phpunit/test/runtime.test.ts"]
+  },
+  {
+    "name": "phpunit-objet-vide-stdclass",
+    "file": "packages/adapters/phpunit/runtime/src/Mutation.php",
+    "find": "return $fields === [] ? new \\stdClass() :",
+    "replace": "return $fields === [] ? [] :",
+    "tests": ["packages/adapters/phpunit/test/runtime.test.ts"]
+  },
+  {
+    "name": "phpunit-plan-objets-json",
+    "file": "packages/adapters/phpunit/runtime/src/Probe.php",
+    "find": "$plan = json_decode((string) @file_get_contents($env['VARIA_PLAN'] ?? ''), false);",
+    "replace": "$plan = json_decode(json_encode(json_decode((string) @file_get_contents($env['VARIA_PLAN'] ?? ''), true)), false);",
+    "tests": ["packages/adapters/phpunit/test/runtime.test.ts"]
+  },
+  {
+    "name": "CLI: framework phpunit branché",
+    "file": "packages/cli/src/shared.ts",
+    "find": "if (framework === 'phpunit') return",
+    "replace": "if (framework === 'phpunitX') return",
+    "tests": ["packages/cli/test/shared.test.ts"]
+  },
+  {
+    "name": "junit: sélecteur d'itération en base 0",
+    "file": "packages/adapters/junit/src/ids.ts",
+    "find": "String((indices[0] as number) - 1)",
+    "replace": "String(indices[0] as number)",
+    "tests": ["packages/adapters/junit/test/ids.test.ts"]
+  },
+  {
+    "name": "junit: rapport incomplet ⇒ null",
+    "file": "packages/adapters/junit/src/report.ts",
+    "find": "if (!xml.includes('</e:events>')) return null",
+    "replace": "if (xml.length < 0) return null",
+    "tests": ["packages/adapters/junit/test/report.test.ts"]
+  },
+  {
+    "name": "junit: targets.exclude appliqué aux classes",
+    "file": "packages/adapters/junit/src/adapter.ts",
+    "find": " || exc.some((r) => r.test(rel))",
+    "replace": "",
+    "tests": ["packages/adapters/junit/test/adapter.test.ts"]
+  },
+  {
+    "name": "junit: nom de test dérivé de l'identifiant (invocation)",
+    "file": "packages/adapters/junit/src/ids.ts",
+    "find": "suffix += ` [${value.replace(/#/g, '')}]`",
+    "replace": "suffix += ''",
+    "tests": ["packages/adapters/junit/test/ids.test.ts"]
+  },
+  {
+    "name": "sonde Java: redaction des clés textuelles de Map (1.2)",
+    "file": "packages/adapters/junit/agent/src/main/java/com/orqea/varia/probe/Serializer.java",
+    "find": "k instanceof String && redactedKey((String) k, path + \".\" + k, o)",
+    "replace": "false",
+    "tests": ["packages/adapters/junit/test/agent.test.ts"]
+  },
+  {
+    "name": "sonde Java: empreinte divergente ⇒ AMBIGUOUS_CALL_SITE",
+    "file": "packages/adapters/junit/agent/src/main/java/com/orqea/varia/probe/Probe.java",
+    "find": "if (!fp.equals(m.get(\"argsFingerprint\"))) {",
+    "replace": "if (false) {",
+    "tests": ["packages/adapters/junit/test/agent.test.ts"]
+  },
+  {
+    "name": "sonde Java: null jamais forcé dans un paramètre primitif",
+    "file": "packages/adapters/junit/agent/src/main/java/com/orqea/varia/probe/Values.java",
+    "find": "if (type.isPrimitive()) throw new NotApplicable(\"TYPE_MISMATCH\");",
+    "replace": "",
+    "tests": ["packages/adapters/junit/test/agent.test.ts"]
+  },
+  {
+    "name": "conformité: nom d'export propre au langage (dialecte)",
+    "file": "packages/adapter-conformance/src/suite.ts",
+    "find": "const exported = (n: string) => o.dialect.exportName?.(n) ?? n",
+    "replace": "const exported = (n: string) => n",
+    "tests": ["packages/adapters/junit/test/conformance.test.ts"]
+  },
+  {
+    "name": "CLI: framework junit branché",
+    "file": "packages/cli/src/shared.ts",
+    "find": "if (framework === 'junit') return",
+    "replace": "if (framework === 'junitX') return",
+    "tests": ["packages/cli/test/shared.test.ts"]
+  }
+]

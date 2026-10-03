@@ -16,7 +16,10 @@
     "packages/adapters/vitest/runtime/plugin.mjs",
     "packages/adapters/vitest/runtime/rewrite.mjs",
     "packages/adapters/vitest/runtime/run-vitest.mjs",
-    "packages/core/runtime/supervisor.cjs"
+    "packages/core/runtime/supervisor.cjs",
+    "packages/adapters/mocha/runtime/register.cjs",
+    "packages/adapters/mocha/runtime/esm-hooks.mjs",
+    "packages/plugins/runtime/host.cjs"
   ],
   "excluded": {
     "packages/dashboard/vite.config.ts": "configuration de build du dashboard (outil de développement, non livré à l exécution)"

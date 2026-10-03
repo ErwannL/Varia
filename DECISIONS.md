@@ -371,3 +371,58 @@ image par image dans Chromium en `<img>` comme dans le README.
 - Le rapport dit « déclarée mockée par le test » : un mock construit autrement (chemin calculé,
   `moduleNameMapper`, paquet externe) n'est pas détecté — la limite `MOCKED_TARGETS_NOT_OBSERVED` reste
   affichée. Preuve : `examples/mocks-project` (deux fichiers mockent `src/users.js`).
+
+## D-037 — 2026-10-03 — Protocole de sonde 1.2 (P-01/P-02/P-03)
+
+- `protocolVersion` = majeure entière par ligne ; la mineure est annoncée par `HELLO.protocolMinor`.
+  Majeure inconnue ⇒ `UNSUPPORTED_PROBE` (doctor/baseline, code de sortie 5) ; type de message inconnu
+  d'une majeure connue ⇒ ligne ignorée et comptée (`unknownTypeLines`).
+- Schémas zod par message (union discriminée) ⇒ JSON Schema générés (`scripts/write-schemas.ts`).
+- JSON canonique = ordre des propriétés ECMAScript ; `status` d'erreur omis s'il n'est pas fini.
+- 1.2 : les clés textuelles d'une Map sont soumises à la redaction (fuite corrigée, cas
+  `redaction/cle-de-map`). Jeu de conformité versionné et verrouillé par sha256 (`manifest.json`).
+
+## D-038 — 2026-10-03 — Mocha (R-01) et extensions (X-02/X-03/T-01)
+
+- Mocha : `--require` + `mochaHooks`, ESM par `module.register` ; voir `docs/notes/sonde-mocha.md`.
+- Extensions : hôte en thread, appels synchrones bornés (`Atomics.wait`, délai =
+  `execution.timeout_ms`), ids `<plugin>/<id>`, `apiVersion`, RNG semé fourni ; toute défaillance ⇒
+  `PLUGIN_FAILURE` ; rapport schéma v4. Voir `docs/notes/extensions.md`.
+
+## D-039 — 2026-10-03 — Adaptateur `custom` (X-01)
+
+- Commande en argv (sans shell) ; `node` en tête = le Node qui exécute Varia.
+- Résultats par fichier JSON écrit une fois en fin d'exécution (`VARIA_RESULTS`) : absent ou hors
+  format ⇒ `null`, jamais deviné. Cibles par `VARIA_INCLUDE`/`VARIA_EXCLUDE`, sans changer le protocole.
+- Découverte en échec ⇒ `RUNNER_NOT_FOUND` (pas de nouveau code). Capacités déclarées puis vérifiées
+  par doctor.
+
+## D-040 — 2026-10-03 — Pytest (R-02)
+
+- Plugin `-p varia_probe.plugin`, crochet `sys.meta_path` publiant un module mandataire (les appels
+  internes ne sont pas observés). `PYTHONDONTWRITEBYTECODE=1` : un cache de bytecode conservé contenait
+  des littéraux secrets.
+- Nom de test = identifiant pytest sans le fichier, `::` ⇒ espace. `sys.exit` = SystemExit synchrone
+  (UNEXPECTED_FAILURE) ; `os._exit` ⇒ CRASH/PROCESS_EXIT. `set` trié de façon canonique (`values/set`
+  déclaré non rejouable, xfail strict).
+- Exception de tâche asyncio jamais récupérée ⇒ `UNHANDLED_REJECTION`.
+
+## D-041 — 2026-10-03 — PHPUnit (R-03)
+
+- Chargeur d'autoload en tête : copie réécrite (méthodes publiques enveloppées, corps dans
+  `m__varia`) dans le dossier du run ; projet jamais modifié. Non observable : fonctions globales,
+  `require` direct, méthodes non publiques, asynchrone (scénario 8 NOT FEASIBLE).
+- Nom de test = TestDox ; sélection exacte par `--filter`, motif `/(?!)/` si aucun test.
+- 6 cas de conformité non applicables (bigint, map, set, bytes vides, tableau circulaire, clé de
+  Map), chacun prouvé échouer s'il était rejoué.
+
+## D-042 — 2026-10-03 — JUnit 5 (R-04)
+
+- Agent `-javaagent` ByteBuddy (Advice sur méthodes publiques) ; préparation hors ligne
+  (`mvn -o dependency:build-classpath`, `javac` dans le dossier du run) ; console standalone 1.11.4.
+- Type impossible jamais forcé : `MUTATE_CALL applied:false` (`TYPE_MISMATCH`,
+  `UNDEFINED_UNSUPPORTED`, `NOT_COPYABLE`, `VALUE_NOT_RECONSTRUCTIBLE`) ⇒ SKIPPED.
+- Équivalent du rejet non géré : exception non attrapée dans un fil créé pendant l'appel.
+- doctor laisse `argumentMutation` NOT_VERIFIED sur l'exemple (fumée par `null` sur un `double`) :
+  écart accepté et signalé, pas de contournement.
+- 5 fixtures non rejouables (4 `undefined`, `redaction/cle-de-map` — Map à clés textuelles = objet).

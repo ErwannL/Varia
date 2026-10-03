@@ -1,0 +1,17 @@
+version: 1
+project: { name: mocha-project }
+test: { command: npx mocha, framework: mocha }
+targets: { mode: auto, include: ['src/**'] }
+inputs:
+  # repeat(label, count) : seules les mutations de `count` mènent au TIMEOUT (C.0).
+  skip: ['repeat#arg0']
+  # Valeur déclarée (DECISIONS D-006) : provoque process.exit(1).
+  values: { 'exitOn#arg0': ['boom'] }
+mutations:
+  mode: normal
+  seed: 42
+  # Au plus 3 mutations sur repeat (chacune coûte un timeout).
+  per_target: { 'src/values.js#repeat': 3 }
+execution: { timeout_ms: 3000 }
+oracle:
+  handled_errors: [{ name: ValidationError }]

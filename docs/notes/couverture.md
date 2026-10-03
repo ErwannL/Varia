@@ -37,6 +37,17 @@
   exclusions motivées) : tout fichier sous son seuil, tout fichier d'exécution requis à 0 instruction
   couverte, tout fichier source de paquet ni mesuré ni exclu fait échouer.
 
+## Sondes en d'autres langages (J4)
+
+- Python (`packages/adapters/pytest/runtime/varia_probe`) : coverage.py `--branch`, porte 100 % lignes
+  ET branches dans `packages/adapters/pytest/test/python.test.ts`.
+- PHP (`packages/adapters/phpunit/runtime/src`) : pcov, 100 % des lignes (`test/runtime.test.ts`).
+  pcov ne mesure pas les branches, et `runtime/bootstrap.php` n'est pas mesuré : **UNVERIFIED**.
+- Java (`packages/adapters/junit/agent`) : JaCoCo, règle `check` 100 % lignes et branches
+  (`test/agent.test.ts`). Le code d'Advice recopié par ByteBuddy est invisible pour JaCoCo : il est
+  couvert en appelant les méthodes d'Advice directement.
+- Ces fichiers sont hors de `vitest.config` (pas du JS) : jamais comptés dans la porte v8.
+
 ## Exclusions (avec raison)
 
 - `packages/dashboard/vite.config.ts` : configuration de build (outil de développement).

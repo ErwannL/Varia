@@ -271,3 +271,10 @@ export function seedDatabase(
   db.close()
   return { dataDir, dbPath }
 }
+
+// API publique du kit de test des extensions (J4 T-01, docs/extensions.md).
+export * from './assertions.js'
+export * from './extensions.js'
+export * from './factories.js'
+export * from './harness.js'
+export * from './probe.js'

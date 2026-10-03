@@ -72,6 +72,21 @@ const acceptanceItem = z
   })
   .strict()
 
+/** Capacités d'un adaptateur (CDC §9.2), déclarables pour un lanceur `custom`. */
+export const CAPABILITIES = [
+  'observation',
+  'argumentMutation',
+  'perTestSelection',
+  'asyncTargets',
+  'esm',
+  'cjs',
+  'mocks',
+  'testParameters',
+  'coverage',
+  'isolatedProcess',
+  'parallelSafe',
+] as const
+
 /** Schéma de `varia.yml` (CDC §4.2, annexes A et B). Clés inconnues refusées. */
 export const configSchema = z
   .object({
@@ -83,13 +98,38 @@ export const configSchema = z
     test: z
       .object({
         command: z.string().optional(),
-        /** Absent : détecté (Vitest si le projet n'a que Vitest, sinon Jest). */
-        framework: z.enum(['jest', 'vitest']).optional(),
+        /** Absent : détecté (Vitest ou Mocha s'il est le seul lanceur des dépendances, sinon Jest). */
+        framework: z
+          .enum(['jest', 'vitest', 'mocha', 'pytest', 'phpunit', 'junit', 'custom'])
+          .optional(),
         cwd: z.string().default('.'),
         env: z.record(z.string(), z.string()).default({}),
         node_options: z.string().optional(),
+        /**
+         * Lanceur externe (`framework: custom`, J4 X-01, docs/writing-an-adapter.md) : commandes en
+         * argv (sans shell), capacités DÉCLARÉES (fausses par défaut) que `varia doctor` vérifie.
+         */
+        custom: z
+          .object({
+            command: z.array(z.string().min(1)).min(1),
+            discover: z.array(z.string().min(1)).min(1).optional(),
+            capabilities: z
+              .object(
+                Object.fromEntries(
+                  CAPABILITIES.map((c) => [c, z.boolean().default(false)] as const),
+                ) as Record<(typeof CAPABILITIES)[number], z.ZodDefault<z.ZodBoolean>>,
+              )
+              .strict()
+              .default(Object.fromEntries(CAPABILITIES.map((c) => [c, false])) as never),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
+      .refine((t) => t.framework !== 'custom' || t.custom !== undefined, {
+        error: 'CUSTOM_COMMAND_REQUIRED',
+        path: ['custom'],
+      })
       .default({ cwd: '.', env: {} }),
     baseline: z
       .object({ stability_runs: z.number().int().min(1).max(10).optional() })
@@ -310,6 +350,11 @@ export const configSchema = z
         fail_on_regression: true,
         include_transitive: false,
       }),
+    /**
+     * Extensions externes (J4 X-02, docs/extensions.md) : chemins (relatifs au fichier de
+     * configuration) ou paquets installés dans le projet, chargés dans cet ordre.
+     */
+    plugins: z.array(z.string().min(1)).default([]),
     /**
      * Acceptations (CDC §21). Forme abrégée (liste) = `store: file`. Clé absente : `store: db` (les
      * acceptations créées par `varia accept` ou le dashboard sont en base). `store: db` avec des

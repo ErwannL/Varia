@@ -1,0 +1,23 @@
+{
+  "name": "@varia/adapter-mocha",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "dependencies": {
+    "@varia/core": "0.1.0",
+    "@varia/probe-protocol": "0.1.0",
+    "@varia/probe-runtime": "0.1.0",
+    "@varia/adapter-vitest": "0.1.0"
+  },
+  "devDependencies": {
+    "@varia/adapter-conformance": "0.1.0"
+  }
+}

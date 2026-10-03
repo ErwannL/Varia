@@ -1,0 +1,9 @@
+[project]
+name = "varia-example-pytest-project"
+version = "1.0.0"
+description = "Projet d'exemple de Varia pour pytest (mêmes comportements que jest-project)"
+requires-python = ">=3.9"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

@@ -57,6 +57,8 @@ export class EngineContext {
   /** Répertoire de travail des processus de test (`test.cwd`, dans le projet). */
   readonly testCwd: string
   readonly keepTmp: boolean
+  /** Ressources à libérer à la fermeture (threads des extensions, J4 X-02). */
+  readonly closers: (() => void)[] = []
 
   constructor(o: EngineOptions) {
     try {
@@ -149,6 +151,7 @@ export class EngineContext {
   }
 
   close(): void {
+    for (const c of this.closers.splice(0)) c()
     this.log.flush()
     closeSync(this.logFd)
     this.db.close()

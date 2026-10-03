@@ -59,3 +59,6 @@ npm test             # vitest
 - `docs/notes/plateformes.md` — branches de plateforme injectées, tubes asynchrones sous macOS, URL `file:` et shell sous Windows.
 - `docs/notes/zero-ia.md` — aucune IA/LLM dans Varia ; contrôle `check:no-ai` (paquets, manifestes, code de sonde).
 - `docs/notes/navigateur.md` — mesure en Chromium réel (cibles 44 px, focus) ; navigateur absent = échec sauf `VARIA_BROWSER=absent` déclaré.
+- `docs/notes/sonde-mocha.md` — sonde sous Mocha (`--require` + `mochaHooks`, ESM par `module.register`, `spec` concaténé, `--grep` exact).
+- `docs/notes/extensions.md` — extensions externes : appel synchrone borné d'un thread (Atomics.wait), terminate des boucles, `import.meta.url` paresseux, `Math.random` par Reflect.
+- `docs/notes/sondes-autres-langages.md` — sondes Python, PHP, Java (bytecode et secrets, autoload, agent hors ligne, outils en CI).

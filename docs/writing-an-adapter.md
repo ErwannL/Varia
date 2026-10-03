@@ -44,3 +44,57 @@ tests du projet. Vérifications, toutes sur un projet jetable, via le moteur ré
 simulé. Une exception pendant un groupe fait échouer tout le groupe. La suite tourne dans `npm test`
 contre Jest et Vitest (`packages/adapter-conformance/test/conformance.test.ts`) et elle échoue contre
 des adapters volontairement défaillants (`broken.test.ts`).
+
+## Adaptateur custom
+
+Pour brancher un lanceur **sans écrire de code TypeScript ni modifier Varia** (J4 X-01, CDC §9.4) :
+le lanceur implémente lui-même le [protocole de sonde](probe-protocol.md) et le contrat ci-dessous ;
+`varia.yml` le déclare (paquet `@varia/adapter-custom`).
+
+```yaml
+test:
+  framework: custom
+  custom:
+    command: ['node', 'runner.cjs'] # argv, SANS shell ; `node` = le Node qui exécute Varia
+    discover: ['node', 'runner.cjs'] # optionnel : liste les tests (sert à `detect`)
+    capabilities: { observation: true, argumentMutation: true, perTestSelection: true, cjs: true }
+```
+
+`framework: custom` sans `custom` est refusé (`CUSTOM_COMMAND_REQUIRED`). Un chemin relatif en tête de
+commande est résolu dans `test.cwd` (racine du projet pour la découverte) ; un nom nu est cherché dans `PATH` (`PATHEXT` sous Windows : pas
+de shell, donc pas de script `.cmd` — utilisez `node script.js` ou un exécutable).
+
+**Entrées** (environnement du processus ; les `VARIA_*` hérités de Varia sont retirés, `test.env` et
+`NODE_OPTIONS` du projet sont transmis) :
+
+| Variable                                                                                          | Contenu                                                                                                                    |
+| ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `VARIA_MODE`, `VARIA_RUN_DIR`, `VARIA_TARGETS`, `VARIA_REDACT`, `VARIA_PLAN`, `VARIA_MUTATION_ID` | celles du protocole (§2 de la norme) : la sonde du lanceur les lit et écrit `probe-<pid>.jsonl`                            |
+| `VARIA_RESULTS`                                                                                   | chemin du **fichier de résultats** à écrire (toujours fourni)                                                              |
+| `VARIA_INCLUDE`, `VARIA_EXCLUDE`                                                                  | tableaux JSON d'expressions régulières (issues de `targets.include/exclude`), appliquées au chemin relatif POSIX du module |
+| `VARIA_TEST_FILE`, `VARIA_TEST_NAME`                                                              | sélection (si présentes) : fichier relatif POSIX et nom complet **exact** du seul test à exécuter                          |
+| `VARIA_COVERAGE_DIR`                                                                              | si présente : y écrire `coverage-summary.json` (format istanbul)                                                           |
+
+**Fichier de résultats** (JSON, écrit d'un coup en fin d'exécution — fichier temporaire puis
+renommage) : `{ "tests": [{ "file": "tests/a.test.js", "name": "suite cas", "status": "passed",
+"durationMs": 12 }] }`. `status` ∈ `passed`, `failed`, `skipped`, `other` ; `durationMs` nombre ou
+absent. `file`/`name` sont ceux des `TEST_START` de la sonde : Varia recalcule le `testId` du protocole
+(§8.1, rang des homonymes compris). Fichier absent, illisible ou hors format (processus tué, sortie
+brutale) ⇒ **aucun résultat** (`null`), jamais un résultat deviné. Un test non sélectionné est omis.
+
+**Découverte** (optionnelle) : la commande `discover` est lancée avec `VARIA_DISCOVER=<fichier>` (et
+aucune variable du protocole) ; elle écrit `{ "version"?: "1.0.0", "tests": [{ "file", "name" }] }` et
+sort avec le code 0. Échec ou hors format ⇒ `detect` rend `RUNNER_NOT_FOUND`. Sans découverte, `detect`
+vérifie seulement que la commande existe.
+
+**Capacités** : déclarées dans `test.custom.capabilities` (absentes ⇒ fausses), exposées telles quelles
+par l'adaptateur et **vérifiées par `varia doctor`** (tests de fumée : observation, mutation appliquée,
+sélection d'un test, async, système de modules, isolement, couverture produite, parallélisme). Un
+lanceur qui déclare tout sans écrire de journal de sonde obtient `UNSUPPORTED_PROBE`
+(`NO_TARGET_MODULE_WRAPPED`, code de sortie 5) ; une sonde d'une majeure inconnue,
+`PROBE_PROTOCOL_UNSUPPORTED`.
+
+**Preuve** : `examples/custom-project/runner.cjs`, lanceur factice qui n'importe rien de Varia, passe
+la suite de conformité d'adaptateur (`packages/adapters/custom/test/conformance.test.ts`), rejoue tout
+le jeu de conformité du protocole (`protocol.test.ts`) et les scénarios du §5 du jalon J4
+(`tests/j4/custom*.test.ts`).

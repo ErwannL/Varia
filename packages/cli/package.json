@@ -20,6 +20,11 @@
     "@varia/reporters": "0.1.0",
     "commander": "12.1.0",
     "@varia/api": "0.1.0",
-    "@varia/adapter-vitest": "0.1.0"
+    "@varia/adapter-vitest": "0.1.0",
+    "@varia/adapter-mocha": "0.1.0",
+    "@varia/adapter-custom": "0.1.0",
+    "@varia/adapter-pytest": "0.1.0",
+    "@varia/adapter-phpunit": "0.1.0",
+    "@varia/adapter-junit": "0.1.0"
   }
 }

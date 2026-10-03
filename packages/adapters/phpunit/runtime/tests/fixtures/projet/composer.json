@@ -1,0 +1,15 @@
+{
+  "autoload": {
+    "psr-4": {
+      "Fixture\\Projet\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Fixture\\Tests\\": [
+        "tests/",
+        "autres/"
+      ]
+    }
+  }
+}

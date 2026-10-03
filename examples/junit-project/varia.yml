@@ -1,0 +1,17 @@
+version: 1
+project: { name: junit-project }
+test: { framework: junit }
+targets: { mode: auto, include: ['src/main/java/**'] }
+inputs:
+  # repeat(label, count) : seules les mutations de `count` mènent au TIMEOUT.
+  skip: ['repeat#arg0']
+  # Valeur déclarée : provoque System.exit(1).
+  values: { 'exitOn#arg0': ['boom'] }
+mutations:
+  mode: normal
+  seed: 42
+  per_target: { 'src/main/java/com/example/Values.java#repeat': 3 }
+execution: { timeout_ms: 3000 }
+oracle:
+  handled_errors: [{ name: ValidationException }]
+  crash_errors: [ClassCastException, NullPointerException]

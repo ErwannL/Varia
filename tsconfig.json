@@ -4,9 +4,14 @@
     "noEmit": true,
     "allowJs": true,
     "paths": {
+      "@varia/adapter-custom": ["./packages/adapters/custom/src/index.ts"],
       "@varia/adapter-jest": ["./packages/adapters/jest/src/index.ts"],
       "@varia/*": ["./packages/*/src/index.ts"],
-      "@varia/adapter-vitest": ["./packages/adapters/vitest/src/index.ts"]
+      "@varia/adapter-vitest": ["./packages/adapters/vitest/src/index.ts"],
+      "@varia/adapter-mocha": ["./packages/adapters/mocha/src/index.ts"],
+      "@varia/adapter-junit": ["./packages/adapters/junit/src/index.ts"],
+      "@varia/adapter-phpunit": ["./packages/adapters/phpunit/src/index.ts"],
+      "@varia/adapter-pytest": ["./packages/adapters/pytest/src/index.ts"]
     },
     "checkJs": true
   },

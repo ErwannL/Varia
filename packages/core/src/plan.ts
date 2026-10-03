@@ -67,6 +67,8 @@ export interface PlanOptions {
   /** Identifiants ayant donné un crash dans l'historique (priorité, §13.4-3). */
   crashHistory?: Set<string>
   context?: MutationContext
+  /** Candidats d'extensions externes pour une entrée (J4 X-02), ajoutés après les stratégies intégrées. */
+  extraCandidates?: (input: InputDescriptor) => MutationCandidate[]
 }
 
 export function mutationId(
@@ -89,6 +91,7 @@ function candidatesForInput(input: InputDescriptor, o: PlanOptions): PlannedMuta
     candidates.push({ strategy: 'declared', op: 'set', value: declared })
   }
   candidates.push(...candidatesFor(input, o.strategies, o.context ?? DEFAULT_CONTEXT))
+  candidates.push(...(o.extraCandidates?.(input) ?? []))
   const test = o.tests.get(input.testId)
   return candidates
     .filter((c) => {

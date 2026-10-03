@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const REPORT_SCHEMA_VERSION = 3
+export const REPORT_SCHEMA_VERSION = 4
 
 const counts = z.object({
   mutations: z.number().int(),
@@ -191,6 +191,38 @@ export const reportSchema = z
       pendingMutations: z.number().int(),
     }),
     limitations: z.array(z.string()),
+    /**
+     * Extensions externes (J4 X-02, v4) : plugins chargés (ordre de la configuration) et erreurs
+     * `PLUGIN_FAILURE` de toutes les commandes du run (chargement, plan, fuzz, rapport).
+     */
+    plugins: z.object({
+      loaded: z.array(
+        z.object({
+          name: z.string(),
+          specifier: z.string(),
+          apiVersion: z.number().int(),
+          extensions: z.array(
+            z.object({
+              kind: z.enum(['strategy', 'detector', 'rule', 'reporter']),
+              id: z.string(),
+              /** Désactivée pour le run après une erreur. */
+              disabled: z.boolean(),
+              fileExtension: z.string().optional(),
+            }),
+          ),
+        }),
+      ),
+      failures: z.array(
+        z.object({
+          origin: z.literal('PLUGIN_FAILURE'),
+          plugin: z.string(),
+          extension: z.string().nullable(),
+          phase: z.enum(['load', 'plan', 'fuzz', 'report']),
+          code: z.string(),
+          message: z.string(),
+        }),
+      ),
+    }),
   })
   .strict()
 

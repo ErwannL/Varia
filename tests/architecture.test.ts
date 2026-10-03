@@ -54,6 +54,8 @@ describe('architecture', () => {
       'config',
       'probe-protocol',
       'probe-runtime',
+      'plugins',
+      'testkit',
     ]) {
       const deps = Object.keys(pkgJson(join('packages', name)).dependencies ?? {})
       expect(
@@ -89,8 +91,18 @@ describe('architecture', () => {
       for (const dep of Object.keys(pkgJson(d).dependencies ?? {}))
         if (dep.startsWith('@varia/')) expect(names.has(dep), `${d} → ${dep}`).toBe(true)
   })
-  it('aucun Math.random dans le moteur de mutation', () => {
+  it('aucun Math.random dans le moteur de mutation ni dans le chargeur d’extensions', () => {
     for (const f of files('packages/core/src'))
       expect(readFileSync(f, 'utf8'), f).not.toMatch(/Math\.random/)
+    // Le chargeur NOMME Math.random (contrat, message d'erreur) ; il ne l'appelle ni ne le remplace
+    // (seul runtime/host.cjs le remplace, temporairement, pendant l'appel d'une extension).
+    for (const f of files('packages/plugins/src'))
+      expect(readFileSync(f, 'utf8'), f).not.toMatch(/Math\.random\s*(\(|=[^=])/)
+  })
+  it('extensions (J4 X-02) : le paquet qui les exécute n’a aucun accès à la base ni au moteur', () => {
+    const deps = Object.keys(pkgJson('packages/plugins').dependencies ?? {})
+    expect(deps.filter((d) => ['@varia/database', '@varia/engine'].includes(d))).toEqual([])
+    // Le cœur ignore les extensions : seul le moteur (et le kit de test) les charge.
+    expect(Object.keys(pkgJson('packages/core').dependencies ?? {})).not.toContain('@varia/plugins')
   })
 })

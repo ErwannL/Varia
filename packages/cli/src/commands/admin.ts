@@ -12,7 +12,7 @@ import type { Shared } from '../shared.js'
 const MINIMAL_CONFIG =
   'version: 1\ntargets: { mode: auto, include: ["src/**"] }\nmutations: { mode: normal }\noracle:\n  handled_errors: [{ name: ValidationError }]\n'
 
-export const ADAPTERS = ['jest', 'vitest'] as const
+export const ADAPTERS = ['jest', 'vitest', 'mocha', 'pytest', 'phpunit', 'junit', 'custom'] as const
 
 export function registerAdmin(s: Shared): void {
   const { program } = s

@@ -9,6 +9,18 @@
   "include": ["src"],
   "references": [
     {
+      "path": "../adapters/junit"
+    },
+    {
+      "path": "../adapters/phpunit"
+    },
+    {
+      "path": "../adapters/pytest"
+    },
+    {
+      "path": "../adapters/custom"
+    },
+    {
       "path": "../adapters/jest"
     },
     {
@@ -31,6 +43,9 @@
     },
     {
       "path": "../adapters/vitest"
+    },
+    {
+      "path": "../adapters/mocha"
     }
   ]
 }

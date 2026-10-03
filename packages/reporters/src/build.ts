@@ -253,5 +253,6 @@ export function buildReport(reader: Reader, runId: string): Report {
       pendingMutations: counts.pending,
     },
     limitations: limitationsOf(o.depth, o.capabilities),
+    plugins: (info['plugins'] ?? { loaded: [], failures: [] }) as Report['plugins'],
   }
 }

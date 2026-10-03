@@ -1,0 +1,32 @@
+version: 1
+project: { name: custom-project }
+test:
+  framework: custom
+  custom:
+    # Lanceur externe (argv, sans shell) : `node` = le Node qui exécute Varia.
+    command: ['node', 'runner.cjs']
+    # Même script : en présence de VARIA_DISCOVER, il liste les tests au lieu de les exécuter.
+    discover: ['node', 'runner.cjs']
+    # Capacités DÉCLARÉES, vérifiées par `varia doctor` (jamais crues sur parole).
+    capabilities:
+      observation: true
+      argumentMutation: true
+      perTestSelection: true
+      asyncTargets: true
+      cjs: true
+      testParameters: true
+      isolatedProcess: true
+targets: { mode: auto, include: ['src/**'] }
+inputs:
+  # repeat(label, count) : seules les mutations de `count` mènent au TIMEOUT (C.0).
+  skip: ['repeat#arg0']
+  # Valeur déclarée (DECISIONS D-006) : provoque process.exit(1).
+  values: { 'exitOn#arg0': ['boom'] }
+mutations:
+  mode: normal
+  seed: 42
+  # Au plus 3 mutations sur repeat (chacune coûte un timeout).
+  per_target: { 'src/values.js#repeat': 3 }
+execution: { timeout_ms: 3000 }
+oracle:
+  handled_errors: [{ name: ValidationError }]

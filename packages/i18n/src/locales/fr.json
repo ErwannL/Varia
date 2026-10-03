@@ -442,5 +442,10 @@
   "dash.notCovered.mocked": "Cibles mockées par un test (non observées dans ce test)",
   "doctor.reason.PROBE_PROTOCOL_UNSUPPORTED": "Sonde d'une version majeure du protocole inconnue de cette version de Varia (docs/probe-protocol.md)",
   "report.capReason.PROBE_PROTOCOL_UNSUPPORTED": "Version du protocole de sonde non prise en charge",
-  "cli.warning.PLUGIN_FAILURE": "Une extension a échoué (PLUGIN_FAILURE) : elle est désactivée pour ce run, qui continue. Détails : section « plugins » du rapport JSON."
+  "cli.warning.PLUGIN_FAILURE": "Une extension a échoué (PLUGIN_FAILURE) : elle est désactivée pour ce run, qui continue. Détails : section « plugins » du rapport JSON.",
+  "config.issue.CUSTOM_COMMAND_REQUIRED": "obligatoire (commande de lancement) quand test.framework vaut custom",
+  "cli.list.adapter.custom": "Lanceur externe (commande déclarée dans varia.yml, protocole de sonde)",
+  "cli.list.adapter.pytest": "Pytest (Python, sonde par plugin)",
+  "cli.list.adapter.phpunit": "PHPUnit (PHP, sonde par autoload)",
+  "cli.list.adapter.junit": "JUnit 5 (Java, agent ByteBuddy)"
 }

@@ -27,6 +27,11 @@ export default defineConfig({
         find: /^@varia\/adapter-vitest$/,
         replacement: resolve('packages/adapters/vitest/src/index.ts'),
       },
+      // Adaptateurs (packages/adapters/<nom>) ; la suite de conformité reste un paquet de premier niveau.
+      {
+        find: /^@varia\/adapter-(?!conformance$)([\w-]+)$/,
+        replacement: resolve('packages/adapters/$1/src/index.ts'),
+      },
       { find: /^@varia\/([\w-]+)$/, replacement: resolve('packages/$1/src/index.ts') },
     ],
   },

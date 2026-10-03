@@ -18,6 +18,9 @@
       "path": "../database"
     },
     {
+      "path": "../plugins"
+    },
+    {
       "path": "../probe-protocol"
     },
     {

@@ -1,0 +1,19 @@
+{
+  "name": "varia-example-plugins-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Projet d'exemple des extensions de Varia (J4 X-02) : virements par IBAN, CommonJS",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "<rootDir>/tests/**/*.test.js"
+    ]
+  }
+}

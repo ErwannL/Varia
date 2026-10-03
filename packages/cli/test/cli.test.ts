@@ -109,6 +109,7 @@ describe('configuration : test.command, codes non supportés (A-06)', () => {
     expect(frameworkOfCommand(undefined)).toBeUndefined()
     expect(frameworkOfCommand('npx vitest run')).toBe('vitest')
     expect(frameworkOfCommand('jest --ci')).toBe('jest')
+    expect(frameworkOfCommand('npx mocha --exit')).toBe('mocha')
     expect(frameworkOfCommand('npm test')).toBeUndefined()
     const d = project({ 'varia.yml': 'version: 1\ntest: { command: npx vitest run }\n' })
     expect(adapterFor(d).id).toBe('vitest')

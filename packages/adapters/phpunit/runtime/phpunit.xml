@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tests de la sonde PHP (lancés par test/runtime.test.ts avec le PHPUnit de examples/phpunit-project). -->
+<phpunit bootstrap="tests/bootstrap.php" cacheResult="false" colors="false" failOnWarning="true" failOnRisky="true" failOnDeprecation="true" failOnNotice="true">
+    <testsuites>
+        <testsuite name="sonde">
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory>src</directory>
+        </include>
+    </source>
+</phpunit>

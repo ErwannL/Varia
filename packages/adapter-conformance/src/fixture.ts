@@ -9,6 +9,24 @@ export interface ConformanceDialect {
   ext: string
   /** Ligne d'import des fonctions de test (`test`, `expect`), si elles ne sont pas globales. */
   testImport?: string
+  /** Suffixe du chemin d'import de la cible (`.js` : ESM natif de Node, qui exige l'extension). */
+  importSuffix?: string
+  /**
+   * Langage autre que JavaScript (R-02) : fichiers du projet de conformité fournis tels quels (mêmes
+   * cibles, mêmes noms de tests), à la place de ceux générés ici.
+   */
+  files?: Record<string, string>
+  /** Dossier des dépendances de l'exemple lié dans le projet jetable (`node_modules` par défaut). */
+  link?: string
+  /** Classe d'erreur standard du langage attendue dans `constructorChain` (`Error` par défaut). */
+  baseError?: string
+  /**
+   * Nom complet que le runner donne à un test de conformité (R-04 : JUnit nomme un test par sa
+   * méthode, `conformance.ConformanceTest#observe()`) ; identité par défaut.
+   */
+  testName?: (name: string) => string
+  /** Nom d'export d'une cible quand le nom commun est réservé dans le langage (Java : `double`). */
+  exportName?: (name: string) => string
 }
 
 /** Fichier de la cible et du test, relatifs au projet. */
@@ -69,6 +87,7 @@ test.each([[1], [2]])('conformance param %i', (n) => {
 
 /** Fichiers (chemin relatif → contenu) du projet de conformité dans le dialecte donné. */
 export function conformanceFiles(d: ConformanceDialect): Record<string, string> {
+  if (d.files !== undefined) return d.files
   const names = EXPORTS.join(', ')
   const target =
     d.module === 'cjs'
@@ -77,7 +96,7 @@ export function conformanceFiles(d: ConformanceDialect): Record<string, string> 
   const imports =
     d.module === 'cjs'
       ? `const { ${names} } = require('../src/conformance')\n`
-      : `import { ${names} } from '../src/conformance'\n`
+      : `import { ${names} } from '../src/conformance${d.importSuffix ?? ''}'\n`
   return {
     [targetFile(d)]: target,
     [testFile(d)]: `${d.testImport !== undefined ? d.testImport + '\n' : ''}${imports}\n${TEST}`,

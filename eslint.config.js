@@ -4,7 +4,15 @@ import globals from 'globals'
 
 export default tseslint.config(
   {
-    ignores: ['**/node_modules/**', '**/dist/**', 'coverage/**', 'examples/**', 'docs/**'],
+    ignores: [
+      '**/node_modules/**',
+      '**/dist/**',
+      'coverage/**',
+      'examples/**',
+      'docs/**',
+      // Construction Maven de la sonde Java (R-04), ignorée par git.
+      '**/target/**',
+    ],
   },
   {
     // Aucun dialogue natif du navigateur dans le dashboard (prompt §4.4).

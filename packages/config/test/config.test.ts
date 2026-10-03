@@ -132,6 +132,29 @@ describe('affichage et schéma', () => {
     expect(out).toContain('API_TOKEN: "***"')
     expect(out).toContain('NODE_ENV: test')
   })
+  it('lanceur custom : commande en argv, capacités déclarées fausses par défaut (X-01)', () => {
+    const t = resolveConfig(
+      {
+        version: 1,
+        test: {
+          framework: 'custom',
+          custom: { command: ['node', 'runner.cjs'], capabilities: { observation: true } },
+        },
+      },
+      '/p',
+      null,
+    ).parsed.test
+    expect(t.custom?.command).toEqual(['node', 'runner.cjs'])
+    expect(t.custom?.discover).toBeUndefined()
+    expect(t.custom?.capabilities.observation).toBe(true)
+    expect(t.custom?.capabilities.coverage).toBe(false)
+    const bare = resolveConfig(
+      { version: 1, test: { framework: 'custom', custom: { command: ['r'] } } },
+      '/p',
+      null,
+    ).parsed.test.custom
+    expect(Object.values(bare?.capabilities ?? { x: true }).every((v) => !v)).toBe(true)
+  })
   it('schema/varia.schema.json est à jour', () => {
     const onDisk = readFileSync(new URL('../schema/varia.schema.json', import.meta.url), 'utf8')
     expect(JSON.parse(onDisk)).toEqual(JSON.parse(JSON.stringify(jsonSchema())))
@@ -167,6 +190,17 @@ describe('accepté = implémenté (A-06)', () => {
     [
       { execution: { reset: { database: 'command', database_command: '  ' } } },
       'DATABASE_COMMAND_REQUIRED',
+    ],
+    [{ test: { framework: 'custom' } }, 'test.custom : CUSTOM_COMMAND_REQUIRED'],
+    [{ test: { framework: 'custom', custom: { command: [] } } }, 'test.custom.command'],
+    [
+      {
+        test: {
+          framework: 'custom',
+          custom: { command: ['x'], capabilities: { observation: 'oui' } },
+        },
+      },
+      'test.custom.capabilities',
     ],
     [
       { redaction: { store_raw_values: true } },

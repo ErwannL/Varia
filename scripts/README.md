@@ -10,7 +10,7 @@ Outils de développement (jamais exécutés par Varia à l'exécution) :
 - `clean.mjs` — supprime les `dist/`. `brand.mjs`, `brand-preview.mjs`, `brand-preview-ui.ts` — marque (captures réelles dans `brand/previews/`).
 - `external-projects.mjs`, `fetch-external.mjs`, `acceptance-external.mjs` — projets externes épinglés (A.7).
 - `dashboard-check.mjs` — vérification du dashboard dans Chromium.
-- `mutation-check.mjs` + `mutation-cases.json` — preuve que les tests peuvent échouer.
+- `mutation-check.mjs` + `mutation-cases.json` (J0–J3) et `mutation-cases-j4.json` (J4, fichier séparé pour rester sous 1000 lignes) — preuve que les tests peuvent échouer.
 - `install-examples.mjs` — dépendances des exemples.
 - `check-coverage-ignores.mjs` — échoue sur toute esquive de couverture (`v8/c8/istanbul ignore`, `__coverage__`).
 - `coverage.mjs` + `coverage-lib.mjs` + `vitest-coverage-provider.mjs` — mesure de couverture complète

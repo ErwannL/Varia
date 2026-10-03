@@ -96,7 +96,8 @@ export function buildProject(example: string, dialect: ConformanceDialect): stri
   const root = realpathSync(mkdtempSync(join(tmpdir(), 'varia-conformance-')))
   for (const e of readdirSync(example, { withFileTypes: true }))
     if (e.isFile()) copyFileSync(join(example, e.name), join(root, e.name))
-  symlinkSync(join(example, 'node_modules'), join(root, 'node_modules'), 'junction')
+  const link = dialect.link ?? 'node_modules'
+  symlinkSync(join(example, link), join(root, link), 'junction')
   for (const [rel, content] of Object.entries(conformanceFiles(dialect))) {
     mkdirSync(dirname(join(root, rel)), { recursive: true })
     writeFileSync(join(root, rel), content)
@@ -146,6 +147,8 @@ export async function runConformance(o: ConformanceOptions): Promise<Conformance
     }
   }
   const timeoutMs = o.timeoutMs ?? 120_000
+  const named = (n: string) => o.dialect.testName?.(n) ?? n
+  const exported = (n: string) => o.dialect.exportName?.(n) ?? n
   const root = buildProject(o.example, o.dialect)
   const work = mkdtempSync(join(tmpdir(), 'varia-conformance-data-'))
   const configFile = join(work, 'varia.yml')
@@ -181,36 +184,38 @@ export async function runConformance(o: ConformanceOptions): Promise<Conformance
         await o.adapter.prepare(prepareContext(ctx, runId, dir('observe')))
         const run = await o.adapter.run({ mode: 'observe', runDir: dir('observe-run'), timeoutMs })
         observed = run
-        const greet = calls(run, 'greet')
+        const greet = calls(run, exported('greet'))
         record(
           'observation',
           greet.length === 1 && show(greet[0]?.args) === show([{ name: 'Ada' }]),
           `greet : ${show(greet.map((c) => c.args))}`,
         )
-        const ret = issues(run, 'TARGET_RETURN', 'fetchLater')
+        const ret = issues(run, 'TARGET_RETURN', exported('fetchLater'))
         record(
           'async',
-          calls(run, 'fetchLater').length === 1 &&
+          calls(run, exported('fetchLater')).length === 1 &&
             ret.length === 1 &&
             ret[0]?.async === true &&
             show(ret[0]?.value) === show({ id: 7 }),
           `fetchLater : ${show(ret.map((r) => r.value))}`,
         )
-        const seq = calls(run, 'add').map((c) => c.sequence)
+        const seq = calls(run, exported('add')).map((c) => c.sequence)
         record('multipleCalls', show(seq) === show([0, 1, 2]), `rangs de add : ${show(seq)}`)
-        const thrown = issues(run, 'TARGET_THROW', 'fail')
+        const thrown = issues(run, 'TARGET_THROW', exported('fail'))
         const chain = thrown[0]?.error?.constructorChain
         record(
           'exception',
-          thrown.length === 1 && chain?.[0] === 'ConformanceError' && chain.includes('Error'),
+          thrown.length === 1 &&
+            chain?.[0] === 'ConformanceError' &&
+            chain.includes(o.dialect.baseError ?? 'Error'),
           `TARGET_THROW : ${String(thrown.length)}, chaîne ${show(chain)}`,
         )
-        const doubles = calls(run, 'double')
+        const doubles = calls(run, exported('double'))
         const names = passedNames(run)
         record(
           'parameterized',
-          names.includes(TESTS.param(1)) &&
-            names.includes(TESTS.param(2)) &&
+          names.includes(named(TESTS.param(1))) &&
+            names.includes(named(TESTS.param(2))) &&
             show(doubles.map((c) => c.args)) === show([[1], [2]]) &&
             new Set(doubles.map((c) => c.testId)).size === 2,
           `tests : ${show(names)} ; double : ${show(doubles.map((c) => c.args))}`,
@@ -220,7 +225,7 @@ export async function runConformance(o: ConformanceOptions): Promise<Conformance
     // Sélection : un seul test exécuté, et seules ses cibles observées.
     await attempt(['selection'], async () => {
       const file = testsOf(observed as AdapterRun | null).find(
-        (t) => t.name === TESTS.observe,
+        (t) => t.name === named(TESTS.observe),
       )?.file
       if (file === undefined) throw new Error('test de conformité introuvable')
       const run = await o.adapter.run({
@@ -228,7 +233,7 @@ export async function runConformance(o: ConformanceOptions): Promise<Conformance
         runDir: dir('selection-run'),
         timeoutMs,
         testFile: file,
-        testName: TESTS.observe,
+        testName: named(TESTS.observe),
       })
       const ran = executed(run).map((t) => t.name)
       const exports = [
@@ -236,7 +241,7 @@ export async function runConformance(o: ConformanceOptions): Promise<Conformance
       ]
       record(
         'selection',
-        show(ran) === show([TESTS.observe]) && show(exports) === show(['greet']),
+        show(ran) === show([named(TESTS.observe)]) && show(exports) === show([exported('greet')]),
         `exécutés : ${show(ran)} ; cibles : ${show(exports)}`,
       )
     })
@@ -244,7 +249,7 @@ export async function runConformance(o: ConformanceOptions): Promise<Conformance
     await attempt(['mutation'], async () => {
       const plan = planRun(ctx, ctx.reader.latestRun(ctx.projectId)?.id ?? '', {
         maxMutations: 3,
-        filters: { functions: ['greet'], tests: [TESTS.observe] },
+        filters: { functions: [exported('greet')], tests: [named(TESTS.observe)] },
       })
       const r = await runFuzz(ctx, plan.runId)
       const statuses = ctx.reader.results(plan.runId).map((x) => `${x.status}:${String(x.reason)}`)

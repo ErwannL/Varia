@@ -1,7 +1,13 @@
 // Commandes de lecture et de décision : report, compare, accept, oracle suggest (CDC §18.7, §21, §27).
 import { applyOracleChoices } from '@varia/config'
 import { diffIssues } from '@varia/core'
-import { acceptanceStore, EXIT, oracleSuggestions, VariaError } from '@varia/engine'
+import {
+  acceptanceStore,
+  EXIT,
+  oracleSuggestions,
+  VariaError,
+  writeExtensionReports,
+} from '@varia/engine'
 import { t } from '@varia/i18n'
 import { buildReport, reportSchema } from '@varia/reporters'
 import { randomBytes } from 'node:crypto'
@@ -20,17 +26,29 @@ export function registerResults(s: Shared): void {
     .option('--junit <file>')
     .option('--sarif <file>')
     .option('--markdown <file>')
+    .option('--extensions-dir <dir>')
     .action(
       (
         runIdArg: string | undefined,
-        o: { out?: string; html?: string; junit?: string; sarif?: string; markdown?: string },
+        o: {
+          out?: string
+          html?: string
+          junit?: string
+          sarif?: string
+          markdown?: string
+          extensionsDir?: string
+        },
       ) =>
         s.withCtx(undefined, (ctx) => {
           const runId = runIdArg ?? ctx.reader.latestRun(ctx.projectId)?.id
           if (runId === undefined)
             throw new VariaError('PROJECT_FAILURE', t(s.p().locale, 'cli.noRun'))
           const report = reportSchema.parse(buildReport(ctx.reader, runId))
-          const { out, ...formats } = o
+          const { out, extensionsDir, ...formats } = o
+          // Rapporteurs externes (J4 X-02) : rapport déjà masqué, un fichier par rapporteur.
+          if (extensionsDir !== undefined)
+            for (const path of writeExtensionReports(ctx, runId, report, s.path(extensionsDir)))
+              s.p().say('cli.ci.written', { path })
           if (Object.keys(formats).length > 0) {
             writeOutputs(s, ctx, runId, formats)
             return EXIT.OK

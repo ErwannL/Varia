@@ -17,6 +17,21 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: npm
+      # R-02 / R-03 / R-04 : sondes Python, PHP et Java, mesurées par coverage.py, pcov et JaCoCo.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pcov
+          coverage: pcov
+          tools: composer
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
       - run: npm ci
       - run: npm run examples:install
       - run: npx playwright-core --version

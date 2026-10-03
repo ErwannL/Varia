@@ -1,0 +1,16 @@
+version: 1
+project: { name: pytest-project }
+test: { framework: pytest }
+targets: { mode: auto, include: ['src/**'] }
+inputs:
+  # repeat(label, count) : seules les mutations de `count` mènent au TIMEOUT.
+  skip: ['repeat#arg0']
+  # Valeurs déclarées : « boom » provoque os._exit(1), « quit » sys.exit(2).
+  values: { 'exit_on#arg0': ['boom', 'quit'] }
+mutations:
+  mode: normal
+  seed: 42
+  per_target: { 'src/values.py#repeat': 3 }
+execution: { timeout_ms: 5000 }
+oracle:
+  handled_errors: [{ name: ValidationError }]

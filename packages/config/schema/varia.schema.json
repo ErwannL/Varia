@@ -17,7 +17,18 @@
       "type": "object",
       "properties": {
         "command": { "type": "string" },
-        "framework": { "type": "string", "enum": ["jest", "vitest"] },
+        "framework": {
+          "type": "string",
+          "enum": [
+            "jest",
+            "vitest",
+            "mocha",
+            "pytest",
+            "phpunit",
+            "junit",
+            "custom"
+          ]
+        },
         "cwd": { "default": ".", "type": "string" },
         "env": {
           "default": {},
@@ -25,7 +36,54 @@
           "propertyNames": { "type": "string" },
           "additionalProperties": { "type": "string" }
         },
-        "node_options": { "type": "string" }
+        "node_options": { "type": "string" },
+        "custom": {
+          "type": "object",
+          "properties": {
+            "command": {
+              "minItems": 1,
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "discover": {
+              "minItems": 1,
+              "type": "array",
+              "items": { "type": "string", "minLength": 1 }
+            },
+            "capabilities": {
+              "default": {
+                "observation": false,
+                "argumentMutation": false,
+                "perTestSelection": false,
+                "asyncTargets": false,
+                "esm": false,
+                "cjs": false,
+                "mocks": false,
+                "testParameters": false,
+                "coverage": false,
+                "isolatedProcess": false,
+                "parallelSafe": false
+              },
+              "type": "object",
+              "properties": {
+                "observation": { "default": false, "type": "boolean" },
+                "argumentMutation": { "default": false, "type": "boolean" },
+                "perTestSelection": { "default": false, "type": "boolean" },
+                "asyncTargets": { "default": false, "type": "boolean" },
+                "esm": { "default": false, "type": "boolean" },
+                "cjs": { "default": false, "type": "boolean" },
+                "mocks": { "default": false, "type": "boolean" },
+                "testParameters": { "default": false, "type": "boolean" },
+                "coverage": { "default": false, "type": "boolean" },
+                "isolatedProcess": { "default": false, "type": "boolean" },
+                "parallelSafe": { "default": false, "type": "boolean" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "required": ["command"],
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },
@@ -475,6 +533,11 @@
         "include_transitive": { "default": false, "type": "boolean" }
       },
       "additionalProperties": false
+    },
+    "plugins": {
+      "default": [],
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
     },
     "acceptances": {
       "default": { "store": "db", "items": [] },

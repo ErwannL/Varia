@@ -1,0 +1,17 @@
+version: 1
+project: { name: phpunit-project }
+# Adaptateur PHPUnit (R-03) : sonde PHP fournie avec Varia, rien n'est installé dans ce projet.
+test: { framework: phpunit, command: vendor/bin/phpunit }
+targets: { mode: auto, include: ['src/**'] }
+inputs:
+  # repeat(label, count) : seules les mutations de `count` mènent au TIMEOUT.
+  skip: ['repeat#arg0']
+  # Valeur déclarée : provoque exit(1).
+  values: { 'exitOn#arg0': ['boom'] }
+mutations:
+  mode: normal
+  seed: 42
+  per_target: { 'src/Values.php#repeat': 3 }
+execution: { timeout_ms: 3000 }
+oracle:
+  handled_errors: [{ name: ValidationError }]

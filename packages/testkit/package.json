@@ -13,6 +13,9 @@
   },
   "dependencies": {
     "@varia/core": "0.1.0",
-    "@varia/database": "0.1.0"
+    "@varia/database": "0.1.0",
+    "@varia/plugins": "0.1.0",
+    "@varia/probe-protocol": "0.1.0",
+    "@varia/probe-runtime": "0.1.0"
   }
 }

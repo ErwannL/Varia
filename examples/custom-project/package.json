@@ -1,0 +1,10 @@
+{
+  "name": "varia-example-custom-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Projet d'exemple de Varia pour l'adaptateur custom : lanceur factice runner.cjs (mêmes comportements que jest-project), CommonJS",
+  "license": "MIT",
+  "scripts": {
+    "test": "node runner.cjs"
+  }
+}

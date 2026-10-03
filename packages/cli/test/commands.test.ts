@@ -99,6 +99,11 @@ describe('version, list', () => {
     expect((await run(['-q', 'list', 'adapters'], d)).out.split('\n')).toEqual([
       'jest — Jest (CommonJS, TypeScript transpilé)',
       'vitest — Vitest (ESM et CommonJS, TypeScript)',
+      'mocha — Mocha (CommonJS)',
+      'pytest — Pytest (Python, sonde par plugin)',
+      'phpunit — PHPUnit (PHP, sonde par autoload)',
+      'junit — JUnit 5 (Java, agent ByteBuddy)',
+      'custom — Lanceur externe (commande déclarée dans varia.yml, protocole de sonde)',
     ])
     const s = JSON.parse((await run(['--json', 'list', 'strategies'], d)).out) as { id: string }[]
     expect(s.map((x) => x.id)).toContain('encoding')

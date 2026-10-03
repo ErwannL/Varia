@@ -442,5 +442,10 @@
   "dash.notCovered.mocked": "Targets mocked by a test (not observed in that test)",
   "doctor.reason.PROBE_PROTOCOL_UNSUPPORTED": "Probe speaks a protocol major version unknown to this Varia version (docs/probe-protocol.md)",
   "report.capReason.PROBE_PROTOCOL_UNSUPPORTED": "Unsupported probe protocol version",
-  "cli.warning.PLUGIN_FAILURE": "An extension failed (PLUGIN_FAILURE): it is disabled for this run, which continues. Details: \"plugins\" section of the JSON report."
+  "cli.warning.PLUGIN_FAILURE": "An extension failed (PLUGIN_FAILURE): it is disabled for this run, which continues. Details: \"plugins\" section of the JSON report.",
+  "config.issue.CUSTOM_COMMAND_REQUIRED": "required (launch command) when test.framework is custom",
+  "cli.list.adapter.custom": "External launcher (command declared in varia.yml, probe protocol)",
+  "cli.list.adapter.pytest": "Pytest (Python, plugin probe)",
+  "cli.list.adapter.phpunit": "PHPUnit (PHP, autoload probe)",
+  "cli.list.adapter.junit": "JUnit 5 (Java, ByteBuddy agent)"
 }

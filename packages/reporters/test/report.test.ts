@@ -22,7 +22,7 @@ describe('rapport JSON (CDC §31)', () => {
   it('valide contre son schéma versionné', () => {
     const r = report()
     expect(reportSchema.safeParse(r).success).toBe(true)
-    expect(r.schemaVersion).toBe(3)
+    expect(r.schemaVersion).toBe(4)
   })
   it('comptes bruts, en attente, run partiel', () => {
     const r = report()

@@ -1,4 +1,9 @@
+import { CustomAdapter } from '@varia/adapter-custom'
 import { JestAdapter } from '@varia/adapter-jest'
+import { MochaAdapter } from '@varia/adapter-mocha'
+import { PhpunitAdapter } from '@varia/adapter-phpunit'
+import { JUnitAdapter } from '@varia/adapter-junit'
+import { PytestAdapter } from '@varia/adapter-pytest'
 import { VitestAdapter } from '@varia/adapter-vitest'
 import { CONFIG_FILES, loadConfig } from '@varia/config'
 import type { TestAdapter } from '@varia/core'
@@ -45,9 +50,12 @@ export const configFileOf = (ctx: EngineContext): string =>
   ctx.config.file ?? join(ctx.root, CONFIG_FILES[0])
 
 /** Framework désigné par une commande de test (`npx vitest run` → vitest, `jest --ci` → jest). */
-export function frameworkOfCommand(command: string | undefined): 'jest' | 'vitest' | undefined {
+export function frameworkOfCommand(
+  command: string | undefined,
+): 'jest' | 'vitest' | 'mocha' | undefined {
   if (command === undefined) return undefined
   if (/\bvitest\b/.test(command)) return 'vitest'
+  if (/\bmocha\b/.test(command)) return 'mocha'
   return /\bjest\b/.test(command) ? 'jest' : undefined
 }
 
@@ -71,9 +79,16 @@ export function adapterFor(root: string, configFile?: string): TestAdapter {
         })
       : {}
     const deps = { ...pkg.dependencies, ...pkg.devDependencies }
-    framework = 'vitest' in deps && !('jest' in deps) ? 'vitest' : 'jest'
+    // Jest reste le défaut ; Vitest ou Mocha seulement s'il est le seul lanceur connu des dépendances.
+    framework =
+      'jest' in deps ? 'jest' : 'vitest' in deps ? 'vitest' : 'mocha' in deps ? 'mocha' : 'jest'
   }
-  return framework === 'vitest' ? new VitestAdapter() : new JestAdapter()
+  if (framework === 'custom') return CustomAdapter.fromConfig(root, configFile)
+  if (framework === 'pytest') return new PytestAdapter()
+  if (framework === 'phpunit') return new PhpunitAdapter()
+  if (framework === 'junit') return new JUnitAdapter()
+  if (framework === 'vitest') return new VitestAdapter()
+  return framework === 'mocha' ? new MochaAdapter() : new JestAdapter()
 }
 
 export interface CliEnv {

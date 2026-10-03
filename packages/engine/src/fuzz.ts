@@ -22,6 +22,7 @@ import { readPlan } from './planning.js'
 import { filesystemEnv, resetDatabase, resetSucceeded } from './reset.js'
 import { pruneRuns } from './retention.js'
 import { probeErrorCount } from './signals.js'
+import { applyPluginRules, recordPlugins } from './plugins.js'
 
 export interface FuzzOptions {
   maxTimeMs?: number
@@ -135,7 +136,7 @@ export async function executeMutation(
     const hint = ctx.config.parsed.inputs.hints.find((h) => h.path === `${m.export}#${m.pathStr}`)
     const testResult = run.tests?.find((t) => t.testId === m.testId)
     const testStatus = testResult?.status ?? null
-    const classification = classify(
+    const builtIn = classify(
       {
         mutation: m,
         process: run.process,
@@ -152,6 +153,8 @@ export async function executeMutation(
       },
       oracleConfig(ctx),
     )
+    // Règles d'oracle externes (J4 X-02) : comportements de la cible seulement ; erreur ⇒ PLUGIN_FAILURE.
+    const classification = applyPluginRules(ctx, m, builtIn, mutatedCall)
     const calls = observed
       .filter((c) => c.testId === m.testId)
       .map((c) => ({
@@ -283,6 +286,7 @@ async function fuzzRun(
     ctx.discardTmp(tmpDir)
   }
   analyze(ctx, runId, plan)
+  recordPlugins(ctx, runId)
   const results = ctx.reader.results(runId)
   const pending = plan.mutations.length - results.length
   const partial = pending > 0 || run.partial

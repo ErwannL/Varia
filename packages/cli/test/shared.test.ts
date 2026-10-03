@@ -54,6 +54,40 @@ describe('adapterFor', () => {
       ).id,
     ).toBe('jest')
   })
+  it('pytest (R-02) : `test.framework: pytest`', () => {
+    expect(adapterFor(dir({ 'varia.yml': 'version: 1\ntest: { framework: pytest }\n' })).id).toBe(
+      'pytest',
+    )
+  })
+  it('phpunit : `test.framework: phpunit`', () => {
+    expect(adapterFor(dir({ 'varia.yml': 'version: 1\ntest: { framework: phpunit }\n' })).id).toBe(
+      'phpunit',
+    )
+  })
+  it('junit : `test.framework: junit`', () => {
+    expect(adapterFor(dir({ 'varia.yml': 'version: 1\ntest: { framework: junit }\n' })).id).toBe(
+      'junit',
+    )
+  })
+  it('custom (X-01) : `test.framework: custom` construit l’adaptateur depuis varia.yml', () => {
+    const yml = "version: 1\ntest: { framework: custom, custom: { command: ['node', 'r.cjs'] } }\n"
+    expect(adapterFor(dir({ 'varia.yml': yml })).id).toBe('custom')
+  })
+  it('Mocha (R-01) : `test.framework: mocha`, ou mocha seul dans les dépendances', () => {
+    expect(adapterFor(dir({ 'varia.yml': 'version: 1\ntest: { framework: mocha }\n' })).id).toBe(
+      'mocha',
+    )
+    expect(adapterFor(dir({ 'package.json': '{"devDependencies":{"mocha":"11"}}' })).id).toBe(
+      'mocha',
+    )
+    // Mocha à côté de Jest ou de Vitest : le lanceur historique reste prioritaire.
+    expect(
+      adapterFor(dir({ 'package.json': '{"devDependencies":{"mocha":"11","jest":"29"}}' })).id,
+    ).toBe('jest')
+    expect(
+      adapterFor(dir({ 'package.json': '{"devDependencies":{"mocha":"11","vitest":"3"}}' })).id,
+    ).toBe('vitest')
+  })
 })
 
 describe('mode et ciblage', () => {

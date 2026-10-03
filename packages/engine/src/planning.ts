@@ -16,6 +16,7 @@ import { changedFiles, incrementalFilter } from './incremental.js'
 import type { EngineContext } from './context.js'
 import { VariaError } from './errors.js'
 import { VARIA_VERSION } from './version.js'
+import { announceNew, pluginSession, recordPlugins } from './plugins.js'
 
 export interface PlanSummary {
   runId: string
@@ -116,8 +117,11 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
   const testOf = (c: ObservedCall) => tests.get(c.testId) as { file: string; name: string }
   const total = Math.min(p.mutations.limits.total_mutations, o.maxMutations ?? Infinity)
   const f = o.filters ?? {}
+  // Stratégies externes actives (J4 X-02) : connues de `--strategy` comme les intégrées.
+  const session = pluginSession(ctx)
+  const external = session.strategyIds()
   const unknown = (f.strategies ?? []).filter(
-    (x) => !(STRATEGY_NAMES as readonly string[]).includes(x),
+    (x) => !(STRATEGY_NAMES as readonly string[]).includes(x) && !external.includes(x),
   )
   if (unknown.length > 0) throw new VariaError('CONFIG_FAILURE', 'stratégie inconnue', unknown)
   const all = eligibleCalls(ctx, runId)
@@ -134,7 +138,11 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
   const strategies = some(wanted)
     ? ctx.config.strategies.filter((x) => wanted.includes(x))
     : ctx.config.strategies
-  const targeted = calls.length < all.length || strategies.length < ctx.config.strategies.length
+  const externalWanted = some(wanted) ? external.filter((x) => wanted.includes(x)) : external
+  const targeted =
+    calls.length < all.length ||
+    strategies.length < ctx.config.strategies.length ||
+    externalWanted.length < external.length
   let incremental: Record<string, unknown> | null = null
   let reduced = false
   if (o.changed !== undefined) {
@@ -151,7 +159,21 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
       scope: keep === null ? 'FULL_FALLBACK' : reduced ? 'PARTIAL' : 'FULL',
     }
   }
-  const plan = generatePlan(catalogFromCalls(ctx, calls), {
+  const limits = {
+    stringLength: p.mutations.limits.string_length,
+    arrayLength: p.mutations.limits.array_length,
+    objectDepth: p.mutations.limits.object_depth,
+  }
+  const catalog = catalogFromCalls(ctx, calls)
+  // Entrées déjà masquées (une valeur redigée n'est pas mutable) ; deux générations par stratégie.
+  const extra = session.generate(
+    catalog.filter((i) => i.mutable),
+    seed,
+    limits,
+    externalWanted,
+  )
+  announceNew(ctx)
+  const plan = generatePlan(catalog, {
     seed,
     perInput: ctx.config.perInput,
     strategies,
@@ -162,13 +184,11 @@ export function planRun(ctx: EngineContext, runId: string, o: PlanRunOptions = {
     perTarget: p.mutations.per_target,
     total,
     extraValues: p.inputs.values as Record<string, Json[]>,
-    context: {
-      stringLength: p.mutations.limits.string_length,
-      arrayLength: p.mutations.limits.array_length,
-      objectDepth: p.mutations.limits.object_depth,
-    },
+    context: limits,
+    extraCandidates: (i) => extra.get(`${i.callSiteId}|${i.pathStr}`) ?? [],
   })
   const summary = savePlan(ctx, runId, plan)
+  recordPlugins(ctx, runId)
   // Run vérifié existant à l'entrée : son `info` est relu après `savePlan`, qui l'a enrichi.
   const info = () => (ctx.reader.getRun(runId) as RunRecord).info
   if (targeted) {

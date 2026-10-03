@@ -9,3 +9,7 @@ brand/generated
 packages/config/schema
 packages/reporters/schema
 reports/assets/*.json
+examples/*/vendor
+examples/*/composer.lock
+**/target
+examples/*/.venv
