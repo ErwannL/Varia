@@ -36,7 +36,11 @@ const realFiles: FileAccess = {
 }
 
 const EXTENSIONS = ['', '.js', '.cjs', '.mjs', '.ts', '.cts', '.mts', '.jsx', '.tsx']
-const CANDIDATES = [...EXTENSIONS, ...EXTENSIONS.slice(1).map((e) => `/index${e}`)]
+/** Fichier exact ou avec extension, puis `index.*` du dossier (séparateurs natifs : `join`). */
+const candidates = (base: string) => [
+  ...EXTENSIONS.map((e) => base + e),
+  ...EXTENSIONS.slice(1).map((e) => join(base, `index${e}`)),
+]
 
 /** Modules du projet (relatifs, POSIX) mockés par chaque fichier de test ; triés, sans doublon. */
 export function mockedTargets(
@@ -54,7 +58,7 @@ export function mockedTargets(
     for (const spec of mockSpecifiers(source)) {
       if (!spec.startsWith('.')) continue
       const base = join(root, dirname(testFile), spec)
-      const file = CANDIDATES.map((c) => base + c).find((f) => io.isFile(f))
+      const file = candidates(base).find((f) => io.isFile(f))
       if (file === undefined) continue
       const module = relative(root, file).split(sep).join('/')
       if (!inc.some((r) => r.test(module)) || exc.some((r) => r.test(module))) continue
