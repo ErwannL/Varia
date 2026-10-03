@@ -6,8 +6,10 @@ import { execFileSync } from 'node:child_process'
 import { randomBytes } from 'node:crypto'
 import {
   appendFileSync,
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
   readFileSync,
   realpathSync,
   rmSync,
@@ -48,8 +50,9 @@ export class EngineContext {
   readonly writer: Writer
   readonly reader: Reader
   readonly log: Logger
-  /** Fichier journal ouvert par le contexte, fermé par `close()`. */
+  /** Fichier journal ouvert par le contexte, fermé (synchronement) par `close()`. */
   readonly logDestination: ReturnType<typeof pino.destination>
+  readonly logFd: number
   readonly emit: (e: ProgressEvent) => void
   /** Répertoire de travail des processus de test (`test.cwd`, dans le projet). */
   readonly testCwd: string
@@ -87,11 +90,10 @@ export class EngineContext {
     this.writer = new Writer(this.db.db)
     this.reader = new Reader(this.db.db)
     mkdirSync(join(this.dataDir, 'logs'), { recursive: true })
-    this.logDestination = pino.destination({
-      dest: join(this.dataDir, 'logs', 'varia.log'),
-      sync: true,
-      append: true,
-    })
+    // Descripteur ouvert et fermé par le contexte lui-même : `close()` le libère SYNCHRONEMENT (la
+    // fermeture de pino est asynchrone ; sous Windows, le dossier de données restait verrouillé).
+    this.logFd = openSync(join(this.dataDir, 'logs', 'varia.log'), 'a')
+    this.logDestination = pino.destination({ fd: this.logFd, sync: true })
     this.log = pino({ base: { projectId: this.projectId } }, this.logDestination)
     this.emit = o.onProgress ?? (() => undefined)
     this.keepTmp = o.keepTmp === true
@@ -148,7 +150,7 @@ export class EngineContext {
 
   close(): void {
     this.log.flush()
-    this.logDestination.end()
+    closeSync(this.logFd)
     this.db.close()
   }
 }

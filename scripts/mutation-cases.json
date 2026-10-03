@@ -525,10 +525,10 @@
     "tests": ["packages/engine/test/incremental.test.ts"]
   },
   {
-    "name": "journal non fermé par close() (verrou Windows)",
+    "name": "journal fermé de façon asynchrone par close() (verrou Windows)",
     "file": "packages/engine/src/context.ts",
-    "find": "    this.logDestination.end()\n",
-    "replace": "",
+    "find": "    closeSync(this.logFd)\n",
+    "replace": "    this.logDestination.end()\n",
     "tests": ["packages/engine/test/context.test.ts"]
   },
   {

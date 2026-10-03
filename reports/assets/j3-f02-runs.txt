@@ -1,0 +1,25 @@
+== run1
+ Test Files  94 passed (94)
+      Tests  856 passed (856)
+   Start at  08:52:13
+   Duration  583.34s (transform 2.19s, setup 955ms, collect 39.08s, tests 514.54s, environment 3.38s, prepare 6.54s)
+== run2
+ Test Files  94 passed (94)
+      Tests  856 passed (856)
+   Start at  09:01:57
+   Duration  581.36s (transform 2.38s, setup 977ms, collect 39.30s, tests 511.92s, environment 3.44s, prepare 6.59s)
+== run3
+ Test Files  94 passed (94)
+      Tests  856 passed (856)
+   Start at  09:11:39
+   Duration  593.85s (transform 2.43s, setup 1.07s, collect 41.39s, tests 520.87s, environment 3.48s, prepare 6.94s)
+== load-a
+ Test Files  94 passed (94)
+      Tests  856 passed (856)
+   Start at  09:21:34
+   Duration  614.21s (transform 2.66s, setup 1.24s, collect 42.39s, tests 539.56s, environment 3.72s, prepare 6.94s)
+== load-b
+ Test Files  94 passed (94)
+      Tests  856 passed (856)
+   Start at  09:21:34
+   Duration  615.15s (transform 2.74s, setup 1.14s, collect 42.28s, tests 540.74s, environment 3.64s, prepare 7.00s)

@@ -21,18 +21,21 @@ describe('mockSpecifiers', () => {
   })
 })
 
+// Chemins natifs de la plateforme (« \\ » sous Windows), comme ceux que construit le code.
+const P = (rel: string) => join('/p', rel)
+
 describe('mockedTargets', () => {
   const files = new Set([
-    '/p/src/users.js',
-    '/p/src/b.ts',
-    '/p/src/lib/index.ts',
-    '/p/vendor/x.js',
-    '/p/src/gen/out.js',
+    P('src/users.js'),
+    P('src/b.ts'),
+    P('src/lib/index.ts'),
+    P('vendor/x.js'),
+    P('src/gen/out.js'),
   ])
   const sources: Record<string, string> = {
-    '/p/tests/a.test.js':
+    [P('tests/a.test.js')]:
       "jest.mock('../src/users')\njest.mock('../src/lib')\njest.mock('lodash')\njest.mock('../vendor/x')",
-    '/p/tests/b.test.ts':
+    [P('tests/b.test.ts')]:
       "vi.mock('../src/b')\nvi.mock('../src/absent')\nvi.mock('../src/gen/out')",
   }
   const io = {

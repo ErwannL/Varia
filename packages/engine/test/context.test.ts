@@ -1,6 +1,14 @@
 import type { TestAdapter } from '@varia/core'
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  fstatSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it, vi } from 'vitest'
@@ -134,8 +142,7 @@ describe('contexte du moteur', () => {
       ctx.close()
       expect(ctx.dataDir).toBe(projectDataDir(d))
       expect(existsSync(join(d, '.varia'))).toBe(false)
-      // Windows : suppression parfois refusée un instant après la fermeture (antivirus, index) ⇒ réessais.
-      rmSync(ctx.dataDir, { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
+      rmSync(ctx.dataDir, { recursive: true, force: true })
     } finally {
       vi.unstubAllEnvs()
     }
@@ -148,8 +155,8 @@ describe('fermeture du contexte', () => {
     const ctx = new EngineContext({ root: d, adapter: fakeAdapter, dataDir: join(d, 'data') })
     ctx.log.info('avant fermeture')
     ctx.close()
-    // `destroyed` existe à l'exécution (sonic-boom) mais pas dans ses types publiés.
-    expect((ctx.logDestination as unknown as { destroyed: boolean }).destroyed).toBe(true)
+    // Descripteur fermé SYNCHRONEMENT : dès le retour de close(), il n'existe plus (toute plateforme).
+    expect(() => fstatSync(ctx.logFd)).toThrow(expect.objectContaining({ code: 'EBADF' }))
     expect(readFileSync(join(ctx.dataDir, 'logs', 'varia.log'), 'utf8')).toContain(
       'avant fermeture',
     )

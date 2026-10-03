@@ -53,7 +53,8 @@ describe('bin/varia (main.ts)', () => {
       // Ctrl+C simulé dès que le serveur s'annonce, répété jusqu'à l'arrêt (aucune hypothèse sur
       // l'ordre d'enregistrement de l'écouteur ni sur la vitesse de la machine).
       const ctrlC = setInterval(() => {
-        if (lines.some((l) => l.startsWith('Dashboard :'))) process.emit('SIGINT')
+        // Annonce du serveur, quelle que soit la langue de la machine (« Dashboard : » / « Dashboard: »).
+        if (lines.some((l) => /^Dashboard ?: http/.test(l))) process.emit('SIGINT')
       }, 20)
       let timer: NodeJS.Timeout | undefined
       try {
@@ -71,7 +72,7 @@ describe('bin/varia (main.ts)', () => {
         clearInterval(ctrlC)
         clearTimeout(timer)
       }
-      expect(lines.join('')).toMatch(/^Dashboard : http:\/\/127\.0\.0\.1:\d+/m)
+      expect(lines.join('')).toMatch(/^Dashboard ?: http:\/\/127\.0\.0\.1:\d+/m)
       expect(process.exitCode).toBe(0)
     } finally {
       process.argv = argv

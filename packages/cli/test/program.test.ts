@@ -35,8 +35,7 @@ describe('runCli', () => {
       expect(r.code).toBe(0)
       expect(existsSync(join(projectDataDir(d), 'varia.db'))).toBe(true)
       expect(existsSync(join(d, '.varia'))).toBe(false)
-      // Windows : suppression parfois refusée un instant après la fermeture (antivirus, index) ⇒ réessais.
-      rmSync(projectDataDir(d), { recursive: true, force: true, maxRetries: 10, retryDelay: 100 })
+      rmSync(projectDataDir(d), { recursive: true, force: true })
     } finally {
       vi.unstubAllEnvs()
     }
