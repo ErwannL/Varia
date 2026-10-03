@@ -34,6 +34,8 @@ const open = async (hash: string, heading: string | RegExp) => {
   window.location.hash = hash
   render(<App locale="fr" />)
   await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: heading })).toBeTruthy())
+  // Données chargées : plus aucun chargeur (le titre peut précéder les données sur une machine lente).
+  await waitFor(() => expect(screen.queryByTestId('loader-logo')).toBeNull())
 }
 const crumbs = () =>
   within(screen.getByRole('navigation', { name: "Fil d'Ariane" }))
@@ -50,7 +52,7 @@ describe('E-07 : navigation Projet → Run → Dossier → Fichier → Test → 
     await open(`#/runs/${SEED_RUN}/folders`, 'Dossiers de tests')
     expect(crumbs()).toEqual(['Projet', `Run ${SEED_RUN}`, 'Dossiers'])
     // Comptes : mutations ET défaillances écrites en chiffres (jamais la couleur seule).
-    expect(screen.getByRole('row', { name: /tests 2 2 7 3/ })).toBeTruthy()
+    expect(await screen.findByRole('row', { name: /tests 2 2 7 3/ })).toBeTruthy()
     await follow('tests', 'Fichiers du dossier tests')
     await follow('tests/users.test.js', 'Tests du fichier tests/users.test.js')
     expect(crumbs()).toEqual([

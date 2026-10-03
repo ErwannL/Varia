@@ -59,6 +59,8 @@ const show = async (hash: string, heading: string | RegExp, locale: 'fr' | 'en' 
   window.location.hash = hash
   render(<App locale={locale} />)
   await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: heading })).toBeTruthy())
+  // Données chargées : plus aucun chargeur (le titre peut précéder les données sur une machine lente).
+  await waitFor(() => expect(screen.queryByTestId('loader-logo')).toBeNull())
 }
 
 describe('langue initiale (sans langue imposée)', () => {

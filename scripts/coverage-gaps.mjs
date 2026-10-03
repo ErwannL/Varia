@@ -1,10 +1,15 @@
 // Liste, fichier par fichier, ce qui n'est pas couvert dans coverage/coverage-final.json (aide au
 // travail de couverture ; ne juge rien, cf. check-coverage-exact.mjs).
 // Usage : node scripts/coverage-gaps.mjs [filtre sur le chemin]
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { exactCounts } from './coverage-lib.mjs'
 
 const filter = process.argv[2] ?? ''
+if (!existsSync('coverage/coverage-final.json')) {
+  // Les tests ont échoué avant d'écrire la couverture : rien à lister (diagnostic CI).
+  console.log('coverage/coverage-final.json absent : aucune couverture écrite')
+  process.exit(0)
+}
 const map = JSON.parse(readFileSync('coverage/coverage-final.json', 'utf8'))
 for (const [file, fc] of Object.entries(map)) {
   if (!file.includes(filter)) continue

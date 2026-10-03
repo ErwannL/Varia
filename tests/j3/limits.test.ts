@@ -71,12 +71,9 @@ describe('drapeau SLOW (A-10)', () => {
     expect(r.code, r.err).toBe(0)
     const c = json<{ classification: { status: string; flags?: string[] } }>(r).classification
     expect([c.status, c.flags]).toEqual(['PASSED', ['SLOW']])
-    // Contre-épreuve : une mutation rapide du même test n'est pas lente.
-    const quick = plan.mutations.find((x) => x.export === 'tally' && x.strategy === 'empty')
-    const q = json<{ classification: { flags?: string[] } }>(
-      await cli(['--json', 'replay', quick?.id ?? '']),
-    ).classification
-    expect(q.flags).toBeUndefined()
+    // Contre-épreuve (au-dessous du seuil, plancher) : tests déterministes de l'oracle
+    // (packages/core/test/oracle.test.ts). Ici, une mutation « rapide » dépendrait de la vitesse de la
+    // machine (bruit de mesure > 100 ms sur un runner Windows chargé) : volontairement absente.
   })
 })
 

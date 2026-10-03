@@ -46,6 +46,8 @@ const open = async (hash: string, heading: string | RegExp) => {
   window.location.hash = hash
   render(<App locale="fr" />)
   await waitFor(() => expect(screen.getByRole('heading', { level: 1, name: heading })).toBeTruthy())
+  // Données chargées : plus aucun chargeur (le titre peut précéder les données sur une machine lente).
+  await waitFor(() => expect(screen.queryByTestId('loader-logo')).toBeNull())
 }
 
 describe('pages du niveau 1 (CDC §26)', () => {
