@@ -1,0 +1,128 @@
+✓ oracle inversé (HANDLED <-> CRASH) : 4 test(s) en échec
+✓ graine ignorée : 1 test(s) en échec
+✓ redaction désactivée : 1 test(s) en échec
+✓ timeout ignoré : 2 test(s) en échec
+✓ plan non trié : 1 test(s) en échec
+✓ statut du test utilisé pour classer (J0-6) : 1 test(s) en échec
+✓ empreinte d'arguments ignorée (J0-13) : 1 test(s) en échec
+✓ écho des primitifs banals (J0-18) : 1 test(s) en échec
+✓ F-01 contrôle des esquives de couverture coupé : 4 test(s) en échec
+✓ F-03 copie profonde retirée (mutation en place) : 1 test(s) en échec
+✓ F-03 profondeur par compteur global (appels entrelacés) : 1 test(s) en échec
+✓ A-01 clé __proto__ écrite par affectation : 2 test(s) en échec
+✓ A-05 garde de la sonde retirée : 3 test(s) en échec
+✓ A-02 hook unhandledRejection retiré : 3 test(s) en échec
+✓ A-02 processus réel non publié par le transform Jest : 2 test(s) en échec
+✓ A-02 oracle : rejet non géré ignoré : 1 test(s) en échec
+✓ A-07 catalogue de chaînes amputé ("123") : 1 test(s) en échec
+✓ A-07 é décomposé remplacé par un doublon : 1 test(s) en échec
+✓ A-08 provenance des bornes perdue : 1 test(s) en échec
+✓ A-09 commit absent du plan : 2 test(s) en échec
+✓ A-13 extension « autre type = violation » réintroduite : 2 test(s) en échec
+✓ A-03 memory_mb non transmis aux processus de test : 1 test(s) en échec
+✓ A-03 dépassement de sortie seulement tronqué : 2 test(s) en échec
+✓ A-04 issues transitives comptées dans fail_on : 2 test(s) en échec
+✓ A-04 issue jamais marquée transitive : 1 test(s) en échec
+✓ A-10 drapeau SLOW jamais posé : 3 test(s) en échec
+✓ B-01 -uall retiré (dossier non suivi replié) : 1 test(s) en échec
+✓ B-01 ignore_for_integrity ignoré en mode git : 1 test(s) en échec
+✓ B-01 stockage interne non exclu du manifeste : 4 test(s) en échec
+✓ B-01 run non marqué PROJECT_MUTATED : 2 test(s) en échec
+✓ B-01 baseline non gardée : 2 test(s) en échec
+✓ C-02 référence = dernier run même partiel : 1 test(s) en échec
+✓ C-02 FIXED conclu par un run partiel : 1 test(s) en échec
+✓ A-06 commande de reset jamais exécutée : 3 test(s) en échec
+✓ A-06 répertoire jetable non fourni : 1 test(s) en échec
+✓ A-06 test.env non transmis : 2 test(s) en échec
+✓ A-06 valeur non implémentée acceptée (filesystem: copy) : 2 test(s) en échec
+✓ A-11 le run s'arrête après un TIMEOUT : 1 test(s) en échec
+✓ B-10 repli complet étiqueté partiel : 2 test(s) en échec
+✓ D-029 délai sans coût de démarrage : 1 test(s) en échec
+✓ B-06 store ignoré (fichier et base toujours lus) : 1 test(s) en échec
+✓ cache invalidé par le stockage de Varia dans le projet : 1 test(s) en échec
+✓ oracle suggest : handled_errors écrit en table au lieu de liste : 2 test(s) en échec
+✓ oracle suggest : statuts autres que UNEXPECTED_FAILURE proposés : 1 test(s) en échec
+✓ --quick et --full acceptés ensemble : 1 test(s) en échec
+✓ prune --keep négatif accepté : 1 test(s) en échec
+✓ Ctrl+C annoncé sans run à reprendre : 1 test(s) en échec
+✓ .git/info/exclude complété sans saut de ligne : 1 test(s) en échec
+✓ jest : preset introuvable ignoré : 1 test(s) en échec
+✓ jest : config fonction non appelée : 1 test(s) en échec
+✓ jest : ordre d'environnement inversé : 1 test(s) en échec
+✓ jest : pending non compté sauté : 1 test(s) en échec
+✓ vitest : rapport lu malgré le timeout : 1 test(s) en échec
+✓ vitest : test.cwd ignoré : 1 test(s) en échec
+✓ oracle : critère code ignoré : 1 test(s) en échec
+✓ acceptation : la dernière écrase la première : 1 test(s) en échec
+✓ plan : fichier de test inconnu inventé : 1 test(s) en échec
+✓ catalogue : valeur tronquée mutable : 1 test(s) en échec
+✓ dashboard : locale fr mémorisée ignorée : 1 test(s) en échec
+✓ dashboard : lien Orqea par défaut perdu : 1 test(s) en échec
+✓ dashboard : cadre inaccessible jugé non embarqué : 1 test(s) en échec
+✓ dashboard : pagination suivante immobile : 1 test(s) en échec
+✓ dashboard : suppression non affichée : 1 test(s) en échec
+✓ API : hôte forgé accepté (rebinding DNS) : 3 test(s) en échec
+✓ API : port de l'hôte non vérifié : 1 test(s) en échec
+✓ API : route inconnue sans 404 JSON : 1 test(s) en échec
+✓ API : historique d'issue inconnue sans 404 : 1 test(s) en échec
+✓ API : version dupliquée : 3 test(s) en échec
+✓ rapport : tests en échec inversés : 1 test(s) en échec
+✓ SARIF : gravité note perdue : 1 test(s) en échec
+✓ plan accepte un run sans baseline valide : 1 test(s) en échec
+✓ targets hybrid : retrait inversé : 1 test(s) en échec
+✓ doctor : sélection par test vérifiée sans contrôle : 1 test(s) en échec
+✓ erreur interne non-Error perdue : 1 test(s) en échec
+✓ incrémental : on_unknown abort ignoré : 2 test(s) en échec
+✓ journal fermé de façon asynchrone par close() (verrou Windows) : 1 test(s) en échec
+✓ check:no-ai : dépendance openai acceptée : 1 test(s) en échec
+✓ A-12 : redaction de la sonde coupée (secret brut dans les journaux conservés) : 1 test(s) en échec
+✓ E-06 : tuile du logo illisible à 16 px : 5 test(s) en échec
+✓ conformité : processus survivant non détecté : 1 test(s) en échec
+✓ conformité : mutation non appliquée acceptée : 1 test(s) en échec
+✓ conformité : sélection sans nom de test : 2 test(s) en échec
+✓ conformité : async non vérifié : 2 test(s) en échec
+✓ B-09 : caractères XML interdits conservés : 2 test(s) en échec
+✓ B-09 : fins de ligne d'attribut non encodées : 1 test(s) en échec
+✓ B-09 : virgule de propriété GitHub non échappée : 2 test(s) en échec
+✓ B-09 : deux-points de propriété GitHub non échappés : 2 test(s) en échec
+✓ E-01 : tracé du logo différent de brand/varia.svg : 1 test(s) en échec
+✓ E-01 : étiquette partiel selon l'intention : 1 test(s) en échec
+✓ E-05 : byline du pied absente : 1 test(s) en échec
+✓ E-02 : capacités absentes du Markdown : 2 test(s) en échec
+✓ D-01 : vérification doctor ignorée par le rapport : 3 test(s) en échec
+✓ D-01 : couverture VERIFIED sans résumé : 1 test(s) en échec
+✓ D-01 : isolation VERIFIED dans le même processus : 1 test(s) en échec
+✓ D-01 : parallélisme sans comparaison des résultats : 2 test(s) en échec
+✓ D-01 : mocks VERIFIED par défaut : 2 test(s) en échec
+✓ D-01 : vérification doctor non recopiée dans le run : 1 test(s) en échec
+✓ B-07 : couverture inconnue affichée 100 % : 2 test(s) en échec
+✓ C-01 : matchedFrom absent du rapport : 1 test(s) en échec
+✓ C-01 : état d'issue non traduit : 1 test(s) en échec
+✓ C-01 : candidats multiples fusionnés (ambiguïté ignorée) : 2 test(s) en échec
+✓ C-01 : seuil de rapprochement abaissé : 2 test(s) en échec
+✓ C-01 : lien de rapprochement perdu : 3 test(s) en échec
+✓ B-07 : couverture inconnue comptée 100 : 1 test(s) en échec
+✓ B-08 : route absente de l'OpenAPI : 1 test(s) en échec
+✓ B-08 : schéma de réponse faux : 1 test(s) en échec
+✓ B-08 : Origin ignorée : 2 test(s) en échec
+✓ B-08 : alias /api/v1/health absent : 1 test(s) en échec
+✓ E-07 : mémoïsation désactivée : 3 test(s) en échec
+✓ E-07 : run en cours mémoïsé : 1 test(s) en échec
+✓ E-07 : pagination non bornée : 1 test(s) en échec
+✓ E-07 : filtre call site ignoré : 1 test(s) en échec
+✓ C-01 : candidats rapprochés absents de l'API : 1 test(s) en échec
+✓ E-05 : logo du survol figé : 1 test(s) en échec
+✓ E-05 : logo du chargeur figé : 1 test(s) en échec
+✓ E-07 : page hors de l'URL : 8 test(s) en échec
+✓ E-07 : fil d'Ariane sans erreur : 1 test(s) en échec
+✓ D-01 : vérification absente affichée vérifiée : 1 test(s) en échec
+✓ B-07 : couverture null non signalée : 1 test(s) en échec
+✓ C-01 : état d'issue brut : 1 test(s) en échec
+✓ E-08 : texte en dur : 1 test(s) en échec
+✓ E-09 : cible tactile trop petite : 3 test(s) en échec
+✓ E-09 : focus invisible : 1 test(s) en échec
+✓ E-03 : jest.mock non reconnu : 4 test(s) en échec
+✓ E-03 : cibles hors include acceptées : 1 test(s) en échec
+✓ E-03 : cibles mockées non enregistrées dans le run : 1 test(s) en échec
+✓ E-03 : cibles mockées absentes du rapport : 1 test(s) en échec
+Total : 127 / 127 cas en échec attendu ; code de sortie 0

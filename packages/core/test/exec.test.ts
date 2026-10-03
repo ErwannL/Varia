@@ -91,6 +91,14 @@ describe('exécution supervisée (CDC §16.2)', () => {
     expect([r.outputTruncated, r.timedOut]).toEqual([true, false])
     expect(performance.now() - t0).toBeLessThan(10000)
   })
+  it('plateforme POSIX injectée sur un processus terminé : rien à tuer, groupe absent (toute plateforme)', async () => {
+    const r = await node('process.exit(0)')
+    const pid = r.pid ?? -1
+    expect(pid).toBeGreaterThan(0)
+    // Sous Windows, ces branches POSIX ne s'exécutent jamais d'elles-mêmes : elles sont injectées.
+    expect(() => killTree(pid, 'linux')).not.toThrow()
+    expect(groupAlive(pid, 'linux')).toBe(false)
+  })
   it('plateforme Windows injectée : pas de groupe détaché, pas de nettoyage de groupe (G-06)', async () => {
     const d = dir()
     const r = await runSupervised(process.execPath, ['-e', 'process.stdout.write("w")'], {

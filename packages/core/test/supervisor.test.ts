@@ -82,6 +82,9 @@ describe('superviseur (CDC §16.2)', () => {
     expect(readFileSync(join(dir, 's'), 'utf8')).toBe('x')
     expect(() => d.spawnSync(process.execPath, ['-e', ''])).not.toThrow()
     d.stderr('')
+    // Signal 0 : simple vérification d'existence, sans effet (toute plateforme) ; sous POSIX, la
+    // vraie mise à mort du groupe passe par cette dépendance, jamais exécutée sous Windows sinon.
+    expect(() => d.kill(process.pid, 0 as unknown as string)).not.toThrow()
     const t = d.setTimeout(() => undefined, 1000)
     d.clearTimeout(t)
     const child = d.spawn(process.execPath, ['-e', ''])

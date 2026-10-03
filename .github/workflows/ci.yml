@@ -25,6 +25,9 @@ jobs:
       # check : typage, lint (0 avertissement), format, tests sautés, 1000 lignes, README, marque, build,
       # tests + couverture par fichier.
       - run: npm run check
+      # Échec : ce qui n'est pas couvert, fichier par fichier (diagnostic des branches de plateforme).
+      - if: failure()
+        run: node scripts/coverage-gaps.mjs
   external:
     # Acceptation J1-3 sur le projet externe épinglé (réseau : récupération au développement seulement).
     runs-on: ubuntu-latest
