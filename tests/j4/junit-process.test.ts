@@ -4,6 +4,7 @@
 // capacités vérifiées, UNSUPPORTED_PROBE quand aucune classe cible n'est instrumentée ; (14) reprise
 // après arrêt brutal (SIGKILL) du processus Varia.
 import { JUnitAdapter } from '@varia/adapter-junit'
+import { systemProcesses } from '@varia/adapter-conformance'
 import type { PlannedMutation } from '@varia/core'
 import { mutationId } from '@varia/core'
 import { openReader, Reader } from '@varia/database'
@@ -16,7 +17,7 @@ import {
   runFuzz,
   savePlan,
 } from '@varia/engine'
-import { execFileSync, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { createRequire } from 'node:module'
 import {
   copyFileSync,
@@ -105,11 +106,10 @@ describe('JUnit (6) (7) : boucle infinie et sortie de processus', () => {
         ['CRASH', 'PROCESS_EXIT'],
         ['HANDLED', null],
       ])
-      if (process.platform !== 'win32') {
-        // Aucun processus (superviseur, JVM) portant l'identifiant du run ne survit.
-        const ps = execFileSync('ps', ['-eo', 'args'], { encoding: 'utf8' })
-        expect(ps.split('\n').filter((l) => l.includes(b.runId))).toEqual([])
-      }
+      // Aucun processus portant l'identifiant du run ne survit (ps, ou PowerShell sous Windows).
+      const procs = systemProcesses()
+      expect(procs).not.toBeNull()
+      expect(procs?.filter((l) => l.includes(b.runId))).toEqual([])
     } finally {
       ctx.close()
     }
@@ -272,9 +272,17 @@ describe('JUnit (14) : reprise après arrêt brutal du processus Varia', () => {
         '',
       ].join('\n'),
     )
-    const tsx = resolve('node_modules/.bin/tsx')
-    const child = spawn(tsx, ['--tsconfig', resolve('tsconfig.json'), script], { stdio: 'ignore' })
+    // Node de Varia + CLI JS de tsx : `node_modules/.bin/tsx` est un script shell, introuvable par
+    // spawn sous Windows (ENOENT, seul `tsx.cmd` y existe).
+    const child = spawn(
+      process.execPath,
+      [resolve('node_modules/tsx/dist/cli.mjs'), '--tsconfig', resolve('tsconfig.json'), script],
+      { cwd: resolve('.'), stdio: ['ignore', 'ignore', 'pipe'] },
+    )
+    let stderr = ''
+    child.stderr.on('data', (d: Buffer) => (stderr += d.toString()))
     const persisted = await new Promise<Set<string>>((done, fail) => {
+      child.once('error', fail)
       const started = Date.now()
       const timer = setInterval(() => {
         const file = findDb(D)
@@ -294,7 +302,7 @@ describe('JUnit (14) : reprise après arrêt brutal du processus Varia', () => {
         } else if (Date.now() - started > 300_000) {
           clearInterval(timer)
           child.kill('SIGKILL')
-          fail(new Error('aucun résultat persisté'))
+          fail(new Error(`aucun résultat persisté ; stderr de l'enfant : ${stderr}`))
         }
       }, 100)
     })

@@ -554,5 +554,26 @@
     "find": "this.nodeArgs = esm ? ['--no-experimental-require-module'] : []",
     "replace": "this.nodeArgs = []",
     "tests": ["packages/adapters/mocha/test/adapter.test.ts"]
+  },
+  {
+    "name": "pytest : interpréteur Windows construit avec les séparateurs de la plateforme injectée",
+    "file": "packages/adapters/pytest/src/adapter.ts",
+    "find": "? win32.join(root, venv, 'Scripts', 'python.exe')",
+    "replace": "? join(root, venv, 'Scripts', 'python.exe')",
+    "tests": ["packages/adapters/pytest/test/adapter.test.ts"]
+  },
+  {
+    "name": "sonde pytest : chemin sur un autre volume ⇒ hors projet, pas de ValueError",
+    "file": "packages/adapters/pytest/runtime/varia_probe/probe.py",
+    "find": "    except ValueError:\n        return None",
+    "replace": "    except KeyError:\n        return None",
+    "tests": ["packages/adapters/pytest/test/python.test.ts"]
+  },
+  {
+    "name": "sonde pytest : fichier de test sur un autre volume ⇒ chemin réel entier",
+    "file": "packages/adapters/pytest/runtime/varia_probe/plugin.py",
+    "find": "return rel if rel is not None else real.replace(pathmod.sep, \"/\")",
+    "replace": "return rel if rel is not None else real",
+    "tests": ["packages/adapters/pytest/test/python.test.ts"]
   }
 ]

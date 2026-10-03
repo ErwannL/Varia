@@ -1,8 +1,8 @@
 // Adaptateur custom (X-01) : contrat d'environnement, lecture des résultats, découverte, détection.
 // Les lanceurs sont de petits scripts Node écrits dans des dossiers temporaires.
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { delimiter, join } from 'node:path'
+import { delimiter, join, resolve } from 'node:path'
 import type { PrepareContext } from '@varia/core'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
@@ -14,7 +14,8 @@ import {
   testIdOf,
 } from '../src/index.js'
 
-const tmp = () => mkdtempSync(join(tmpdir(), 'varia-custom-'))
+// Racine canonique : l'enfant rapporte `process.cwd()` réel (macOS : /private/var), cf. docs/notes/chemins.md.
+const tmp = () => realpathSync.native(mkdtempSync(join(tmpdir(), 'varia-custom-')))
 const file = (dir: string, name: string, content: string) => {
   const p = join(dir, name)
   writeFileSync(p, content)
@@ -117,8 +118,8 @@ describe('lecture de la découverte', () => {
 describe('commande', () => {
   it('node ⇒ le Node de Varia ; chemin relatif résolu dans cwd ; absolu et nom nu inchangés', () => {
     expect(resolveExecutable('node', '/p')).toBe(process.execPath)
-    expect(resolveExecutable('./run.js', '/p')).toBe(join('/p', 'run.js'))
-    expect(resolveExecutable('bin/run', '/p')).toBe(join('/p', 'bin', 'run'))
+    expect(resolveExecutable('./run.js', '/p')).toBe(resolve('/p', 'run.js'))
+    expect(resolveExecutable('bin/run', '/p')).toBe(resolve('/p', 'bin', 'run'))
     expect(resolveExecutable('/abs/run', '/p')).toBe('/abs/run')
     expect(resolveExecutable('runner', '/p')).toBe('runner')
   })

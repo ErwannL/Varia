@@ -4,6 +4,7 @@
 // (13) doctor : capacités vérifiées, UNSUPPORTED_PROBE quand l'injection est impossible ; (14) reprise
 // après arrêt brutal sans rejouer une mutation déjà enregistrée.
 import { PytestAdapter } from '@varia/adapter-pytest'
+import { systemProcesses } from '@varia/adapter-conformance'
 import { mutationId, type PlannedMutation } from '@varia/core'
 import {
   doctor,
@@ -14,7 +15,6 @@ import {
   runFuzz,
   savePlan,
 } from '@varia/engine'
-import { execFileSync } from 'node:child_process'
 import {
   mkdirSync,
   mkdtempSync,
@@ -92,10 +92,10 @@ describe('pytest (6) (7) : boucle infinie et sortie de processus', () => {
         ['UNEXPECTED_FAILURE', null],
         ['HANDLED', null],
       ])
-      if (process.platform !== 'win32') {
-        const ps = execFileSync('ps', ['-eo', 'args'], { encoding: 'utf8' })
-        expect(ps.split('\n').filter((l) => l.includes(b.runId))).toEqual([])
-      }
+      // Aucun processus portant l'identifiant du run ne survit (ps, ou PowerShell sous Windows).
+      const procs = systemProcesses()
+      expect(procs).not.toBeNull()
+      expect(procs?.filter((l) => l.includes(b.runId))).toEqual([])
     } finally {
       ctx.close()
     }

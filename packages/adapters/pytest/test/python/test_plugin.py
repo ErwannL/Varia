@@ -13,6 +13,13 @@ def test_noms():
     assert G.test_name("tests/t.py::test_c") == "test_c"
 
 
+def test_fichier_de_test_autre_volume():
+    import ntpath
+
+    assert G.test_file("D:\\p\\tests\\t.py", "D:\\p", ntpath) == "tests/t.py"
+    assert G.test_file("C:\\t\\t.py", "D:\\p", ntpath) == "C:/t/t.py"
+
+
 def test_statuts():
     assert G.status_of([("setup", "passed"), ("call", "failed")]) == "failed"
     assert G.status_of([("setup", "skipped")]) == "skipped"

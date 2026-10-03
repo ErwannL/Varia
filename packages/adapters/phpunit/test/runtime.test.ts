@@ -14,7 +14,13 @@ export function cloverLines(xml: string): Record<string, { covered: number; tota
   const out: Record<string, { covered: number; total: number }> = {}
   for (const m of xml.matchAll(/<file name="([^"]+)">([\s\S]*?)<\/file>/g)) {
     const lines = [...(m[2] ?? '').matchAll(/<line num="\d+" type="stmt" count="(\d+)"/g)]
-    out[(m[1] ?? '').slice(RUNTIME.length + 1)] = {
+    // Clover rapporte des chemins natifs (`\` sous Windows) : clés en séparateurs POSIX.
+    out[
+      (m[1] ?? '')
+        .slice(RUNTIME.length + 1)
+        .split('\\')
+        .join('/')
+    ] = {
       covered: lines.filter((l) => l[1] !== '0').length,
       total: lines.length,
     }
@@ -26,6 +32,8 @@ describe('sonde PHP : tests PHPUnit et couverture pcov', () => {
   it('lecture du rapport Clover (contre-épreuve : une ligne non couverte est comptée)', () => {
     const xml = `<file name="${RUNTIME}/src/A.php"><line num="1" type="stmt" count="2"/><line num="2" type="stmt" count="0"/><line num="3" type="method" count="0"/></file>`
     expect(cloverLines(xml)).toEqual({ 'src/A.php': { covered: 1, total: 2 } })
+    const win = `<file name="${RUNTIME}\\src\\B.php"><line num="1" type="stmt" count="1"/></file>`
+    expect(cloverLines(win)).toEqual({ 'src/B.php': { covered: 1, total: 1 } })
   })
 
   it('tous les tests passent et chaque fichier de runtime/src est couvert à 100 % (lignes)', () => {

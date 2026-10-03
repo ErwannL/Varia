@@ -2,9 +2,10 @@
 // (6) boucle infinie ⇒ TIMEOUT, arbre tué, la mutation suivante s'exécute ; (7) sortie de processus ⇒
 // CRASH ; (11) aucune valeur sensible brute sur disque (--keep-tmp) ; (13) doctor : capacités vérifiées,
 // UNSUPPORTED_PROBE (code 5) quand l'injection est impossible ; (14) reprise après arrêt brutal.
+import { systemProcesses } from '@varia/adapter-conformance'
 import type { PlannedMutation } from '@varia/core'
 import { openReader, Reader } from '@varia/database'
-import { execFileSync, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import {
   existsSync,
   mkdirSync,
@@ -59,11 +60,11 @@ describe('Mocha (6) (7) : boucle infinie et sortie de processus', () => {
       ['CRASH', 'PROCESS_EXIT'],
       ['HANDLED', null],
     ])
-    if (process.platform !== 'win32') {
-      // Aucun processus (superviseur, Mocha) portant l'identifiant du run ne survit.
-      const ps = execFileSync('ps', ['-eo', 'args'], { encoding: 'utf8' })
-      expect(ps.split('\n').filter((l) => l.includes(report.run.id))).toEqual([])
-    }
+    // Aucun processus (superviseur, Mocha) portant l'identifiant du run ne survit (ps, ou PowerShell
+    // sous Windows : l'assertion est faite sur chaque plateforme).
+    const procs = systemProcesses()
+    expect(procs).not.toBeNull()
+    expect(procs?.filter((l) => l.includes(report.run.id))).toEqual([])
   })
 })
 

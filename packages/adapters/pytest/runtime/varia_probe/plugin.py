@@ -26,8 +26,11 @@ def test_name(nodeid):
 test_name.__test__ = False
 
 
-def test_file(path, root):
-    return os.path.relpath(os.path.realpath(str(path)), root).replace(os.sep, "/")
+def test_file(path, root, pathmod=os.path):
+    """Fichier de test relatif à la racine ; sur un autre volume (Windows), son chemin réel entier."""
+    real = pathmod.realpath(str(path))
+    rel = P.relative_posix(real, root, pathmod)
+    return rel if rel is not None else real.replace(pathmod.sep, "/")
 
 
 test_file.__test__ = False

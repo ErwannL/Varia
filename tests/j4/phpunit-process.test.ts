@@ -3,10 +3,11 @@
 // CRASH ; (11) aucune valeur sensible brute sur disque (keepTmp) ; (13) doctor : capacités vérifiées,
 // UNSUPPORTED_PROBE quand l'injection est impossible ; (14) reprise après arrêt brutal (SIGKILL).
 import { PhpunitAdapter } from '@varia/adapter-phpunit'
+import { systemProcesses } from '@varia/adapter-conformance'
 import type { PlannedMutation } from '@varia/core'
 import { openReader, Reader } from '@varia/database'
 import { doctor, EngineContext, planRun, runBaseline, runFuzz, savePlan } from '@varia/engine'
-import { execFileSync, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import {
   mkdirSync,
   mkdtempSync,
@@ -18,6 +19,7 @@ import {
 } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const PHPUNIT = resolve('examples/phpunit-project')
@@ -68,9 +70,10 @@ describe('PHPUnit (6) (7) : boucle infinie et sortie de processus', () => {
         ['CRASH', 'PROCESS_EXIT'],
         ['HANDLED', null],
       ])
-      // Aucun processus (superviseur, PHPUnit) portant l'identifiant du run ne survit.
-      const ps = execFileSync('ps', ['-eo', 'args'], { encoding: 'utf8' })
-      expect(ps.split('\n').filter((l) => l.includes(b.runId))).toEqual([])
+      // Aucun processus portant l'identifiant du run ne survit (ps, ou PowerShell sous Windows).
+      const procs = systemProcesses()
+      expect(procs).not.toBeNull()
+      expect(procs?.filter((l) => l.includes(b.runId))).toEqual([])
     } finally {
       ctx.close()
     }
@@ -212,8 +215,9 @@ describe('PHPUnit (14) : reprise après arrêt brutal du processus Varia', () =>
     writeFileSync(
       script,
       [
-        `import { PhpunitAdapter } from ${JSON.stringify(resolve('packages/adapters/phpunit/src/index.ts'))}`,
-        `import { EngineContext, runFuzz } from ${JSON.stringify(resolve('packages/engine/src/index.ts'))}`,
+        // Spécificateurs en URL `file:` : `D:\\…` serait lu comme un schéma d'URL sous Windows.
+        `import { PhpunitAdapter } from ${JSON.stringify(pathToFileURL(resolve('packages/adapters/phpunit/src/index.ts')).href)}`,
+        `import { EngineContext, runFuzz } from ${JSON.stringify(pathToFileURL(resolve('packages/engine/src/index.ts')).href)}`,
         `const ctx = new EngineContext({ root: ${JSON.stringify(PHPUNIT)}, adapter: new PhpunitAdapter(), dataDir: ${JSON.stringify(D)}, configFile: ${JSON.stringify(cfg)} })`,
         `await runFuzz(ctx, ${JSON.stringify(b.runId)})`,
         '',
@@ -222,12 +226,12 @@ describe('PHPUnit (14) : reprise après arrêt brutal du processus Varia', () =>
     const child = spawn(
       process.execPath,
       [resolve('node_modules/tsx/dist/cli.mjs'), '--tsconfig', resolve('tsconfig.json'), script],
-      {
-        cwd: resolve('.'),
-        stdio: 'ignore',
-      },
+      { cwd: resolve('.'), stdio: ['ignore', 'ignore', 'pipe'] },
     )
+    let stderr = ''
+    child.stderr.on('data', (d: Buffer) => (stderr += d.toString()))
     const persisted = await new Promise<Set<string>>((done, fail) => {
+      child.once('error', fail)
       const started = Date.now()
       const timer = setInterval(() => {
         try {
@@ -245,7 +249,7 @@ describe('PHPUnit (14) : reprise après arrêt brutal du processus Varia', () =>
         if (Date.now() - started > 90_000) {
           clearInterval(timer)
           child.kill('SIGKILL')
-          fail(new Error('aucun résultat persisté'))
+          fail(new Error(`aucun résultat persisté ; stderr de l'enfant : ${stderr}`))
         }
       }, 50)
     })

@@ -31,10 +31,13 @@ describe('interpréteur et PYTHONPATH', () => {
     expect(resolvePython('/p', 'linux', has(['/p/.venv/bin/python']))).toBe('/p/.venv/bin/python')
     expect(resolvePython('/p', 'linux', has(['/p/venv/bin/python']))).toBe('/p/venv/bin/python')
     expect(resolvePython('/p', 'linux', has([]))).toBe('python3')
-    const win = join('/p', 'venv', 'Scripts', 'python.exe')
-    expect(resolvePython('/p', 'win32', has([win]))).toBe(win)
-    expect(resolvePython('/p', 'win32', has([]))).toBe('python')
-    expect(resolvePython(EXAMPLE)).toBe(join(EXAMPLE, '.venv', 'bin', 'python'))
+    const win = 'C:\\p\\venv\\Scripts\\python.exe'
+    expect(resolvePython('C:\\p', 'win32', has([win]))).toBe(win)
+    expect(resolvePython('C:\\p', 'win32', has([]))).toBe('python')
+    // Exemple réel : l'environnement virtuel est créé selon la machine qui exécute.
+    const venvPython =
+      process.platform === 'win32' ? ['.venv', 'Scripts', 'python.exe'] : ['.venv', 'bin', 'python']
+    expect(resolvePython(EXAMPLE)).toBe(join(EXAMPLE, ...venvPython))
   })
   it('la sonde en tête, le PYTHONPATH hérité conservé', () => {
     expect(pythonPath(undefined)).toBe(PY_RUNTIME_DIR)

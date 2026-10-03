@@ -14,3 +14,17 @@ Règles apprises en J3 (CI Linux, macOS, Windows × Node 20/22).
   chemins normalisés en séparateurs POSIX (`split('\\').join('/')`).
 - **Commandes shell** (`reset.database_command`) : exécutées par `sh` ou `cmd.exe`. Les tests utilisent
   une commande neutre (`node script.cjs …`) plutôt que `$VAR`, `echo >>` ou des guillemets imbriqués.
+- **Séparateurs de la plateforme injectée** : une fonction qui reçoit `platform` construit ses chemins
+  avec `path.win32` ou `path.posix` selon ce paramètre, jamais avec `path.join` de la machine qui
+  exécute (`resolvePython` : `'/p/.venv/bin/python'` devenait `\p\.venv\bin\python` sous Windows).
+- **Volumes distincts sous Windows** : `os.path.relpath` (Python) lève `ValueError` entre deux lecteurs
+  (bibliothèque standard sur `C:`, projet sur `D:` en CI). Toute relativisation passe par
+  `relative_posix` (sonde pytest) : autre volume ⇒ hors projet. Testé sous Linux avec `ntpath`.
+- **Enfant tsx** : lancer `process.execPath` + `node_modules/tsx/dist/cli.mjs`, jamais
+  `node_modules/.bin/tsx` (script shell, ENOENT sous Windows). Écouter `error` et garder le stderr de
+  l'enfant pour le message d'échec. Dans un script généré, importer par `pathToFileURL(p).href` :
+  `import 'D:\…'` est lu comme un schéma d'URL `d:` (ERR_UNSUPPORTED_ESM_URL_SCHEME).
+- **Processus survivants** : `systemProcesses()` (`@varia/adapter-conformance` : `ps` ou PowerShell)
+  au lieu de `ps -eo args` (le `ps` de Git Bash refuse `-o`) ; pas de garde `process.platform`.
+- **Rapports d'outils natifs** (Clover, etc.) : chemins en séparateurs natifs ; normaliser en `/`
+  avant de comparer.

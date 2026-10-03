@@ -388,6 +388,16 @@ def test_ciblage(tmp_path):
     assert t.module_id(str(tmp_path / "src" / "site-packages" / "x.py")) is None
 
 
+def test_chemin_relatif_autre_volume(monkeypatch):
+    import ntpath
+
+    assert P.relative_posix("D:\\p\\src\\a.py", "D:\\p", ntpath) == "src/a.py"
+    # Windows : bibliothèque standard sur C:, projet sur D: ⇒ hors projet, pas de ValueError.
+    assert P.relative_posix("C:\\py\\ctypes\\__init__.py", "D:\\p", ntpath) is None
+    monkeypatch.setattr(P, "relative_posix", lambda *a: None)
+    assert P.Targeting("/p", [".*"], []).module_id("/p/src/a.py") is None
+
+
 def test_crochet_d_import(tmp_path, monkeypatch):
     pkg = tmp_path / "src"
     pkg.mkdir()

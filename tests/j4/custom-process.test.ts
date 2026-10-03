@@ -4,6 +4,7 @@
 // (13) doctor vérifie les capacités DÉCLARÉES, UNSUPPORTED_PROBE quand le lanceur ne fait pas la sonde ;
 // (14) reprise après arrêt brutal sans rejouer une mutation déjà enregistrée.
 import { CustomAdapter } from '@varia/adapter-custom'
+import { systemProcesses } from '@varia/adapter-conformance'
 import { openReader, Reader } from '@varia/database'
 import {
   doctor,
@@ -14,7 +15,7 @@ import {
   runFuzz,
   savePlan,
 } from '@varia/engine'
-import { execFileSync, spawn } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import { mkdirSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
@@ -61,11 +62,10 @@ describe('custom (6) (7) : boucle infinie et sortie de processus', () => {
         ['CRASH', 'PROCESS_EXIT'],
         ['HANDLED', null],
       ])
-      if (process.platform !== 'win32') {
-        // Aucun processus (superviseur, lanceur) portant l'identifiant du run ne survit.
-        const ps = execFileSync('ps', ['-eo', 'args'], { encoding: 'utf8' })
-        expect(ps.split('\n').filter((l) => l.includes(b.runId))).toEqual([])
-      }
+      // Aucun processus portant l'identifiant du run ne survit (ps, ou PowerShell sous Windows).
+      const procs = systemProcesses()
+      expect(procs).not.toBeNull()
+      expect(procs?.filter((l) => l.includes(b.runId))).toEqual([])
     } finally {
       ctx.close()
     }

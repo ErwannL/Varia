@@ -496,6 +496,14 @@ def wrap_module(st, module, module_id):
     return ProxyModule(module, wrappers) if wrappers else module
 
 
+def relative_posix(path, root, pathmod=os.path):
+    """Chemin relatif en séparateurs POSIX ; None sur un autre volume (Windows : `relpath` lève)."""
+    try:
+        return pathmod.relpath(path, root).replace(pathmod.sep, "/")
+    except ValueError:
+        return None
+
+
 class Targeting:
     """Module ciblé ? d'après `include` / `exclude` (expressions sur le chemin relatif POSIX)."""
 
@@ -507,7 +515,10 @@ class Targeting:
     def module_id(self, filename):
         if not filename:
             return None
-        rel = os.path.relpath(os.path.realpath(filename), self.root).replace(os.sep, "/")
+        # Bibliothèque standard sur C:, projet sur D: : hors projet, jamais une erreur d'import.
+        rel = relative_posix(os.path.realpath(filename), self.root)
+        if rel is None:
+            return None
         parts = rel.split("/")
         if (
             rel.startswith("..")

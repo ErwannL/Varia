@@ -12,7 +12,7 @@ import { parseProbeLog, PROBE_ENV, type ProbeEvent } from '@varia/probe-protocol
 import { testIdOf } from '@varia/probe-runtime'
 import { execFileSync } from 'node:child_process'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
-import { delimiter, dirname, join, resolve } from 'node:path'
+import { delimiter, dirname, join, posix, resolve, win32 } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 /** Dossier ajouté au PYTHONPATH du processus de test : il contient le paquet `varia_probe`. */
@@ -53,9 +53,10 @@ export function resolvePython(
 ): string {
   const win = platform === 'win32'
   for (const venv of ['.venv', 'venv']) {
+    // Séparateurs de la plateforme injectée, pas de celle qui exécute (docs/notes/plateformes.md).
     const candidate = win
-      ? join(root, venv, 'Scripts', 'python.exe')
-      : join(root, venv, 'bin', 'python')
+      ? win32.join(root, venv, 'Scripts', 'python.exe')
+      : posix.join(root, venv, 'bin', 'python')
     if (exists(candidate)) return candidate
   }
   return win ? 'python' : 'python3'

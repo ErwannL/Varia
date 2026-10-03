@@ -1,7 +1,7 @@
 // A-11 (J0-8, J0-9) : après un TIMEOUT puis un CRASH / PROCESS_EXIT, la mutation SUIVANTE du même run est
-// exécutée et classée, et aucun processus du run ne survit (POSIX ; Windows : UNVERIFIED, G-06).
+// exécutée et classée, et aucun processus du run ne survit (ps, ou PowerShell sous Windows).
+import { systemProcesses } from '@varia/adapter-conformance'
 import type { PlannedMutation } from '@varia/core'
-import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -53,10 +53,10 @@ describe('une mutation qui boucle ou qui tue le processus n’empêche jamais la
       ['CRASH', 'PROCESS_EXIT'],
       ['HANDLED', null],
     ])
-    if (process.platform !== 'win32') {
-      // Aucun processus (superviseur, Jest) portant l'identifiant du run ne survit.
-      const ps = execFileSync('ps', ['-eo', 'args'], { encoding: 'utf8' })
-      expect(ps.split('\n').filter((l) => l.includes(report.run.id))).toEqual([])
-    }
+    // Aucun processus (superviseur, Jest) portant l'identifiant du run ne survit (ps, ou PowerShell
+    // sous Windows : l'assertion est faite sur chaque plateforme).
+    const procs = systemProcesses()
+    expect(procs).not.toBeNull()
+    expect(procs?.filter((l) => l.includes(report.run.id))).toEqual([])
   })
 })
