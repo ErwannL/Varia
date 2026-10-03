@@ -1,0 +1,59 @@
+{
+  "description": "Identité de test et de call site (SHA-256, séparateur NUL, 16 premiers hexadécimaux).",
+  "cases": [
+    {
+      "id": "identity/test",
+      "op": "testId",
+      "input": { "file": "tests/user.test.js", "name": "createUser accepte un email", "rank": 0 },
+      "expected": "t_3c8f2c0f03c5e247"
+    },
+    {
+      "id": "identity/test-homonyme",
+      "op": "testId",
+      "input": { "file": "tests/user.test.js", "name": "createUser accepte un email", "rank": 1 },
+      "expected": "t_be329ae55eac5597"
+    },
+    {
+      "id": "identity/test-unicode",
+      "op": "testId",
+      "input": { "file": "tests/été.test.js", "name": "refuse « vide »", "rank": 0 },
+      "expected": "t_153607a667848b1c"
+    },
+    {
+      "id": "identity/call-site",
+      "op": "callSiteId",
+      "input": {
+        "testId": "t_0123456789abcdef",
+        "module": "src/user.js",
+        "export": "createUser",
+        "depth": 0,
+        "sequence": 0
+      },
+      "expected": "c_699185811feb69b4"
+    },
+    {
+      "id": "identity/call-site-rang",
+      "op": "callSiteId",
+      "input": {
+        "testId": "t_0123456789abcdef",
+        "module": "src/user.js",
+        "export": "createUser",
+        "depth": 0,
+        "sequence": 2
+      },
+      "expected": "c_bc8b0a5bcac29569"
+    },
+    {
+      "id": "identity/call-site-profondeur",
+      "op": "callSiteId",
+      "input": {
+        "testId": "t_0123456789abcdef",
+        "module": "src/user.js",
+        "export": "createUser",
+        "depth": 1,
+        "sequence": 0
+      },
+      "expected": "c_85180b5dd0bf71e1"
+    }
+  ]
+}

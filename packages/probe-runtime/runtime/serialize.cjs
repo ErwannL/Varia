@@ -152,9 +152,12 @@ function ser(value, opts, path, depth, seen) {
       const entries = [.../** @type {Map<unknown, unknown>} */ (obj).entries()].slice(0, maxItems)
       return {
         $t: 'map',
+        // Une clé de Map textuelle est un nom de champ comme un autre : même redaction que les objets.
         entries: entries.map(([k, v], i) => [
           ser(k, opts, `${path}.<key${i}>`, depth + 1, seen),
-          ser(v, opts, `${path}.<value${i}>`, depth + 1, seen),
+          typeof k === 'string' && redactedKey(k, `${path}.${k}`, opts)
+            ? redacted(v, opts)
+            : ser(v, opts, `${path}.<value${i}>`, depth + 1, seen),
         ]),
       }
     }
@@ -199,11 +202,7 @@ function ser(value, opts, path, depth, seen) {
     for (const key of Object.keys(record).slice(0, maxItems)) {
       const childPath = `${path}.${key}`
       const raw = record[key]
-      if (
-        opts.redactFields?.has(key.toLowerCase()) ||
-        opts.redactPaths?.has(childPath) ||
-        opts.redactPatterns?.some((re) => re.test(key))
-      ) {
+      if (redactedKey(key, childPath, opts)) {
         setOwn(fields, key, redacted(raw, opts))
       } else {
         setOwn(fields, key, ser(raw, opts, childPath, depth + 1, seen))
@@ -215,6 +214,19 @@ function ser(value, opts, path, depth, seen) {
   } finally {
     seen.delete(obj)
   }
+}
+
+/**
+ * Nom de champ (propriété d'objet ou clé textuelle de Map) à masquer : champ listé (sans casse),
+ * chemin listé ou motif.
+ * @param {string} key @param {string} childPath @param {SerializeOptions} opts
+ */
+function redactedKey(key, childPath, opts) {
+  return (
+    opts.redactFields?.has(key.toLowerCase()) === true ||
+    opts.redactPaths?.has(childPath) === true ||
+    opts.redactPatterns?.some((re) => re.test(key)) === true
+  )
 }
 
 /** @param {unknown} raw @param {SerializeOptions} opts @returns {JsonValue} */
@@ -231,6 +243,49 @@ function redacted(raw, opts) {
     $redacted: true,
     fingerprint: hmac(opts.hmacKey ?? 'varia', stableStringify(inner)),
     type: typeOf(raw),
+  }
+}
+
+/**
+ * @typedef {object} Redaction règles de redaction compilées (CDC §10.6)
+ * @property {Set<string>} redactFields noms de champs, en minuscules
+ * @property {RegExp[]} redactPatterns motifs sur le nom de champ, insensibles à la casse
+ * @property {string[]} skipPaths chemins « export#arg0.champ »
+ * @property {string} hmacKey
+ */
+
+/**
+ * Compile le contenu de `VARIA_REDACT` (`{ fields, patterns, skipPaths, hmacKey }`).
+ * @param {{ fields?: string[], patterns?: string[], skipPaths?: string[], hmacKey?: string }} redact
+ * @returns {Redaction}
+ */
+function compileRedaction(redact) {
+  return {
+    redactFields: new Set((redact.fields ?? []).map((f) => f.toLowerCase())),
+    redactPatterns: (redact.patterns ?? []).map((p) => new RegExp(p, 'i')),
+    skipPaths: redact.skipPaths ?? [],
+    hmacKey: String(redact.hmacKey ?? 'varia'),
+  }
+}
+
+/**
+ * Options de sérialisation des arguments d'un appel à l'export `exportName` : les chemins
+ * « export#chemin » de cet export deviennent des chemins masqués (« arg0.password »).
+ * @param {Redaction} r @param {string} exportName @param {string[]} secrets collecteur
+ * @returns {SerializeOptions}
+ */
+function argsOptions(r, exportName, secrets) {
+  const redactPaths = new Set(
+    r.skipPaths
+      .filter((p) => p.startsWith(`${exportName}#`))
+      .map((p) => p.slice(exportName.length + 1)),
+  )
+  return {
+    redactFields: r.redactFields,
+    redactPatterns: r.redactPatterns,
+    redactPaths,
+    hmacKey: r.hmacKey,
+    secrets,
   }
 }
 
@@ -340,6 +395,8 @@ function typeOfSerialized(json) {
 }
 
 module.exports = {
+  argsOptions,
+  compileRedaction,
   callSiteIdOf,
   setOwn,
   deserialize,

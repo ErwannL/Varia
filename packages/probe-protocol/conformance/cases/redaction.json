@@ -1,0 +1,430 @@
+{
+  "description": "Redaction dans la sonde avant écriture et empreinte des arguments (op serializeArgs).",
+  "cases": [
+    {
+      "id": "redaction/champ",
+      "op": "serializeArgs",
+      "input": {
+        "export": "createUser",
+        "redact": {
+          "fields": ["password"],
+          "hmacKey": "cle-test"
+        },
+        "args": [
+          {
+            "email": "ada@example.org",
+            "password": "hunter2"
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "email": "ada@example.org",
+            "password": {
+              "$redacted": true,
+              "fingerprint": "c8c58e43fefc21999a4cdf4927050dd0995ac3198c8e8364c405448bd2936f86",
+              "type": "string"
+            }
+          }
+        ],
+        "argsFingerprint": "a239b8a369a8a2b64eb8a10600237f3331fb2a5e7ae170b2daaabfc5b6dd9a40"
+      }
+    },
+    {
+      "id": "redaction/champ-casse",
+      "op": "serializeArgs",
+      "input": {
+        "export": "createUser",
+        "redact": {
+          "fields": ["PASSWORD"],
+          "hmacKey": "cle-test"
+        },
+        "args": [
+          {
+            "PassWord": "hunter2"
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "PassWord": {
+              "$redacted": true,
+              "fingerprint": "c8c58e43fefc21999a4cdf4927050dd0995ac3198c8e8364c405448bd2936f86",
+              "type": "string"
+            }
+          }
+        ],
+        "argsFingerprint": "508147e19be4ff019c86f222a7e1659edf09004cbab640598d9d2321aa3e3f72"
+      }
+    },
+    {
+      "id": "redaction/motif",
+      "op": "serializeArgs",
+      "input": {
+        "export": "f",
+        "redact": {
+          "patterns": ["token$", "^api[_-]?key$"],
+          "hmacKey": "cle-test"
+        },
+        "args": [
+          {
+            "accessToken": "t0k",
+            "API_KEY": "k3y",
+            "tokenizer": "garde"
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "accessToken": {
+              "$redacted": true,
+              "fingerprint": "69dd7ea097a744bb0c3b4f04ba73562224caf587d53ce2bde709667a2dd8e16e",
+              "type": "string"
+            },
+            "API_KEY": {
+              "$redacted": true,
+              "fingerprint": "88b21c677d317356dbd7ce7931b1599441f70df27ac07cd81cf29b3dc25f32bc",
+              "type": "string"
+            },
+            "tokenizer": "garde"
+          }
+        ],
+        "argsFingerprint": "081a02cf669b07125b43852e73c60dad0110c366cc66ea69cf7c32e0b9ee9cc0"
+      }
+    },
+    {
+      "id": "redaction/profond",
+      "op": "serializeArgs",
+      "input": {
+        "export": "f",
+        "redact": {
+          "fields": ["secret"],
+          "hmacKey": "cle-test"
+        },
+        "args": [
+          {
+            "users": [
+              {
+                "id": 1,
+                "secret": "s1"
+              },
+              {
+                "id": 2,
+                "secret": "s2"
+              }
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "users": [
+              {
+                "id": 1,
+                "secret": {
+                  "$redacted": true,
+                  "fingerprint": "3525a23524d2f92905fd62c479ec4708366ae1c7af5491dcd8efb59a6f478c98",
+                  "type": "string"
+                }
+              },
+              {
+                "id": 2,
+                "secret": {
+                  "$redacted": true,
+                  "fingerprint": "7c476b3e2784d716f6dca8e8128325d914828d1a522514d99470d5328a3f431d",
+                  "type": "string"
+                }
+              }
+            ]
+          }
+        ],
+        "argsFingerprint": "f3b2fb2531a765186ef94edd61663a8ad3def111e73763f94c704671478a5453"
+      }
+    },
+    {
+      "id": "redaction/objet-masque",
+      "op": "serializeArgs",
+      "input": {
+        "export": "f",
+        "redact": {
+          "fields": ["credentials"],
+          "hmacKey": "cle-test"
+        },
+        "args": [
+          {
+            "credentials": {
+              "user": "u",
+              "pass": "p"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "credentials": {
+              "$redacted": true,
+              "fingerprint": "741b460eeb2fa5aa939eb4b187010023a0bfc627657553f14af0a5a74d2736c8",
+              "type": "object"
+            }
+          }
+        ],
+        "argsFingerprint": "d7affd45bdff7f38509304970653c7192209d18873c53ae06c1ba1e8b8720dbb"
+      }
+    },
+    {
+      "id": "redaction/nombre-masque",
+      "op": "serializeArgs",
+      "input": {
+        "export": "f",
+        "redact": {
+          "fields": ["pin"],
+          "hmacKey": "cle-test"
+        },
+        "args": [
+          {
+            "pin": 1234
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "pin": {
+              "$redacted": true,
+              "fingerprint": "d0227fbd4bf45874a741dbee51fbcafd7fb0ad9e6db6f3c4c98d134d5da9d43e",
+              "type": "number"
+            }
+          }
+        ],
+        "argsFingerprint": "bbbadd006752b2808facca3162ace5abff40b8fa42f6f77af21e925bdc46a0d3"
+      }
+    },
+    {
+      "id": "redaction/chemin-skip",
+      "op": "serializeArgs",
+      "input": {
+        "export": "createUser",
+        "redact": {
+          "skipPaths": ["createUser#arg0.profile.ssn", "other#arg0.name"],
+          "hmacKey": "cle-test"
+        },
+        "args": [
+          {
+            "name": "Ada",
+            "profile": {
+              "ssn": "123-45"
+            }
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "name": "Ada",
+            "profile": {
+              "ssn": {
+                "$redacted": true,
+                "fingerprint": "efa250a360ff603f54f039f54ced20a81fbac4bcaff027bc43055178844fed9f",
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "argsFingerprint": "af8eb055d964f075bd1df0068049b60ff527b42f34bee391431173a91a5a100d"
+      }
+    },
+    {
+      "id": "redaction/argument-entier",
+      "op": "serializeArgs",
+      "input": {
+        "export": "login",
+        "redact": {
+          "skipPaths": ["login#arg1"],
+          "hmacKey": "cle-test"
+        },
+        "args": ["ada", "hunter2"]
+      },
+      "expected": {
+        "args": [
+          "ada",
+          {
+            "$redacted": true,
+            "fingerprint": "c8c58e43fefc21999a4cdf4927050dd0995ac3198c8e8364c405448bd2936f86",
+            "type": "string"
+          }
+        ],
+        "argsFingerprint": "63ceecc2421f73572afb6d6b915223a1e52ea4ee22741ab583e2cade4792b38d"
+      }
+    },
+    {
+      "id": "redaction/cle-par-defaut",
+      "op": "serializeArgs",
+      "input": {
+        "export": "f",
+        "redact": {
+          "fields": ["password"]
+        },
+        "args": [
+          {
+            "password": "hunter2"
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "password": {
+              "$redacted": true,
+              "fingerprint": "d3c1e6f0da533e6e14ca37aba2d0ded5f42e58f88e67eff5e0312f26bc84a8db",
+              "type": "string"
+            }
+          }
+        ],
+        "argsFingerprint": "af32702704c26f8e81012b245f0fa92b6aaefc4411005e666ccc46c5e41a0ce1"
+      }
+    },
+    {
+      "id": "fingerprint/vide",
+      "op": "serializeArgs",
+      "input": {
+        "args": []
+      },
+      "expected": {
+        "args": [],
+        "argsFingerprint": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "fingerprint/simple",
+      "op": "serializeArgs",
+      "input": {
+        "args": [1, "a", null]
+      },
+      "expected": {
+        "args": [1, "a", null],
+        "argsFingerprint": "6f9c54658fdbc2f155e7105e0ad633c8c03e83b677a6b8a5dfb7541264b83622"
+      }
+    },
+    {
+      "id": "fingerprint/ordre-a",
+      "op": "serializeArgs",
+      "input": {
+        "args": [
+          {
+            "b": 1,
+            "a": 2
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "b": 1,
+            "a": 2
+          }
+        ],
+        "argsFingerprint": "82c9656ed6aa58d0ca5d00081451bfd33f9edd2a45f27c647781c8783759541d"
+      }
+    },
+    {
+      "id": "fingerprint/ordre-b",
+      "op": "serializeArgs",
+      "input": {
+        "args": [
+          {
+            "a": 2,
+            "b": 1
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "a": 2,
+            "b": 1
+          }
+        ],
+        "argsFingerprint": "82c9656ed6aa58d0ca5d00081451bfd33f9edd2a45f27c647781c8783759541d"
+      }
+    },
+    {
+      "id": "fingerprint/etiquetees",
+      "op": "serializeArgs",
+      "input": {
+        "args": [
+          {
+            "$in": "undefined"
+          },
+          {
+            "$in": "number",
+            "v": "-0"
+          },
+          {
+            "$in": "date",
+            "v": "2020-01-01T00:00:00.000Z"
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "$t": "undefined"
+          },
+          {
+            "$t": "number",
+            "v": "-0"
+          },
+          {
+            "$t": "date",
+            "v": "2020-01-01T00:00:00.000Z"
+          }
+        ],
+        "argsFingerprint": "00b3cdcbcbb6a8ed7fb2029459bce197495da2892cadfcbc5aa0b42f90a816b6"
+      }
+    },
+    {
+      "id": "redaction/cle-de-map",
+      "op": "serializeArgs",
+      "input": {
+        "export": "f",
+        "redact": {
+          "fields": ["password"],
+          "hmacKey": "cle-test"
+        },
+        "args": [
+          {
+            "$in": "map",
+            "entries": [
+              ["password", "hunter2"],
+              ["user", "ada"]
+            ]
+          }
+        ]
+      },
+      "expected": {
+        "args": [
+          {
+            "$t": "map",
+            "entries": [
+              [
+                "password",
+                {
+                  "$redacted": true,
+                  "fingerprint": "c8c58e43fefc21999a4cdf4927050dd0995ac3198c8e8364c405448bd2936f86",
+                  "type": "string"
+                }
+              ],
+              ["user", "ada"]
+            ]
+          }
+        ],
+        "argsFingerprint": "93cfaa448c586ce59bf7cb09302a3f0f2c64eb9421200185a8d94bb680b61d3f"
+      }
+    }
+  ]
+}

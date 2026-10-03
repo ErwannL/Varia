@@ -2,7 +2,7 @@
 
 - Dernier jalon accepté : **J3 — produit fiable** (`reports/j3.md`) ; J2 (`reports/j2.md`) ; J1 ; J0 GO
 - Étape faite : J3 complet (audit F/A/B/C/D/E/G, couverture 100 %, CI verte multi-OS)
-- Étape en cours : **J4 — P (protocole de sonde stabilisé)**
+- Étape en cours : **J4 — X/R (extensions, adaptateurs)** ; P-01/P-02/P-03 faits (protocole 1.2, schémas JSON générés, jeu de conformité, majeure inconnue ⇒ UNSUPPORTED_PROBE)
 - Vérification : `npm ci && npm run examples:install && npm run check` (≈ 8 min)
 - Externe : `npm run external:fetch && npm run build && npm run acceptance:external`
 - Preuve d'échec possible : `npm run mutation-check`

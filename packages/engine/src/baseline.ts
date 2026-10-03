@@ -12,6 +12,7 @@ import { randomBytes } from 'node:crypto'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { printableConfig } from '@varia/config'
+import { PROTOCOL_VERSION, unsupportedProbeVersion } from '@varia/probe-protocol'
 import type { EngineContext } from './context.js'
 import { lastDoctorVerification } from './doctor.js'
 import { VariaError } from './errors.js'
@@ -322,6 +323,16 @@ async function observe(ctx: EngineContext, runId: string, tmpDir: string) {
     }
     probeErrors += probeErrorCount(run)
     unhandledRejections += run.events.filter((e) => e.type === 'UNHANDLED_REJECTION').length
+    // P-03 : une sonde d'une version MAJEURE inconnue est refusée avant toute interprétation.
+    const foreign = unsupportedProbeVersion(run.events)
+    if (foreign !== null) {
+      ctx.writer.updateRun(runId, { state: 'FAILED' })
+      throw new VariaError(
+        'UNSUPPORTED_PROBE',
+        'version du protocole de sonde non prise en charge',
+        [probeVersionDetail(foreign)],
+      )
+    }
     const obs = observationOf(run)
     if (obs.helloCount === 0) {
       ctx.writer.updateRun(runId, { state: 'FAILED' })
@@ -346,4 +357,9 @@ async function observe(ctx: EngineContext, runId: string, tmpDir: string) {
     coverageRows = cov.coverage ?? null
   }
   return { observations, coverageRows, firstDuration, probeErrors, unhandledRejections, started }
+}
+
+/** Détail affiché d'un refus de version (code stable, versions lue et prise en charge). */
+export function probeVersionDetail(foreign: number): string {
+  return `PROBE_PROTOCOL_UNSUPPORTED: protocolVersion ${foreign} (pris en charge : ${PROTOCOL_VERSION})`
 }

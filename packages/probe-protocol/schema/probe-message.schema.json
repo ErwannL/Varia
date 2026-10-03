@@ -1,0 +1,359 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "title": "HELLO",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "HELLO" },
+        "protocolMinor": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "mode": { "type": "string", "enum": ["observe", "fuzz"] },
+        "pid": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "mutationId": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+      },
+      "required": [
+        "protocolVersion",
+        "runId",
+        "testId",
+        "timestamp",
+        "type",
+        "mode",
+        "pid",
+        "mutationId"
+      ]
+    },
+    {
+      "title": "DISCOVER",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "DISCOVER" },
+        "module": { "type": "string" },
+        "wrapped": { "type": "array", "items": { "type": "string" } },
+        "unsupported": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": [
+        "protocolVersion",
+        "runId",
+        "testId",
+        "timestamp",
+        "type",
+        "module",
+        "wrapped",
+        "unsupported"
+      ]
+    },
+    {
+      "title": "TEST_START",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "TEST_START" },
+        "file": { "type": "string" },
+        "name": { "type": "string" }
+      },
+      "required": ["protocolVersion", "runId", "testId", "timestamp", "type", "file", "name"]
+    },
+    {
+      "title": "TEST_END",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "TEST_END" }
+      },
+      "required": ["protocolVersion", "runId", "testId", "timestamp", "type"]
+    },
+    {
+      "title": "OBSERVE_CALL",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "OBSERVE_CALL" },
+        "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "callSiteId": {
+          "anyOf": [{ "type": "string", "pattern": "^c_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "module": { "type": "string" },
+        "export": { "type": "string" },
+        "depth": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "sequence": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+        "argsFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "mutated": { "type": "boolean" },
+        "args": {
+          "type": "array",
+          "items": {
+            "title": "TaggedValue",
+            "description": "Valeur JSON étiquetée ($t, $redacted) — voir la norme"
+          }
+        },
+        "argsOmitted": { "type": "boolean", "const": true }
+      },
+      "required": [
+        "protocolVersion",
+        "runId",
+        "testId",
+        "timestamp",
+        "type",
+        "callId",
+        "callSiteId",
+        "module",
+        "export",
+        "depth",
+        "sequence",
+        "argsFingerprint",
+        "mutated"
+      ]
+    },
+    {
+      "title": "MUTATE_CALL",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "MUTATE_CALL" },
+        "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "callSiteId": { "type": "string", "pattern": "^c_[0-9a-f]{16}$" },
+        "mutationId": { "type": "string" },
+        "applied": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "expectedFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "argsFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "required": [
+        "protocolVersion",
+        "runId",
+        "testId",
+        "timestamp",
+        "type",
+        "callId",
+        "callSiteId",
+        "mutationId",
+        "applied"
+      ]
+    },
+    {
+      "title": "TARGET_RETURN",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "TARGET_RETURN" },
+        "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "callSiteId": {
+          "anyOf": [{ "type": "string", "pattern": "^c_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "durationMs": { "type": "number", "minimum": 0 },
+        "async": { "type": "boolean" },
+        "value": {
+          "title": "TaggedValue",
+          "description": "Valeur JSON étiquetée ($t, $redacted) — voir la norme"
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "runId",
+        "testId",
+        "timestamp",
+        "type",
+        "callId",
+        "callSiteId",
+        "durationMs",
+        "async",
+        "value"
+      ]
+    },
+    {
+      "title": "TARGET_THROW",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "TARGET_THROW" },
+        "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "callSiteId": {
+          "anyOf": [{ "type": "string", "pattern": "^c_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "durationMs": { "type": "number", "minimum": 0 },
+        "error": {
+          "title": "SerializedError",
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "message": { "type": "string" },
+            "code": { "type": "string" },
+            "status": { "type": "number" },
+            "stack": { "type": "string" },
+            "constructorChain": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["name", "message", "stack", "constructorChain"]
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "runId",
+        "testId",
+        "timestamp",
+        "type",
+        "callId",
+        "callSiteId",
+        "durationMs",
+        "error"
+      ]
+    },
+    {
+      "title": "TARGET_REJECT",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "TARGET_REJECT" },
+        "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "callSiteId": {
+          "anyOf": [{ "type": "string", "pattern": "^c_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "durationMs": { "type": "number", "minimum": 0 },
+        "error": {
+          "title": "SerializedError",
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "message": { "type": "string" },
+            "code": { "type": "string" },
+            "status": { "type": "number" },
+            "stack": { "type": "string" },
+            "constructorChain": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["name", "message", "stack", "constructorChain"]
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "runId",
+        "testId",
+        "timestamp",
+        "type",
+        "callId",
+        "callSiteId",
+        "durationMs",
+        "error"
+      ]
+    },
+    {
+      "title": "PROBE_ERROR",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "PROBE_ERROR" },
+        "reason": { "type": "string" },
+        "error": {
+          "title": "SerializedError",
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "message": { "type": "string" },
+            "code": { "type": "string" },
+            "status": { "type": "number" },
+            "stack": { "type": "string" },
+            "constructorChain": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["name", "message", "stack", "constructorChain"]
+        },
+        "module": { "type": "string" },
+        "export": { "type": "string" },
+        "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 }
+      },
+      "required": ["protocolVersion", "runId", "testId", "timestamp", "type", "reason", "error"]
+    },
+    {
+      "title": "UNHANDLED_REJECTION",
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "type": "number", "const": 1 },
+        "runId": { "type": "string" },
+        "testId": {
+          "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "timestamp": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "const": "UNHANDLED_REJECTION" },
+        "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+        "callSiteId": {
+          "anyOf": [{ "type": "string", "pattern": "^c_[0-9a-f]{16}$" }, { "type": "null" }]
+        },
+        "chain": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 }
+        },
+        "error": {
+          "title": "SerializedError",
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "message": { "type": "string" },
+            "code": { "type": "string" },
+            "status": { "type": "number" },
+            "stack": { "type": "string" },
+            "constructorChain": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["name", "message", "stack", "constructorChain"]
+        }
+      },
+      "required": [
+        "protocolVersion",
+        "runId",
+        "testId",
+        "timestamp",
+        "type",
+        "callSiteId",
+        "chain",
+        "error"
+      ]
+    }
+  ]
+}

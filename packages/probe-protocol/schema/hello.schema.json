@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HELLO",
+  "type": "object",
+  "properties": {
+    "protocolVersion": { "type": "number", "const": 1 },
+    "runId": { "type": "string" },
+    "testId": {
+      "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "const": "HELLO" },
+    "protocolMinor": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "mode": { "type": "string", "enum": ["observe", "fuzz"] },
+    "pid": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "mutationId": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
+  },
+  "required": [
+    "protocolVersion",
+    "runId",
+    "testId",
+    "timestamp",
+    "type",
+    "mode",
+    "pid",
+    "mutationId"
+  ]
+}

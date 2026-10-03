@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DISCOVER",
+  "type": "object",
+  "properties": {
+    "protocolVersion": { "type": "number", "const": 1 },
+    "runId": { "type": "string" },
+    "testId": {
+      "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "const": "DISCOVER" },
+    "module": { "type": "string" },
+    "wrapped": { "type": "array", "items": { "type": "string" } },
+    "unsupported": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": [
+    "protocolVersion",
+    "runId",
+    "testId",
+    "timestamp",
+    "type",
+    "module",
+    "wrapped",
+    "unsupported"
+  ]
+}

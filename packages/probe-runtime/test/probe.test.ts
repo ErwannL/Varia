@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import type { ProbeEvent } from '@varia/probe-protocol'
+import { PROTOCOL_MINOR, PROTOCOL_VERSION, type ProbeEvent } from '@varia/probe-protocol'
 import { afterEach, describe, expect, it } from 'vitest'
 import { callSiteIdOf, fingerprint, serializeArgs, testIdOf } from '../src/index.js'
 
@@ -413,6 +413,11 @@ describe('serializeError (D.0)', () => {
       constructorChain: ['RangeError', 'Error'],
     })
     expect(s.stack).toBe('    at f (/p/src/a.js:1:1)')
+    // `status` non numérique : omis (jamais `null`, qui rendrait la ligne hors schéma).
+    for (const status of ['abc', Symbol('s'), NaN])
+      expect(P.serializeError(Object.assign(new Error('m'), { status }), [])).not.toHaveProperty(
+        'status',
+      )
     const plain = P.serializeError({ name: 'N', message: 'M' }, [])
     expect(plain).toEqual({ name: 'N', message: 'M', stack: '', constructorChain: [] })
   })
@@ -643,6 +648,11 @@ describe('branchement sur le runner', () => {
       'TEST_START',
     ])
     expect(lines[0]).toMatchObject({ mode: 'observe', pid: process.pid, mutationId: null })
+    // P-03 : la sonde annonce la version du protocole qu'elle parle (majeure partout, mineure dans HELLO).
+    expect(lines[0]).toMatchObject({
+      protocolVersion: PROTOCOL_VERSION,
+      protocolMinor: PROTOCOL_MINOR,
+    })
   })
   it('install sans état : rien', () => {
     g.__varia = null

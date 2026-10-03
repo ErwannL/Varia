@@ -1,0 +1,76 @@
+{
+  "description": "JSON canonique (clés triées par unités UTF-16, aucun horodatage) : plan et base des empreintes.",
+  "cases": [
+    {
+      "id": "canonical/plan",
+      "op": "canonical",
+      "input": {
+        "indent": 2,
+        "value": {
+          "seed": 42,
+          "schemaVersion": 1,
+          "mutations": [
+            { "path": ["arg0", "name"], "op": "set", "id": "m_b", "value": null },
+            { "value": { "z": 1, "a": [3, 2, 1] }, "id": "m_a", "path": [], "op": "delete" }
+          ],
+          "gitCommit": null,
+          "configHash": "abc",
+          "possible": 2,
+          "variaVersion": "0.1.0"
+        }
+      },
+      "expected": {
+        "text": "{\n  \"configHash\": \"abc\",\n  \"gitCommit\": null,\n  \"mutations\": [\n    {\n      \"id\": \"m_b\",\n      \"op\": \"set\",\n      \"path\": [\n        \"arg0\",\n        \"name\"\n      ],\n      \"value\": null\n    },\n    {\n      \"id\": \"m_a\",\n      \"op\": \"delete\",\n      \"path\": [],\n      \"value\": {\n        \"a\": [\n          3,\n          2,\n          1\n        ],\n        \"z\": 1\n      }\n    }\n  ],\n  \"possible\": 2,\n  \"schemaVersion\": 1,\n  \"seed\": 42,\n  \"variaVersion\": \"0.1.0\"\n}",
+        "sha256": "0c595e8c94c4e726c30f59ed2c70a574c4843b49557365c9e943ca4eca4af543"
+      }
+    },
+    {
+      "id": "canonical/compact",
+      "op": "canonical",
+      "input": { "indent": 0, "value": { "b": [{ "d": 1, "c": 2 }], "a": "x" } },
+      "expected": {
+        "text": "{\"a\":\"x\",\"b\":[{\"c\":2,\"d\":1}]}",
+        "sha256": "ba975ce4af550905c30a778c03d3d22eede5bf40081f6a887b5dbdc8ef89bc9c"
+      }
+    },
+    {
+      "id": "canonical/ordre-unicode",
+      "op": "canonical",
+      "input": {
+        "indent": 0,
+        "value": { "9": 7, "10": 6, "é": 1, "z": 2, "Z": 3, "a": 4, "_": 5 }
+      },
+      "expected": {
+        "text": "{\"9\":7,\"10\":6,\"Z\":3,\"_\":5,\"a\":4,\"z\":2,\"é\":1}",
+        "sha256": "cc7613bd28f43514080bca73163f244785b098e39b9507cc2118f6fa2016ad49"
+      }
+    },
+    {
+      "id": "canonical/nombres",
+      "op": "canonical",
+      "input": { "indent": 0, "value": [1, 0.1, 1e21, 1.5e-7, 0, 100, 123456789012] },
+      "expected": {
+        "text": "[1,0.1,1e+21,1.5e-7,0,100,123456789012]",
+        "sha256": "5b1c0b1616abe35466cd670cfeec59abaaeb7634166468e0e3cca1d16c595faa"
+      }
+    },
+    {
+      "id": "canonical/chaines",
+      "op": "canonical",
+      "input": { "indent": 0, "value": ["guillemet \" barre \\ ligne\n tab\t", "\u0001", "é🙂"] },
+      "expected": {
+        "text": "[\"guillemet \\\" barre \\\\ ligne\\n tab\\t\",\"\\u0001\",\"é🙂\"]",
+        "sha256": "a8df05b4239dcba60cb6f573016cd11e7f9018e2e8cc25f212e4b95ed4d03497"
+      }
+    },
+    {
+      "id": "canonical/vides",
+      "op": "canonical",
+      "input": { "indent": 2, "value": { "a": [], "b": {} } },
+      "expected": {
+        "text": "{\n  \"a\": [],\n  \"b\": {}\n}",
+        "sha256": "99235a4c7ffc918d09f648c686de540efacff5a4fc66a4bcc2daab175bdde147"
+      }
+    }
+  ]
+}

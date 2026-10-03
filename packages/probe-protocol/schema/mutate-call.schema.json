@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MUTATE_CALL",
+  "type": "object",
+  "properties": {
+    "protocolVersion": { "type": "number", "const": 1 },
+    "runId": { "type": "string" },
+    "testId": {
+      "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "const": "MUTATE_CALL" },
+    "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "callSiteId": { "type": "string", "pattern": "^c_[0-9a-f]{16}$" },
+    "mutationId": { "type": "string" },
+    "applied": { "type": "boolean" },
+    "reason": { "type": "string" },
+    "expectedFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "argsFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  },
+  "required": [
+    "protocolVersion",
+    "runId",
+    "testId",
+    "timestamp",
+    "type",
+    "callId",
+    "callSiteId",
+    "mutationId",
+    "applied"
+  ]
+}

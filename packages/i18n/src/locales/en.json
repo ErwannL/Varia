@@ -310,6 +310,7 @@
   "cli.db.backup": "Backup written: {path}",
   "cli.list.adapter.jest": "Jest (CommonJS, transpiled TypeScript)",
   "cli.list.adapter.vitest": "Vitest (ESM and CommonJS, TypeScript)",
+  "cli.list.adapter.mocha": "Mocha (CommonJS)",
   "cli.list.strategy.type": "neighbouring type",
   "cli.list.strategy.null": "null",
   "cli.list.strategy.undefined": "undefined, missing property",
@@ -438,5 +439,8 @@
   "issue.state.UNKNOWN": "unknown (not observed in this run)",
   "dash.issue.matchedFrom": "Matched previous issues",
   "cli.doctor.capabilityReason": "  {name}: {status} — {reason}",
-  "dash.notCovered.mocked": "Targets mocked by a test (not observed in that test)"
+  "dash.notCovered.mocked": "Targets mocked by a test (not observed in that test)",
+  "doctor.reason.PROBE_PROTOCOL_UNSUPPORTED": "Probe speaks a protocol major version unknown to this Varia version (docs/probe-protocol.md)",
+  "report.capReason.PROBE_PROTOCOL_UNSUPPORTED": "Unsupported probe protocol version",
+  "cli.warning.PLUGIN_FAILURE": "An extension failed (PLUGIN_FAILURE): it is disabled for this run, which continues. Details: \"plugins\" section of the JSON report."
 }

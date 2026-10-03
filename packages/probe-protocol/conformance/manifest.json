@@ -1,0 +1,13 @@
+{
+  "protocolVersion": "1.2",
+  "sha256": "cfb536cdbe6185a656ba5f3d7b50cb8f0d459f535aa884ad32daa953618e8f3e",
+  "files": [
+    "canonical.json",
+    "errors.json",
+    "identity.json",
+    "limits.json",
+    "objects.json",
+    "redaction.json",
+    "values.json"
+  ]
+}

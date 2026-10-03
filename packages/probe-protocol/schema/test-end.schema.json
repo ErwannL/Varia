@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TEST_END",
+  "type": "object",
+  "properties": {
+    "protocolVersion": { "type": "number", "const": 1 },
+    "runId": { "type": "string" },
+    "testId": {
+      "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "const": "TEST_END" }
+  },
+  "required": ["protocolVersion", "runId", "testId", "timestamp", "type"]
+}

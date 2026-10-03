@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OBSERVE_CALL",
+  "type": "object",
+  "properties": {
+    "protocolVersion": { "type": "number", "const": 1 },
+    "runId": { "type": "string" },
+    "testId": {
+      "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "const": "OBSERVE_CALL" },
+    "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "callSiteId": {
+      "anyOf": [{ "type": "string", "pattern": "^c_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "module": { "type": "string" },
+    "export": { "type": "string" },
+    "depth": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "sequence": { "type": "integer", "minimum": 0, "maximum": 9007199254740991 },
+    "argsFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "mutated": { "type": "boolean" },
+    "args": {
+      "type": "array",
+      "items": {
+        "title": "TaggedValue",
+        "description": "Valeur JSON étiquetée ($t, $redacted) — voir la norme"
+      }
+    },
+    "argsOmitted": { "type": "boolean", "const": true }
+  },
+  "required": [
+    "protocolVersion",
+    "runId",
+    "testId",
+    "timestamp",
+    "type",
+    "callId",
+    "callSiteId",
+    "module",
+    "export",
+    "depth",
+    "sequence",
+    "argsFingerprint",
+    "mutated"
+  ]
+}

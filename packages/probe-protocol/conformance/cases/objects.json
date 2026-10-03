@@ -1,0 +1,86 @@
+{
+  "description": "Objets imbriqués, clés hostiles, échappement, instances, références circulaires.",
+  "cases": [
+    {
+      "id": "objects/imbrique",
+      "op": "serialize",
+      "input": {
+        "value": { "user": { "name": "Ada", "roles": ["admin"], "meta": { "age": 36 } } }
+      },
+      "expected": { "user": { "name": "Ada", "roles": ["admin"], "meta": { "age": 36 } } }
+    },
+    { "id": "objects/vide", "op": "serialize", "input": { "value": {} }, "expected": {} },
+    {
+      "id": "objects/cle-proto",
+      "op": "serialize",
+      "input": {
+        "value": {
+          "$in": "object",
+          "entries": [
+            ["__proto__", { "polluted": true }],
+            ["constructor", null],
+            ["prototype", 1]
+          ]
+        }
+      },
+      "expected": { "__proto__": { "polluted": true }, "constructor": null, "prototype": 1 }
+    },
+    {
+      "id": "objects/cle-t-echappee",
+      "op": "serialize",
+      "input": {
+        "value": {
+          "$in": "object",
+          "entries": [
+            ["$t", "number"],
+            ["v", "NaN"]
+          ]
+        }
+      },
+      "expected": { "$t": "object", "v": { "$t": "number", "v": "NaN" } }
+    },
+    {
+      "id": "objects/cle-redacted-echappee",
+      "op": "serialize",
+      "input": { "value": { "$in": "object", "entries": [["$redacted", true]] } },
+      "expected": { "$t": "object", "v": { "$redacted": true } }
+    },
+    {
+      "id": "objects/cle-in",
+      "op": "serialize",
+      "input": { "value": { "$in": "object", "entries": [["$in", "x"]] } },
+      "expected": { "$in": "x" }
+    },
+    {
+      "id": "objects/instance",
+      "op": "serialize",
+      "input": {
+        "value": {
+          "$in": "instance",
+          "class": "Point",
+          "entries": [
+            ["x", 1],
+            ["y", { "$in": "number", "v": "-0" }]
+          ]
+        }
+      },
+      "expected": {
+        "$t": "object",
+        "ctor": "Point",
+        "v": { "x": 1, "y": { "$t": "number", "v": "-0" } }
+      }
+    },
+    {
+      "id": "objects/circulaire",
+      "op": "serialize",
+      "input": { "value": { "name": "boucle", "self": { "$in": "self" } } },
+      "expected": { "name": "boucle", "self": { "$t": "circular" } }
+    },
+    {
+      "id": "objects/circulaire-tableau",
+      "op": "serialize",
+      "input": { "value": [1, { "$in": "self" }] },
+      "expected": [1, { "$t": "circular" }]
+    }
+  ]
+}

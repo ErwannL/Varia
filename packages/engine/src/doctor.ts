@@ -8,6 +8,7 @@ import {
 } from '@varia/core'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { unsupportedProbeVersion } from '@varia/probe-protocol'
 import { newRunId, prepareContext } from './baseline.js'
 import type { EngineContext } from './context.js'
 import { mutationTimeoutMs } from './fuzz.js'
@@ -154,6 +155,13 @@ async function smoke(
     if (declared.coverage)
       if ((run.coverage ?? []).length > 0) verified.coverage = 'VERIFIED'
       else why.coverage = 'COVERAGE_NOT_PRODUCED'
+    const foreign = unsupportedProbeVersion(run.events)
+    if (foreign !== null) {
+      base.reasons.push('PROBE_PROTOCOL_UNSUPPORTED')
+      verified.observation = 'UNSUPPORTED'
+      why.observation = 'PROBE_PROTOCOL_UNSUPPORTED'
+      return { ...base, verdict: 'UNSUPPORTED_PROBE' }
+    }
     const obs = observationOf(run)
     if (obs.helloCount === 0 || Object.keys(obs.discovered).length === 0) {
       base.reasons.push('NO_TARGET_MODULE_WRAPPED')

@@ -1,0 +1,128 @@
+{
+  "description": "Sérialisation de chaque type étiqueté (op serialize, chemin racine vide).",
+  "cases": [
+    { "id": "values/null", "op": "serialize", "input": { "value": null }, "expected": null },
+    { "id": "values/booleen", "op": "serialize", "input": { "value": true }, "expected": true },
+    { "id": "values/entier", "op": "serialize", "input": { "value": 42 }, "expected": 42 },
+    { "id": "values/decimal", "op": "serialize", "input": { "value": -1.5 }, "expected": -1.5 },
+    {
+      "id": "values/chaine-unicode",
+      "op": "serialize",
+      "input": { "value": "é – 漢字 🙂" },
+      "expected": "é – 漢字 🙂"
+    },
+    {
+      "id": "values/undefined",
+      "op": "serialize",
+      "input": { "value": { "$in": "undefined" } },
+      "expected": { "$t": "undefined" }
+    },
+    {
+      "id": "values/nan",
+      "op": "serialize",
+      "input": { "value": { "$in": "number", "v": "NaN" } },
+      "expected": { "$t": "number", "v": "NaN" }
+    },
+    {
+      "id": "values/plus-infini",
+      "op": "serialize",
+      "input": { "value": { "$in": "number", "v": "Infinity" } },
+      "expected": { "$t": "number", "v": "Infinity" }
+    },
+    {
+      "id": "values/moins-infini",
+      "op": "serialize",
+      "input": { "value": { "$in": "number", "v": "-Infinity" } },
+      "expected": { "$t": "number", "v": "-Infinity" }
+    },
+    {
+      "id": "values/moins-zero",
+      "op": "serialize",
+      "input": { "value": { "$in": "number", "v": "-0" } },
+      "expected": { "$t": "number", "v": "-0" }
+    },
+    {
+      "id": "values/bigint",
+      "op": "serialize",
+      "input": { "value": { "$in": "bigint", "v": "123456789012345678901234567890" } },
+      "expected": { "$t": "bigint", "v": "123456789012345678901234567890" }
+    },
+    {
+      "id": "values/bigint-negatif",
+      "op": "serialize",
+      "input": { "value": { "$in": "bigint", "v": "-9007199254740993" } },
+      "expected": { "$t": "bigint", "v": "-9007199254740993" }
+    },
+    {
+      "id": "values/date",
+      "op": "serialize",
+      "input": { "value": { "$in": "date", "v": "2024-02-29T23:59:59.123Z" } },
+      "expected": { "$t": "date", "v": "2024-02-29T23:59:59.123Z" }
+    },
+    {
+      "id": "values/map",
+      "op": "serialize",
+      "input": {
+        "value": {
+          "$in": "map",
+          "entries": [
+            [1, "un"],
+            ["deux", { "$in": "number", "v": "NaN" }]
+          ]
+        }
+      },
+      "expected": {
+        "$t": "map",
+        "entries": [
+          [1, "un"],
+          ["deux", { "$t": "number", "v": "NaN" }]
+        ]
+      }
+    },
+    {
+      "id": "values/set",
+      "op": "serialize",
+      "input": { "value": { "$in": "set", "values": [3, "trois", { "$in": "undefined" }] } },
+      "expected": { "$t": "set", "values": [3, "trois", { "$t": "undefined" }] }
+    },
+    {
+      "id": "values/bytes",
+      "op": "serialize",
+      "input": { "value": { "$in": "bytes", "base64": "AAECA/8=" } },
+      "expected": { "$t": "bytes", "kind": { "$match": "string" }, "base64": "AAECA/8=" }
+    },
+    {
+      "id": "values/bytes-vide",
+      "op": "serialize",
+      "input": { "value": { "$in": "bytes", "base64": "" } },
+      "expected": { "$t": "bytes", "kind": { "$match": "string" }, "base64": "" }
+    },
+    {
+      "id": "values/erreur-imbriquee",
+      "op": "serialize",
+      "input": {
+        "value": {
+          "a": {
+            "$in": "error",
+            "name": "ValidationError",
+            "message": "invalide",
+            "chain": ["ValidationError"]
+          }
+        }
+      },
+      "expected": { "a": { "$t": "error", "name": "ValidationError", "message": "invalide" } }
+    },
+    {
+      "id": "values/fonction",
+      "op": "serialize",
+      "input": { "value": { "$in": "function", "name": "rappel" } },
+      "expected": { "$t": "opaque", "kind": "function", "name": "rappel" }
+    },
+    {
+      "id": "values/tableau",
+      "op": "serialize",
+      "input": { "value": [1, [2, [3]], { "$in": "undefined" }] },
+      "expected": [1, [2, [3]], { "$t": "undefined" }]
+    }
+  ]
+}

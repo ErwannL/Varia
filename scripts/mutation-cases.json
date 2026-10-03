@@ -887,5 +887,106 @@
     "find": "      mockedTargets: (info['mockedTargets'] ?? []) as { module: string; testFile: string }[],\n",
     "replace": "      mockedTargets: [] as { module: string; testFile: string }[],\n",
     "tests": ["tests/j1/exploration.test.ts"]
+  },
+  {
+    "name": "P-01 : schéma HELLO — mode non énuméré",
+    "file": "packages/probe-protocol/src/messages.ts",
+    "find": "mode: z.enum(['observe', 'fuzz']),",
+    "replace": "mode: z.string(),",
+    "tests": ["packages/probe-protocol/test/protocol.test.ts"]
+  },
+  {
+    "name": "P-01 : champs inconnus rejetés",
+    "file": "packages/probe-protocol/src/messages.ts",
+    "find": "z.object({ ...envelope, type: z.literal(type), ...shape })",
+    "replace": "z.strictObject({ ...envelope, type: z.literal(type), ...shape })",
+    "tests": ["packages/probe-protocol/test/protocol.test.ts"]
+  },
+  {
+    "name": "P-01 : JSON Schema publiés différents de la génération",
+    "file": "packages/probe-protocol/src/index.ts",
+    "find": "io: 'input', target: 'draft-2020-12'",
+    "replace": "io: 'output', target: 'draft-2020-12'",
+    "tests": ["packages/probe-protocol/test/schema.test.ts"]
+  },
+  {
+    "name": "P-01 : JSONL réels hors schéma",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "    pid: process.pid,",
+    "replace": "    pid: -process.pid,",
+    "tests": ["tests/j4/probe-logs.test.ts"]
+  },
+  {
+    "name": "P-01 : statut non numérique écrit",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "...(Number.isFinite(status) ? { status } : {}),",
+    "replace": "...{ status },",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "P-02 : fixture modifiée sans changer la version",
+    "file": "packages/probe-protocol/conformance/cases/identity.json",
+    "find": "\"t_3c8f2c0f03c5e247\"",
+    "replace": "\"t_3c8f2c0f03c5e248\"",
+    "tests": ["packages/probe-protocol/test/conformance.test.ts"]
+  },
+  {
+    "name": "P-02 : la sonde JS perd -0",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "if (Object.is(value, -0)) return { $t: 'number', v: '-0' }",
+    "replace": "if (Object.is(value, -0)) return 0",
+    "tests": ["packages/probe-runtime/test/conformance.test.ts"]
+  },
+  {
+    "name": "P-02 : motifs de redaction sensibles à la casse",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "(redact.patterns ?? []).map((p) => new RegExp(p, 'i'))",
+    "replace": "(redact.patterns ?? []).map((p) => new RegExp(p))",
+    "tests": ["packages/probe-runtime/test/conformance.test.ts"]
+  },
+  {
+    "name": "P-02 : clé de Map « password » écrite en clair",
+    "file": "packages/probe-runtime/runtime/serialize.cjs",
+    "find": "typeof k === 'string' && redactedKey(k, `${path}.${k}`, opts)",
+    "replace": "false",
+    "tests": ["packages/probe-runtime/test/conformance.test.ts"]
+  },
+  {
+    "name": "P-03 : HELLO de majeure étrangère perdu",
+    "file": "packages/probe-protocol/src/index.ts",
+    "find": "if (foreign.success && foreign.data.protocolVersion !== PROTOCOL_VERSION) {",
+    "replace": "if (foreign.success && foreign.data.protocolVersion === -1) {",
+    "tests": [
+      "packages/probe-protocol/test/protocol.test.ts",
+      "packages/engine/test/protocol-version.test.ts"
+    ]
+  },
+  {
+    "name": "P-03 : type inconnu compté à tort",
+    "file": "packages/probe-protocol/src/index.ts",
+    "find": "if (env.success && !KNOWN.has(env.data.type)) unknownTypeLines++",
+    "replace": "if (env.success && KNOWN.has(env.data.type)) unknownTypeLines++",
+    "tests": ["packages/probe-protocol/test/protocol.test.ts"]
+  },
+  {
+    "name": "P-03 : baseline accepte une majeure inconnue",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "    if (foreign !== null) {",
+    "replace": "    if (foreign === -1) {",
+    "tests": ["packages/engine/test/protocol-version.test.ts"]
+  },
+  {
+    "name": "P-03 : doctor accepte une majeure inconnue",
+    "file": "packages/engine/src/doctor.ts",
+    "find": "    if (foreign !== null) {",
+    "replace": "    if (foreign === -1) {",
+    "tests": ["packages/engine/test/protocol-version.test.ts"]
+  },
+  {
+    "name": "P-03 : la sonde n'annonce pas sa mineure",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "    protocolMinor: PROTOCOL_MINOR,\n",
+    "replace": "",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
   }
 ]

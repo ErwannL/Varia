@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TARGET_RETURN",
+  "type": "object",
+  "properties": {
+    "protocolVersion": { "type": "number", "const": 1 },
+    "runId": { "type": "string" },
+    "testId": {
+      "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "const": "TARGET_RETURN" },
+    "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "callSiteId": {
+      "anyOf": [{ "type": "string", "pattern": "^c_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "durationMs": { "type": "number", "minimum": 0 },
+    "async": { "type": "boolean" },
+    "value": {
+      "title": "TaggedValue",
+      "description": "Valeur JSON étiquetée ($t, $redacted) — voir la norme"
+    }
+  },
+  "required": [
+    "protocolVersion",
+    "runId",
+    "testId",
+    "timestamp",
+    "type",
+    "callId",
+    "callSiteId",
+    "durationMs",
+    "async",
+    "value"
+  ]
+}

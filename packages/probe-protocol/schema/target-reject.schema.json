@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TARGET_REJECT",
+  "type": "object",
+  "properties": {
+    "protocolVersion": { "type": "number", "const": 1 },
+    "runId": { "type": "string" },
+    "testId": {
+      "anyOf": [{ "type": "string", "pattern": "^t_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "const": "TARGET_REJECT" },
+    "callId": { "type": "integer", "minimum": 1, "maximum": 9007199254740991 },
+    "callSiteId": {
+      "anyOf": [{ "type": "string", "pattern": "^c_[0-9a-f]{16}$" }, { "type": "null" }]
+    },
+    "durationMs": { "type": "number", "minimum": 0 },
+    "error": {
+      "title": "SerializedError",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "message": { "type": "string" },
+        "code": { "type": "string" },
+        "status": { "type": "number" },
+        "stack": { "type": "string" },
+        "constructorChain": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["name", "message", "stack", "constructorChain"]
+    }
+  },
+  "required": [
+    "protocolVersion",
+    "runId",
+    "testId",
+    "timestamp",
+    "type",
+    "callId",
+    "callSiteId",
+    "durationMs",
+    "error"
+  ]
+}

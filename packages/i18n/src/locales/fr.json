@@ -310,6 +310,7 @@
   "cli.db.backup": "Sauvegarde écrite : {path}",
   "cli.list.adapter.jest": "Jest (CommonJS, TypeScript transpilé)",
   "cli.list.adapter.vitest": "Vitest (ESM et CommonJS, TypeScript)",
+  "cli.list.adapter.mocha": "Mocha (CommonJS)",
   "cli.list.strategy.type": "type d'une famille voisine",
   "cli.list.strategy.null": "null",
   "cli.list.strategy.undefined": "undefined, propriété absente",
@@ -438,5 +439,8 @@
   "issue.state.UNKNOWN": "inconnu (non observé dans ce run)",
   "dash.issue.matchedFrom": "Issues précédentes rapprochées",
   "cli.doctor.capabilityReason": "  {name} : {status} — {reason}",
-  "dash.notCovered.mocked": "Cibles mockées par un test (non observées dans ce test)"
+  "dash.notCovered.mocked": "Cibles mockées par un test (non observées dans ce test)",
+  "doctor.reason.PROBE_PROTOCOL_UNSUPPORTED": "Sonde d'une version majeure du protocole inconnue de cette version de Varia (docs/probe-protocol.md)",
+  "report.capReason.PROBE_PROTOCOL_UNSUPPORTED": "Version du protocole de sonde non prise en charge",
+  "cli.warning.PLUGIN_FAILURE": "Une extension a échoué (PLUGIN_FAILURE) : elle est désactivée pour ce run, qui continue. Détails : section « plugins » du rapport JSON."
 }

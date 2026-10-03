@@ -13,7 +13,9 @@ const asyncHooks = require('async_hooks')
 const { performance: perf } = require('perf_hooks')
 const S = require('./serialize.cjs')
 
+// Version du protocole (docs/probe-protocol.md) : majeure sur chaque ligne, mineure dans HELLO.
 const PROTOCOL_VERSION = 1
+const PROTOCOL_MINOR = 2
 const MAX_LOGGED_CALLS = 20
 const WRAPPED = Symbol.for('varia.wrapped')
 /** Contexte d'appel porté par une promesse créée pendant l'appel d'une cible (attribution, A-02). */
@@ -97,10 +99,7 @@ function init(env) {
     projectRoot: String(targets.projectRoot ?? process.cwd()),
     als: new asyncHooks.AsyncLocalStorage(),
     mutation,
-    redactFields: new Set((redact.fields ?? []).map((/** @type {string} */ f) => f.toLowerCase())),
-    redactPatterns: (redact.patterns ?? []).map((/** @type {string} */ p) => new RegExp(p, 'i')),
-    skipPaths: redact.skipPaths ?? [],
-    hmacKey: String(redact.hmacKey ?? 'varia'),
+    ...S.compileRedaction(redact),
     currentTest: null,
     sequences: new Map(),
     nameCounts: new Map(),
@@ -195,14 +194,24 @@ function serializeError(e, secrets) {
     )
     .slice(0, 15)
   const code = safeGet(e, 'code')
-  const status = safeGet(e, 'status')
+  // `status` non numérique (« abc », symbole) : omis, jamais `null` (hors schéma, P-01).
+  const status = num(safeGet(e, 'status'))
   return {
     name: scrub(str(safeGet(e, 'name') ?? '')),
     message: scrub(str(safeGet(e, 'message') ?? '')),
     ...(code !== undefined ? { code: str(code) } : {}),
-    ...(status !== undefined ? { status: Number(status) } : {}),
+    ...(Number.isFinite(status) ? { status } : {}),
     stack: scrub(frames.join('\n')),
     constructorChain: chain,
+  }
+}
+
+/** Conversion numérique qui ne lève jamais (symbole) ; `undefined` ⇒ NaN. @param {unknown} v */
+function num(v) {
+  try {
+    return Number(v)
+  } catch {
+    return NaN
   }
 }
 
@@ -341,18 +350,7 @@ function prepareCall(st, args, moduleId, exportName) {
   const callId = ++st.callCounter
   /** @type {string[]} */
   const secrets = []
-  const redactPaths = new Set(
-    st.skipPaths
-      .filter((p) => p.startsWith(`${exportName}#`))
-      .map((p) => p.slice(exportName.length + 1)),
-  )
-  const opts = {
-    redactFields: st.redactFields,
-    redactPatterns: st.redactPatterns,
-    redactPaths,
-    hmacKey: st.hmacKey,
-    secrets,
-  }
+  const opts = S.argsOptions(st, exportName, secrets)
   const serialized = S.serializeArgs(args, opts)
   const argsFingerprint = S.fingerprint(serialized)
   let callArgs = args
@@ -597,7 +595,12 @@ function install(/** @type {TestHooks} */ hooks) {
 function installOn(g, hooks) {
   const st = /** @type {ProbeState | null} */ (g.__varia)
   if (!st) return
-  emit(st, 'HELLO', { mode: st.mode, pid: process.pid, mutationId: st.mutation?.id ?? null })
+  emit(st, 'HELLO', {
+    protocolMinor: PROTOCOL_MINOR,
+    mode: st.mode,
+    pid: process.pid,
+    mutationId: st.mutation?.id ?? null,
+  })
   installRejectionHook(st, hooks.process ?? null)
   hooks.beforeEach(() => {
     const cur = /** @type {ProbeState} */ (g.__varia)

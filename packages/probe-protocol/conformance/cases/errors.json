@@ -1,0 +1,77 @@
+{
+  "description": "Sérialisation d'erreur : nom, message, code, status, pile, chaîne de constructeurs, secrets retirés.",
+  "cases": [
+    {
+      "id": "errors/hierarchie",
+      "op": "serializeError",
+      "input": {
+        "error": {
+          "$in": "error",
+          "name": "ValidationError",
+          "message": "email invalide",
+          "chain": ["ValidationError", "AppError"]
+        }
+      },
+      "expected": {
+        "name": "ValidationError",
+        "message": "email invalide",
+        "stack": { "$match": "string" },
+        "constructorChain": { "$prefix": ["ValidationError", "AppError"] }
+      }
+    },
+    {
+      "id": "errors/code-status",
+      "op": "serializeError",
+      "input": {
+        "error": {
+          "$in": "error",
+          "name": "HttpError",
+          "message": "refus",
+          "code": "E_REFUS",
+          "status": 422,
+          "chain": ["HttpError"]
+        }
+      },
+      "expected": {
+        "name": "HttpError",
+        "message": "refus",
+        "code": "E_REFUS",
+        "status": 422,
+        "stack": { "$match": "string" },
+        "constructorChain": { "$prefix": ["HttpError"] }
+      }
+    },
+    {
+      "id": "errors/base",
+      "op": "serializeError",
+      "input": { "error": { "$in": "error", "message": "boum" } },
+      "expected": {
+        "name": { "$match": "string" },
+        "message": "boum",
+        "stack": { "$match": "string" },
+        "constructorChain": { "$prefix": [] }
+      }
+    },
+    {
+      "id": "errors/secret-retire",
+      "op": "serializeError",
+      "input": {
+        "export": "createUser",
+        "redact": { "fields": ["password"], "hmacKey": "k" },
+        "args": [{ "password": "hunter2" }],
+        "error": {
+          "$in": "error",
+          "name": "ValidationError",
+          "message": "mot de passe hunter2 trop court (hunter2)",
+          "chain": ["ValidationError"]
+        }
+      },
+      "expected": {
+        "name": "ValidationError",
+        "message": "mot de passe [REDACTED] trop court ([REDACTED])",
+        "stack": { "$match": "string" },
+        "constructorChain": { "$prefix": ["ValidationError"] }
+      }
+    }
+  ]
+}

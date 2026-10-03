@@ -1,87 +1,59 @@
 import { z } from 'zod'
+import {
+  currentEnvelopeSchema,
+  foreignHelloSchema,
+  MESSAGE_SCHEMAS,
+  type MessageType,
+  probeMessageSchema,
+  PROTOCOL_VERSION,
+  type Json,
+  type SerializedError,
+} from './messages.js'
 
-/** Version du protocole sonde ↔ orchestrateur (CDC §10.6, §40). */
-export const PROTOCOL_VERSION = 1
-
-export type Json = null | boolean | number | string | Json[] | { [k: string]: Json }
-
-export const MESSAGE_TYPES = [
-  'HELLO',
-  'DISCOVER',
-  'TEST_START',
-  'TEST_END',
-  'OBSERVE_CALL',
-  'MUTATE_CALL',
-  'TARGET_RETURN',
-  'TARGET_THROW',
-  'TARGET_REJECT',
-  'PROBE_ERROR',
-  'UNHANDLED_REJECTION',
-] as const
-export type MessageType = (typeof MESSAGE_TYPES)[number]
+export * from './messages.js'
+export { conformanceDigest, type ConformanceManifest } from './conformance.js'
 
 /**
- * Une valeur observée est une DONNÉE HOSTILE (clés `constructor`, `__proto__`, …) : elle est vérifiée par
- * un parcours défensif, jamais par une validation qui lirait ses propriétés héritées.
+ * Forme « à plat » d'un message lu (tous les champs propres à un type sont optionnels) : celle que
+ * consomment le cœur et l'oracle. Chaque message validé y est assignable (vérifié à la compilation).
+ * `protocolVersion` vaut la majeure courante, sauf pour un `HELLO` d'une majeure étrangère (P-03).
  */
-export function isJsonValue(v: unknown, depth = 0): v is Json {
-  if (depth > 200) return false
-  if (v === null || typeof v === 'string' || typeof v === 'boolean') return true
-  if (typeof v === 'number') return Number.isFinite(v)
-  if (Array.isArray(v)) return v.every((x) => isJsonValue(x, depth + 1))
-  if (typeof v !== 'object') return false
-  return Object.keys(v).every((k) =>
-    isJsonValue(Object.getOwnPropertyDescriptor(v, k)?.value, depth + 1),
-  )
+export interface ProbeEvent {
+  protocolVersion: number
+  runId: string
+  type: MessageType
+  testId: string | null
+  timestamp: string
+  protocolMinor?: number | undefined
+  callId?: number | undefined
+  chain?: number[] | undefined
+  callSiteId?: string | null | undefined
+  module?: string | undefined
+  export?: string | undefined
+  depth?: number | undefined
+  sequence?: number | undefined
+  argsFingerprint?: string | undefined
+  args?: Json[] | undefined
+  argsOmitted?: boolean | undefined
+  mutated?: boolean | undefined
+  applied?: boolean | undefined
+  reason?: string | undefined
+  mutationId?: string | null | undefined
+  expectedFingerprint?: string | undefined
+  value?: Json | undefined
+  async?: boolean | undefined
+  error?: SerializedError | undefined
+  wrapped?: string[] | undefined
+  unsupported?: string[] | undefined
+  file?: string | undefined
+  name?: string | undefined
+  durationMs?: number | undefined
+  mode?: string | undefined
+  pid?: number | undefined
 }
-
-const json = z.custom<Json>((v) => isJsonValue(v))
-
-export const serializedErrorSchema = z.object({
-  name: z.string(),
-  message: z.string(),
-  code: z.string().optional(),
-  status: z.number().optional(),
-  stack: z.string(),
-  constructorChain: z.array(z.string()),
-})
-export type SerializedError = z.infer<typeof serializedErrorSchema>
-
-/** Schéma d'une ligne JSONL écrite par la sonde. */
-export const probeEventSchema = z.object({
-  protocolVersion: z.literal(PROTOCOL_VERSION),
-  runId: z.string(),
-  type: z.enum(MESSAGE_TYPES),
-  testId: z.string().nullable(),
-  timestamp: z.string(),
-  callId: z.number().int().optional(),
-  /** Appels englobants (rejet non géré : attribution au contexte asynchrone, A-02). */
-  chain: z.array(z.number().int()).optional(),
-  callSiteId: z.string().nullable().optional(),
-  module: z.string().optional(),
-  export: z.string().optional(),
-  depth: z.number().int().min(0).optional(),
-  sequence: z.number().int().min(0).optional(),
-  argsFingerprint: z.string().optional(),
-  args: z.array(json).optional(),
-  argsOmitted: z.boolean().optional(),
-  mutated: z.boolean().optional(),
-  applied: z.boolean().optional(),
-  reason: z.string().optional(),
-  mutationId: z.string().nullable().optional(),
-  expectedFingerprint: z.string().optional(),
-  value: json.optional(),
-  async: z.boolean().optional(),
-  error: serializedErrorSchema.optional(),
-  wrapped: z.array(z.string()).optional(),
-  unsupported: z.array(z.string()).optional(),
-  file: z.string().optional(),
-  name: z.string().optional(),
-  durationMs: z.number().optional(),
-  mode: z.string().optional(),
-  pid: z.number().optional(),
-})
-export type ProbeEvent = z.infer<typeof probeEventSchema>
+/** Contrôle de compilation : tout message validé est un ProbeEvent. */
+type IsEvent<T extends ProbeEvent> = T
+export type ValidatedProbeEvent = IsEvent<z.infer<typeof probeMessageSchema>>
 
 export interface ParsedLog {
   events: ProbeEvent[]
@@ -89,13 +61,22 @@ export interface ParsedLog {
   truncatedLines: number
   /** Lignes JSON valides mais hors schéma : `PROBE_INVALID`. */
   invalidLines: number
+  /** Lignes de la majeure courante d'un type inconnu (mineure plus récente) : ignorées. */
+  unknownTypeLines: number
 }
 
-/** Valide un contenu JSONL ligne à ligne ; une ligne illisible est comptée, jamais devinée. */
+const KNOWN = new Set<string>(Object.keys(MESSAGE_SCHEMAS))
+
+/**
+ * Valide un contenu JSONL ligne à ligne ; une ligne illisible est comptée, jamais devinée. Les champs
+ * inconnus sont tolérés (retirés) ; un `HELLO` d'une autre majeure est conservé (enveloppe seule) pour
+ * que l'orchestrateur refuse la sonde (`unsupportedProbeVersion`).
+ */
 export function parseProbeLog(content: string): ParsedLog {
   const events: ProbeEvent[] = []
   let truncatedLines = 0
   let invalidLines = 0
+  let unknownTypeLines = 0
   for (const line of content.split('\n')) {
     if (line === '') continue
     let raw: unknown
@@ -105,11 +86,42 @@ export function parseProbeLog(content: string): ParsedLog {
       truncatedLines++
       continue
     }
-    const parsed = probeEventSchema.safeParse(raw)
-    if (parsed.success) events.push(parsed.data)
+    const parsed = probeMessageSchema.safeParse(raw)
+    if (parsed.success) {
+      events.push(parsed.data)
+      continue
+    }
+    const foreign = foreignHelloSchema.safeParse(raw)
+    if (foreign.success && foreign.data.protocolVersion !== PROTOCOL_VERSION) {
+      events.push(foreign.data)
+      continue
+    }
+    const env = currentEnvelopeSchema.safeParse(raw)
+    if (env.success && !KNOWN.has(env.data.type)) unknownTypeLines++
     else invalidLines++
   }
-  return { events, truncatedLines, invalidLines }
+  return { events, truncatedLines, invalidLines, unknownTypeLines }
+}
+
+/** Majeure annoncée par un `HELLO` que cette version de Varia ne sait pas lire ; `null` sinon. */
+export function unsupportedProbeVersion(events: readonly ProbeEvent[]): number | null {
+  const hello = events.find((e) => e.type === 'HELLO' && e.protocolVersion !== PROTOCOL_VERSION)
+  return hello === undefined ? null : hello.protocolVersion
+}
+
+/** JSON Schema (2020-12) de chaque message, générés depuis les schémas Zod (jamais à la main). */
+export function messageJsonSchemas(): Record<string, unknown> {
+  const opts = { io: 'input', target: 'draft-2020-12', unrepresentable: 'any' } as const
+  const out: Record<string, unknown> = {}
+  for (const [type, schema] of Object.entries(MESSAGE_SCHEMAS))
+    out[type] = z.toJSONSchema(schema, opts)
+  out['PROBE_MESSAGE'] = z.toJSONSchema(probeMessageSchema, opts)
+  return out
+}
+
+/** Nom du fichier publié d'un schéma : `OBSERVE_CALL` → `observe-call.schema.json`. */
+export function schemaFileOf(type: string): string {
+  return `${type.toLowerCase().replace(/_/g, '-')}.schema.json`
 }
 
 /** Variables d'environnement lues par la sonde (CDC D.0). */
