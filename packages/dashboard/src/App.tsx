@@ -15,6 +15,7 @@ import { Compare } from './pages/Compare.js'
 import { Coverage } from './pages/Coverage.js'
 import { History } from './pages/History.js'
 import { Capabilities } from './pages/Capabilities.js'
+import { Run } from './pages/Run.js'
 import { Plugins } from './pages/Plugins.js'
 import { Files, Folders, Tests } from './pages/Tests.js'
 import { CallSite, TestDetail } from './pages/Tree.js'
@@ -31,6 +32,7 @@ function Nav({ route, latestRun }: { route: Route; latestRun: string | null }) {
     ['history', t('dash.nav.history'), ['history']],
     ['compare', t('dash.nav.compare'), ['compare']],
     ['acceptances', t('dash.nav.acceptances'), ['acceptances']],
+    ['run', t('dash.nav.run'), ['run']],
     ...(runId === null
       ? []
       : ([
@@ -87,6 +89,7 @@ function Page({ route }: { route: Route }) {
   if (a === 'compare' && b === undefined)
     return <Compare a={route.query.get('a')} b={route.query.get('b')} />
   if (a === 'acceptances' && b === undefined) return <Acceptances />
+  if (a === 'run' && b === undefined) return <Run />
   if (a === 'issues' && b !== undefined) return <IssueDetail id={b} runId={run} />
   if (a === 'mutations' && b !== undefined) return <MutationDetail id={b} runId={run} />
   return <NotFound />

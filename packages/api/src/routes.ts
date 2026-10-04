@@ -1,5 +1,14 @@
 import { diffIssues } from '@varia/core'
 import type { Reader, Writer } from '@varia/database'
+import {
+  jobArgs,
+  JOB_KINDS,
+  JOB_LIMITS,
+  type InvalidJob,
+  type JobKind,
+  type JobRequest,
+  type JobRunner,
+} from '@varia/engine'
 import { byId } from '@varia/reporters'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { randomBytes } from 'node:crypto'
@@ -30,6 +39,8 @@ export interface RouteContext {
   reader: Reader | null
   aggregates: Aggregates | null
   writer(): Writer
+  /** Lanceur de travaux (`--allow-run`) ; `null` : le tableau de bord est en lecture seule. */
+  runner: JobRunner | null
 }
 
 type Q = Record<string, string | undefined>
@@ -166,7 +177,20 @@ const health = obj({
   api: str,
   orqeaUrl: str,
   database: bool,
+  canRun: bool,
 })
+const job = obj({
+  id: str,
+  kind: str,
+  state: str,
+  exitCode: nullable(int),
+  startedAt: str,
+  finishedAt: nullable(str),
+  command: str,
+  log: str,
+  logTruncated: bool,
+})
+const jobInfo = obj({ name: str, root: str, config: nullable(str) })
 const version = obj({ name: str, version: str, api: str })
 const ok = (s: Schema): Record<number, Schema> => ({ 200: s, 404: error })
 const runNotFound = { error: 'RUN_NOT_FOUND' }
@@ -207,6 +231,7 @@ export function defineRoutes(ctx: RouteContext): RouteDef[] {
     api: API_VERSION,
     orqeaUrl: ctx.orqeaUrl,
     database: ctx.reader !== null,
+    canRun: ctx.runner !== null,
   })
   const versionBody = () => ({ name: 'varia', version: ctx.version, api: API_VERSION })
 
@@ -315,6 +340,73 @@ export function defineRoutes(ctx: RouteContext): RouteDef[] {
         return ctx.writer().deleteAcceptance(p(req).id)
           ? reply.code(204).send()
           : reply.code(404).send({ error: 'ACCEPTANCE_NOT_FOUND' })
+      },
+    },
+    {
+      method: 'GET',
+      url: '/api/v1/jobs',
+      summary:
+        'Travaux lancés depuis le tableau de bord (`--allow-run`), du plus récent au plus ancien',
+      responses: { 200: obj({ info: jobInfo, items: arr(job) }), 403: error },
+      handler: (_req, reply) => {
+        const runner = ctx.runner
+        if (runner === null) return reply.code(403).send({ error: 'RUN_DISABLED' })
+        return { info: runner.info(), items: runner.list() }
+      },
+    },
+    {
+      method: 'POST',
+      url: '/api/v1/jobs',
+      summary:
+        'Lance la baseline, un test rapide ou un test complet (jeton requis, un seul travail à la fois)',
+      body: obj({ kind: { enum: [...JOB_KINDS] }, maxMutations: int, maxTimeSeconds: int }, [
+        'maxMutations',
+        'maxTimeSeconds',
+      ]),
+      responses: { 201: job, 400: error, 401: error, 403: error, 409: error },
+      handler: (req, reply) => {
+        if (!authorized(req)) return reply.code(401).send({ error: 'TOKEN_REQUIRED' })
+        const runner = ctx.runner
+        if (runner === null) return reply.code(403).send({ error: 'RUN_DISABLED' })
+        const b = (req.body ?? {}) as Record<string, unknown>
+        const request: JobRequest = {
+          kind: b['kind'] as JobKind,
+          ...(b['maxMutations'] === undefined ? {} : { maxMutations: b['maxMutations'] as number }),
+          ...(b['maxTimeSeconds'] === undefined
+            ? {}
+            : { maxTimeSeconds: b['maxTimeSeconds'] as number }),
+        }
+        // Validation d'abord (seule source d'`InvalidJob`) : `start` ne lève plus rien d'attendu.
+        try {
+          jobArgs(request)
+        } catch (e) {
+          return reply.code(400).send({ error: (e as InvalidJob).code, limits: JOB_LIMITS })
+        }
+        const started = runner.start(request)
+        return started === 'BUSY'
+          ? reply.code(409).send({ error: 'JOB_RUNNING' })
+          : reply.code(201).send(started)
+      },
+    },
+    {
+      method: 'GET',
+      url: '/api/v1/jobs/:id',
+      summary: 'Un travail : état et fin du journal',
+      responses: { 200: job, 403: error, 404: error },
+      handler: (req, reply) => {
+        if (ctx.runner === null) return reply.code(403).send({ error: 'RUN_DISABLED' })
+        return ctx.runner.get(p(req).id) ?? reply.code(404).send({ error: 'JOB_NOT_FOUND' })
+      },
+    },
+    {
+      method: 'DELETE',
+      url: '/api/v1/jobs/:id',
+      summary: 'Arrête un travail en cours (jeton requis)',
+      responses: { 200: job, 401: error, 403: error, 404: error },
+      handler: (req, reply) => {
+        if (!authorized(req)) return reply.code(401).send({ error: 'TOKEN_REQUIRED' })
+        if (ctx.runner === null) return reply.code(403).send({ error: 'RUN_DISABLED' })
+        return ctx.runner.cancel(p(req).id) ?? reply.code(404).send({ error: 'JOB_NOT_FOUND' })
       },
     },
     {

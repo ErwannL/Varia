@@ -1,10 +1,17 @@
 import fastifyStatic from '@fastify/static'
 import { openReader, openWriter, Reader, Writer, type Opened } from '@varia/database'
 import { orqeaUrl } from '@varia/i18n'
-import { hostHeaderAllowed, parseAllowedHosts, VARIA_VERSION } from '@varia/engine'
+import {
+  hostHeaderAllowed,
+  JobRunner,
+  parseAllowedHosts,
+  VARIA_VERSION,
+  type JobRunnerOptions,
+} from '@varia/engine'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { randomBytes } from 'node:crypto'
-import { existsSync } from 'node:fs'
+import { existsSync, mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Aggregates } from './aggregates.js'
@@ -28,10 +35,12 @@ export interface ServerOptions {
   port?: number
   host?: string
   dashboardDir?: string
+  /** `--allow-run` : lancer baseline/tests depuis le tableau de bord. Absent ⇒ lecture seule. */
+  run?: Omit<JobRunnerOptions, 'logDir'> | undefined
 }
 
 /**
- * API locale en LECTURE SEULE (CDC §25) : aucune route d'exécution, aucune ingestion (l'orchestrateur
+ * API locale en LECTURE SEULE par défaut (CDC §25) : aucune ingestion (l'orchestrateur
  * reste l'unique écrivaine). Écoute sur 127.0.0.1 ; CSP stricte ; aucune ressource externe.
  */
 export function buildServer(o: ServerOptions): {
@@ -43,9 +52,21 @@ export function buildServer(o: ServerOptions): {
 } {
   const app = Fastify({ logger: false, bodyLimit: 16 * 1024 })
   const dbPath = join(o.dataDir, 'varia.db')
-  const db = existsSync(dbPath) ? openReader(dbPath) : null
-  const reader = db === null ? null : new Reader(db.db)
-  const aggregates = reader === null ? null : new Aggregates(reader)
+  // Ouverture paresseuse : la première baseline CRÉE la base après le démarrage du serveur.
+  let db: Opened | null = null
+  let reader: Reader | null = null
+  let aggregates: Aggregates | null = null
+  const ensureDb = (): void => {
+    if (db !== null || !existsSync(dbPath)) return
+    db = openReader(dbPath)
+    reader = new Reader(db.db)
+    aggregates = new Aggregates(reader)
+  }
+  ensureDb()
+  const runner =
+    o.run === undefined
+      ? null
+      : new JobRunner({ ...o.run, logDir: mkdtempSync(join(tmpdir(), 'varia-jobs-')) })
   const orqea = orqeaUrl(o.env)
   let orqeaOrigin = ''
   try {
@@ -61,7 +82,10 @@ export function buildServer(o: ServerOptions): {
       `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'self'${orqeaOrigin !== '' ? ` ${orqeaOrigin}` : ''}`,
     )
   })
-  app.addHook('onClose', async () => db?.close())
+  app.addHook('onClose', async () => {
+    runner?.close()
+    db?.close()
+  })
 
   // Anti « DNS rebinding » : seul un en-tête Host de boucle locale (ou listé dans VARIA_ALLOWED_HOSTS,
   // pour un port publié par un conteneur) et, en écoute, le bon port passent ; l'en-tête Origin, s'il
@@ -95,8 +119,15 @@ export function buildServer(o: ServerOptions): {
     version: VARIA_VERSION,
     orqeaUrl: orqea,
     token: randomBytes(24).toString('hex'),
-    reader,
-    aggregates,
+    get reader() {
+      ensureDb()
+      return reader
+    },
+    get aggregates() {
+      ensureDb()
+      return aggregates
+    },
+    runner,
     writer() {
       if (writer === null) {
         const o2 = openWriter(dbPath)

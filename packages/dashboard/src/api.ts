@@ -6,6 +6,7 @@ export interface Health {
   version: string
   orqeaUrl: string
   database: boolean
+  canRun: boolean
 }
 
 export type Loadable<T> =

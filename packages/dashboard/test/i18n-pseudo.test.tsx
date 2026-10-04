@@ -96,6 +96,7 @@ describe('E-08 : chaque page rendue en pseudo-langue', () => {
     '#/history',
     `#/compare?a=${SEED_RUN}&b=${SEED_RUN_2}`,
     '#/acceptances',
+    '#/run',
     'ISSUE',
     `#/mutations/m_crash1?run=${SEED_RUN}`,
     `#/mutations/m_echo?run=${SEED_RUN}`,

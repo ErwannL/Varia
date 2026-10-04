@@ -40,18 +40,18 @@ d'injection et limites de chaque adaptateur : [`docs/writing-an-adapter.md`](doc
 
 ## Commandes
 
-| Commande                                                 | Rôle                                                                          |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `varia doctor`                                           | capacités de la sonde **vérifiées** sur le projet (`UNSUPPORTED_PROBE` sinon) |
-| `varia test`                                             | baseline + stabilité, plan (avec estimation de durée), fuzz, rapport          |
-| `varia baseline` / `plan` / `fuzz [--resume <run>]`      | étapes séparées, reprise idempotente                                          |
-| `varia replay <mutation-id>`                             | rejoue exactement une mutation                                                |
-| `varia report [run] [--out f.json]`                      | rapport JSON versionné (et HTML, JUnit, SARIF, Markdown, extensions)          |
-| `varia ci`                                               | mode CI non interactif : test + rapports + politique d'échec                  |
-| `varia accept <issue>` / `compare <a> <b>`               | accepter une issue ; comparer deux runs                                       |
-| `varia dashboard`                                        | dashboard local en lecture seule (http://127.0.0.1:4321)                      |
-| `varia scaffold adapter\|strategy\|rule\|reporter <nom>` | squelette d'adaptateur ou d'extension                                         |
-| `varia init`, `config --check/--print`, `clean`, `prune` | configuration et nettoyage                                                    |
+| Commande                                                 | Rôle                                                                                                                                      |
+| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `varia doctor`                                           | capacités de la sonde **vérifiées** sur le projet (`UNSUPPORTED_PROBE` sinon)                                                             |
+| `varia test`                                             | baseline + stabilité, plan (avec estimation de durée), fuzz, rapport                                                                      |
+| `varia baseline` / `plan` / `fuzz [--resume <run>]`      | étapes séparées, reprise idempotente                                                                                                      |
+| `varia replay <mutation-id>`                             | rejoue exactement une mutation                                                                                                            |
+| `varia report [run] [--out f.json]`                      | rapport JSON versionné (et HTML, JUnit, SARIF, Markdown, extensions)                                                                      |
+| `varia ci`                                               | mode CI non interactif : test + rapports + politique d'échec                                                                              |
+| `varia accept <issue>` / `compare <a> <b>`               | accepter une issue ; comparer deux runs                                                                                                   |
+| `varia dashboard`                                        | dashboard local en lecture seule (http://127.0.0.1:4321) ; `--allow-run` : page « Lancer » (baseline, tests), voir `docs/notes/lancer.md` |
+| `varia scaffold adapter\|strategy\|rule\|reporter <nom>` | squelette d'adaptateur ou d'extension                                                                                                     |
+| `varia init`, `config --check/--print`, `clean`, `prune` | configuration et nettoyage                                                                                                                |
 
 Liste complète : `varia --help`.
 

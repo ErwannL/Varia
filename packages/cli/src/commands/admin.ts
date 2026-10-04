@@ -15,8 +15,8 @@ import {
 import { configIssue, t, type MessageKey } from '@varia/i18n'
 import { Option } from 'commander'
 import { existsSync, rmSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
-import type { Shared } from '../shared.js'
+import { basename, join } from 'node:path'
+import type { DashboardRun, GlobalOpts, Shared } from '../shared.js'
 
 const MINIMAL_CONFIG =
   'version: 1\ntargets: { mode: auto, include: ["src/**"] }\nmutations: { mode: normal }\noracle:\n  handled_errors: [{ name: ValidationError }]\n'
@@ -200,33 +200,77 @@ export function registerAdmin(s: Shared): void {
     .addOption(new Option('--host <host>').default('127.0.0.1'))
     .option('--allow-remote')
     .option('--data-path <dir>')
-    .action(async (o: { port: string; host: string; allowRemote?: boolean; dataPath?: string }) => {
-      if (s.cli.startDashboard === undefined) return
-      // Refus tôt (exit 3) : hôtes autorisés invalides, ou écoute hors boucle locale non confirmée (CDC §19.2).
-      parseAllowedHosts(s.cli.env.VARIA_ALLOWED_HOSTS)
-      if (!isLoopbackHost(o.host) && o.allowRemote !== true)
-        throw new VariaError(
-          'CONFIG_FAILURE',
-          'écoute hors boucle locale refusée sans --allow-remote',
-          [`${o.host} : ajoutez --allow-remote pour écouter hors de cette machine`],
+    .option('--allow-run')
+    .action(
+      async (o: {
+        port: string
+        host: string
+        allowRemote?: boolean
+        dataPath?: string
+        allowRun?: boolean
+      }) => {
+        if (s.cli.startDashboard === undefined) return
+        // Refus tôt (exit 3) : hôtes autorisés invalides, ou écoute hors boucle locale non confirmée (CDC §19.2).
+        parseAllowedHosts(s.cli.env.VARIA_ALLOWED_HOSTS)
+        if (!isLoopbackHost(o.host) && o.allowRemote !== true)
+          throw new VariaError(
+            'CONFIG_FAILURE',
+            'écoute hors boucle locale refusée sans --allow-remote',
+            [`${o.host} : ajoutez --allow-remote pour écouter hors de cette machine`],
+          )
+        if (o.allowRun === true) refuseRun(s, o)
+        let dataDir: string
+        if (o.dataPath !== undefined) {
+          dataDir = resolveDataPath(o.dataPath)
+        } else {
+          const ctx = s.context()
+          dataDir = ctx.dataDir
+          ctx.close()
+        }
+        const server = await s.cli.startDashboard({
+          dataDir,
+          port: Number(o.port),
+          host: o.host,
+          env: s.cli.env,
+          ...(o.allowRun === true ? { run: runOptions(s) } : {}),
+        })
+        s.p().say('cli.dashboard.listening', { url: server.url })
+        await new Promise<void>((done) =>
+          process.once('SIGINT', () => void server.close().then(done)),
         )
-      let dataDir: string
-      if (o.dataPath !== undefined) {
-        dataDir = resolveDataPath(o.dataPath)
-      } else {
-        const ctx = s.context()
-        dataDir = ctx.dataDir
-        ctx.close()
-      }
-      const server = await s.cli.startDashboard({
-        dataDir,
-        port: Number(o.port),
-        host: o.host,
-        env: s.cli.env,
-      })
-      s.p().say('cli.dashboard.listening', { url: server.url })
-      await new Promise<void>((done) =>
-        process.once('SIGINT', () => void server.close().then(done)),
-      )
-    })
+      },
+    )
+}
+
+/** `--allow-run` lance des processus sur CETTE machine : jamais hors boucle locale, jamais sur une base d'ailleurs. */
+function refuseRun(s: Shared, o: { host: string; allowRemote?: boolean; dataPath?: string }): void {
+  const why =
+    o.allowRemote === true || !isLoopbackHost(o.host)
+      ? '--allow-run exige la boucle locale (sans --allow-remote)'
+      : o.dataPath !== undefined
+        ? '--allow-run ne se combine pas avec --data-path (lecture seule)'
+        : s.cli.selfCommand === undefined
+          ? 'relance de Varia impossible dans cet environnement'
+          : null
+  if (why !== null) throw new VariaError('CONFIG_FAILURE', why, [why])
+}
+
+/** Options du lanceur : les MÊMES options globales que ce tableau de bord (projet, config, base, langue). */
+function runOptions(s: Shared): DashboardRun {
+  const g = s.program.opts<GlobalOpts>()
+  const config = g.config === undefined ? null : s.path(g.config)
+  return {
+    command: s.cli.selfCommand as string[],
+    globalArgs: [
+      '-C',
+      s.root(),
+      ...(config === null ? [] : ['-c', config]),
+      ...(g.dataDir === undefined ? [] : ['--data-dir', s.path(g.dataDir)]),
+      '--lang',
+      s.locale(),
+    ],
+    cwd: s.root(),
+    env: s.cli.env,
+    info: { name: basename(s.root()), root: s.root(), config },
+  }
 }

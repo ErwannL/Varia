@@ -102,7 +102,20 @@ export interface CliEnv {
     port: number
     host: string
     env: NodeJS.ProcessEnv
+    /** `--allow-run` : de quoi relancer Varia depuis le tableau de bord. */
+    run?: DashboardRun
   }) => Promise<{ url: string; close(): Promise<void> }>
+  /** Commande qui relance ce même Varia (`[node, script]`) ; absente en test. */
+  selfCommand?: string[] | undefined
+}
+
+/** Ce que le tableau de bord peut lancer (`--allow-run`) : Varia lui-même, dans CE projet. */
+export interface DashboardRun {
+  command: string[]
+  globalArgs: string[]
+  cwd: string
+  env: NodeJS.ProcessEnv
+  info: { name: string; root: string; config: string | null }
 }
 
 export interface GlobalOpts {

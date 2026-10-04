@@ -63,3 +63,4 @@ npm test             # vitest
 - `docs/notes/extensions.md` — extensions externes : appel synchrone borné d'un thread (Atomics.wait), terminate des boucles, `import.meta.url` paresseux, `Math.random` par Reflect.
 - `docs/notes/sondes-autres-langages.md` — sondes Python, PHP, Java (bytecode et secrets, autoload, agent hors ligne, outils en CI).
 - `docs/notes/conteneur.md` — `Dockerfile`, `--host`/`--allow-remote`, `VARIA_ALLOWED_HOSTS`, `dashboard --data-path` (intégration Orqea).
+- `docs/notes/lancer.md` — `dashboard --allow-run` : page « Lancer » (baseline, test rapide/complet), travaux fermés et bornés, jeton, local seulement.
