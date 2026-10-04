@@ -61,6 +61,7 @@ const STDERR_MARKER = '[varia] PROBE_ERROR'
  * @property {Map<string, number>} nameCounts
  * @property {number} callCounter
  * @property {Set<string>} announced
+ * @property {WeakMap<Function, Function>} wrappers enveloppe par fonction d'origine : un même export sous deux noms reste UNE fonction
  * @property {(line: string) => void} write écriture d'une ligne du journal (remplaçable en test)
  * @property {(s: string) => void} stderr
  * @property {() => string} now
@@ -105,6 +106,7 @@ function init(env) {
     nameCounts: new Map(),
     callCounter: 0,
     announced: new Set(),
+    wrappers: new WeakMap(),
     // appendFileSync : chaque ligne est écrite (et vidée) avant de continuer ; survit à process.exit.
     write: (line) => fs.appendFileSync(logFile, line),
     stderr: (s) => process.stderr.write(s),
@@ -238,8 +240,16 @@ function deepClone(v, seen = new Map()) {
   const out = Array.isArray(v) ? new Array(v.length) : Object.create(Object.getPrototypeOf(v))
   seen.set(v, out)
   for (const key of Reflect.ownKeys(v)) {
+    // `length` d'un tableau : implicite (`new Array(v.length)`), non reconfigurable.
+    if (Array.isArray(v) && key === 'length') continue
     const d = /** @type {PropertyDescriptor} */ (Object.getOwnPropertyDescriptor(v, key))
-    if ('value' in d) d.value = deepClone(d.value, seen)
+    if ('value' in d) {
+      d.value = deepClone(d.value, seen)
+      d.writable = true
+    }
+    // La COPIE est modifiable même si l'original est figé (`Object.freeze`, constaté sur le frontend d'Orqea) :
+    // sinon la mutation d'un argument figé échouait (« Cannot redefine property ») et finissait en INFRA_ERROR.
+    d.configurable = true
     Object.defineProperty(out, key, d)
   }
   return out
@@ -413,6 +423,10 @@ function isThenable(v) {
 
 /** @param {ProbeState} st @param {Function} fn @param {string} moduleId @param {string} exportName */
 function wrapFunction(st, fn, moduleId, exportName) {
+  // Un même export sous deux noms (`default` et nommé, ré-export) est UNE fonction : une seule enveloppe,
+  // sinon `a.default === a.nommé` devient faux sous la sonde (constaté sur le frontend d'Orqea).
+  const known = st.wrappers.get(fn)
+  if (known !== undefined) return known
   /** @this {unknown} @param {unknown[]} args */
   function variaWrapper(...args) {
     const invoke = (/** @type {unknown[]} */ a) =>
@@ -479,6 +493,7 @@ function wrapFunction(st, fn, moduleId, exportName) {
     Object.defineProperty(variaWrapper, 'prototype', { value: fn.prototype, writable: true })
   }
   Object.defineProperty(variaWrapper, WRAPPED, { value: fn })
+  st.wrappers.set(fn, variaWrapper)
   return variaWrapper
 }
 

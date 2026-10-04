@@ -490,6 +490,28 @@ describe('copie profonde et mutation', () => {
     expect(c.self).toBe(c)
     expect(P.deepClone(3)).toBe(3)
   })
+  it('un argument FIGÉ est mutable sur sa copie ; l’original reste figé et intact', () => {
+    const frozen = Object.freeze({ ids: Object.freeze([1, 2]), name: 'a' })
+    const mut = (path: string[], value: unknown) => ({
+      id: 'm',
+      callSiteId: 'c',
+      argsFingerprint: 'f',
+      path,
+      op: 'set' as const,
+      value,
+    })
+    const viaProperty = P.applyMutation([frozen], mut(['0', 'ids'], '')) as unknown as [
+      { ids: unknown },
+    ]
+    expect(viaProperty[0].ids).toBe('')
+    const viaIndex = P.applyMutation([frozen], mut(['0', 'ids', '1'], 9)) as unknown as [
+      { ids: number[] },
+    ]
+    expect(viaIndex[0].ids).toEqual([1, 9])
+    expect(frozen).toEqual({ ids: [1, 2], name: 'a' })
+    expect(Object.isFrozen(frozen)).toBe(true)
+    expect(Object.isFrozen(frozen.ids)).toBe(true)
+  })
   it('chemin traversant une valeur non objet ⇒ null', () => {
     expect(
       P.applyMutation([{ a: 1 }], {
@@ -548,6 +570,18 @@ describe('enveloppement des exports', () => {
     P.wrapExports({}, 'src/m.js')
     expect(ofType(lines, 'DISCOVER')).toHaveLength(1)
   })
+  it('un même export sous deux noms reste UNE seule fonction (identité préservée)', () => {
+    const { st } = state()
+    const fn = (x: number) => x + 1
+    expect(P.wrapFunction(st, fn, 'm', 'default')).toBe(P.wrapFunction(st, fn, 'm', 'nommé'))
+    const exp = { default: fn, nommé: fn, autre: (x: number) => x }
+    const out = P.wrapExports(exp, 'src/alias.js') as typeof exp
+    expect(out.default).toBe(out.nommé)
+    expect(out.default).not.toBe(fn)
+    expect(out.autre).not.toBe(out.default)
+    expect(out.default(1)).toBe(2)
+  })
+
   it('export par défaut fonction ou classe ; valeurs non objet ; échec d’un export isolé', () => {
     const { st, lines } = state()
     const def = Object.assign(() => 'd', { helper: () => 'h' })

@@ -757,5 +757,19 @@
     "find": ": testPaths(ctx),",
     "replace": ": [],",
     "tests": ["tests/j1/test-paths.test.ts"]
+  },
+  {
+    "name": "Orqea : un export sous deux noms devient deux fonctions différentes (identité perdue)",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "if (known !== undefined) return known",
+    "replace": "if (false) return known",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "Orqea : la copie d'un argument figé reste figée (mutation impossible, INFRA_ERROR)",
+    "file": "packages/probe-runtime/runtime/probe.cjs",
+    "find": "    d.configurable = true\n",
+    "replace": "",
+    "tests": ["packages/probe-runtime/test/probe.test.ts"]
   }
 ]
