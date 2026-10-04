@@ -1,6 +1,15 @@
 import Database from 'better-sqlite3'
 import { drizzle, type BetterSQLite3Database } from 'drizzle-orm/better-sqlite3'
-import { mkdirSync, readdirSync, readFileSync } from 'node:fs'
+import {
+  copyFileSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+} from 'node:fs'
+import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as schema from './schema.js'
@@ -54,11 +63,50 @@ export function openWriter(path: string): Opened {
   return { sqlite, db: drizzle(sqlite, { schema }), close: () => sqlite.close() }
 }
 
-/** Ouvre la base en lecture seule (API, dashboard, rapports) : aucune écriture possible. */
-export function openReader(path: string): Opened {
+function openReadonly(path: string): Opened {
   const sqlite = new Database(path, { readonly: true, fileMustExist: true })
   sqlite.pragma('busy_timeout = 5000')
   return { sqlite, db: drizzle(sqlite, { schema }), close: () => sqlite.close() }
+}
+
+/**
+ * Lit une COPIE de la base (et de son journal WAL s'il existe) dans un dossier temporaire. Sert quand
+ * le dossier de la base n'est pas inscriptible (volume Docker en lecture seule) : une base WAL exige
+ * alors des fichiers `-shm`/`-wal` que SQLite ne peut pas créer. La source n'est jamais modifiée ;
+ * l'instantané ne bouge plus, il faut rouvrir pour voir un nouveau run.
+ */
+export function openSnapshot(path: string, parent: string = tmpdir()): Opened {
+  const dir = mkdtempSync(join(parent, 'varia-snapshot-'))
+  const copy = join(dir, 'varia.db')
+  copyFileSync(path, copy)
+  if (existsSync(`${path}-wal`)) copyFileSync(`${path}-wal`, `${copy}-wal`)
+  const opened = openReadonly(copy)
+  return {
+    ...opened,
+    close: () => {
+      opened.close()
+      rmSync(dir, { recursive: true, force: true })
+    },
+  }
+}
+
+/**
+ * Ouvre la base en lecture seule (API, dashboard, rapports) : aucune écriture possible. Si SQLite ne
+ * peut pas lire en place (`SQLITE_CANTOPEN`, à l'ouverture ou à la première lecture : dossier en lecture
+ * seule), lit un instantané dans `snapshotDir`. Toute autre erreur (base corrompue, pas une base) est relancée.
+ */
+export function openReader(path: string, snapshotDir: string = tmpdir()): Opened {
+  let first: Opened | null = null
+  try {
+    first = openReadonly(path)
+    first.sqlite.prepare('SELECT 1 FROM sqlite_master LIMIT 1').get()
+    return first
+  } catch (error) {
+    first?.close()
+    // Codes étendus compris (SQLITE_CANTOPEN_ISDIR…) : tous disent « impossible d'ouvrir en place ».
+    if (!String((error as { code?: unknown }).code).startsWith('SQLITE_CANTOPEN')) throw error
+    return openSnapshot(path, snapshotDir)
+  }
 }
 
 /** Vérification d'intégrité (`varia db check`). */

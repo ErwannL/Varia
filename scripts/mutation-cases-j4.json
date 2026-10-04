@@ -729,5 +729,12 @@
     "find": "if (found.length === 1)",
     "replace": "if (found.length >= 1)",
     "tests": ["packages/engine/test/dashboard-data.test.ts"]
+  },
+  {
+    "name": "Orqea : base illisible en place (volume en lecture seule) sans repli sur un instantané",
+    "file": "packages/database/src/open.ts",
+    "find": "if (!String((error as { code?: unknown }).code).startsWith('SQLITE_CANTOPEN')) throw error",
+    "replace": "throw error",
+    "tests": ["packages/database/test/reader-snapshot.test.ts"]
   }
 ]

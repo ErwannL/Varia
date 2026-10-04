@@ -11,3 +11,8 @@
 - Le serveur ouvre la base au démarrage : un conteneur lancé avant le premier `varia test` ne l'a pas (redémarrer).
 - Image vérifiée à la main : build, `docker run` avec un port publié différent, `/health` 200, `Host` forgé 403,
   état `healthy`. Pas de test d'image en CI.
+- **Volume en lecture seule** : une base SQLite en mode WAL ne s'ouvre pas sur un dossier non inscriptible (SQLite doit
+  créer `-shm`/`-wal`) ; l'échec n'arrive qu'à la PREMIÈRE lecture (`SQLITE_CANTOPEN`), alors que `/health` voyait déjà le
+  fichier. `openReader` lit alors un INSTANTANÉ (copie de la base et de son `-wal`) dans un dossier temporaire, supprimé à
+  la fermeture ; la source n'est jamais écrite. Conséquence : un nouveau run n'apparaît qu'après redémarrage du serveur.
+  Piège de test : un dossier à la place du fichier `-shm` reproduit la panne sans `chmod` (inutilisable sous Windows/root).

@@ -46,7 +46,9 @@ docker run --rm -p 127.0.0.1:4321:4321 -v "$PWD/.varia:/data:ro" varia
 - Le conteneur écoute sur `0.0.0.0:4321` (c'est à l'hôte de publier le port sur `127.0.0.1`). Si le port
   publié diffère (`-p 127.0.0.1:4399:4321`), ajouter `-e VARIA_ALLOWED_HOSTS=localhost:4399`.
 - `/data` doit déjà contenir un `varia.db` : lancer d'abord `varia test`, puis (re)démarrer le conteneur
-  (le serveur ouvre la base au démarrage).
+  (le serveur ouvre la base au démarrage). Monté en lecture seule (`:ro`), Varia lit un **instantané** de la base
+  (copie temporaire) : un nouveau run n'apparaît qu'après redémarrage du conteneur, et il vaut mieux ne pas lire
+  pendant qu'un `varia test` écrit.
 - Santé du conteneur : `HEALTHCHECK` sur `/health`.
 
 ## Comportement en iframe
