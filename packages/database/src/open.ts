@@ -95,10 +95,15 @@ export function openSnapshot(path: string, parent: string = tmpdir()): Opened {
  * peut pas lire en place (`SQLITE_CANTOPEN`, à l'ouverture ou à la première lecture : dossier en lecture
  * seule), lit un instantané dans `snapshotDir`. Toute autre erreur (base corrompue, pas une base) est relancée.
  */
-export function openReader(path: string, snapshotDir: string = tmpdir()): Opened {
+export function openReader(
+  path: string,
+  snapshotDir: string = tmpdir(),
+  /** Ouverture en place (injectable : la panne dépend de la plateforme, voir `docs/notes/conteneur.md`). */
+  open: (path: string) => Opened = openReadonly,
+): Opened {
   let first: Opened | null = null
   try {
-    first = openReadonly(path)
+    first = open(path)
     first.sqlite.prepare('SELECT 1 FROM sqlite_master LIMIT 1').get()
     return first
   } catch (error) {

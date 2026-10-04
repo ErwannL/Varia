@@ -18,4 +18,4 @@
   créer `-shm`/`-wal`) ; l'échec n'arrive qu'à la PREMIÈRE lecture (`SQLITE_CANTOPEN`), alors que `/health` voyait déjà le
   fichier. `openReader` lit alors un INSTANTANÉ (copie de la base et de son `-wal`) dans un dossier temporaire, supprimé à
   la fermeture ; la source n'est jamais écrite. Conséquence : un nouveau run n'apparaît qu'après redémarrage du serveur.
-  Piège de test : un dossier à la place du fichier `-shm` reproduit la panne sans `chmod` (inutilisable sous Windows/root).
+  Piège de test : la panne réelle dépend de la plateforme (un dossier à la place de `-shm` la provoque sous Windows mais PAS sous Linux/macOS, constaté en CI) et `chmod` ne vaut ni sous Windows ni en root : `openReader` reçoit donc l'ouverture en paramètre et les tests l'injectent. La panne réelle est vérifiée avec un volume Docker `:ro`.
