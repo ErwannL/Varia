@@ -1,7 +1,7 @@
 # STATE
 
 - Dernier jalon accepté : **J4 — extensibilité par contrat** (`reports/j4.md`) ; J3 (`reports/j3.md`) ; J2 ; J1 ; J0 GO
-- Étape faite : J3 complet (audit F/A/B/C/D/E/G, couverture 100 %, CI verte multi-OS)
+- Étape faite : J4 complet (P, X, T, R, S, Q, Z — `reports/j4.md`), J3 complet
 - Étape en cours : **J4 FAIT** — porte franchie (CI 10/10, run 37165670453, `1fd3974`) ; prochaine étape : J5 (à définir)
 - Vérification : `npm ci && npm run examples:install && npm run check` (outils : Python 3.11 + venv, PHP 8.3 + pcov + composer, Java 21 + Maven)
 - Externe : `npm run external:fetch && npm run build && npm run acceptance:external`
