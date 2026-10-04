@@ -8,3 +8,5 @@ sur stderr (absente avec `--quiet`/`--json`). Codes de sortie : 0, 1 résilience
 
 - `src/program.ts` — commandes (`runCli`, testable en mémoire). `src/main.ts` — entrée du binaire.
 - `src/summary.ts` — résumé et politique de sortie. `src/io.ts` — sorties i18n. `test/` — tests.
+
+`varia dashboard` : `--port`, `--host` (défaut 127.0.0.1 ; hors boucle locale ⇒ `--allow-remote` obligatoire), `--data-path <dossier>` (sert un dossier de données sans projet). Voir `docs/INTEGRATION.md`.

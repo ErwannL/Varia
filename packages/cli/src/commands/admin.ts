@@ -2,7 +2,16 @@
 import { CONFIG_FILES, findConfigFile, loadConfig, printableConfig } from '@varia/config'
 import { STRATEGY_IDS } from '@varia/core'
 import { checkDatabase, backupDatabase } from '@varia/database'
-import { doctor, EXIT, pruneRuns, VARIA_VERSION, VariaError } from '@varia/engine'
+import {
+  doctor,
+  EXIT,
+  isLoopbackHost,
+  parseAllowedHosts,
+  pruneRuns,
+  resolveDataPath,
+  VARIA_VERSION,
+  VariaError,
+} from '@varia/engine'
 import { configIssue, t, type MessageKey } from '@varia/i18n'
 import { Option } from 'commander'
 import { existsSync, rmSync, writeFileSync } from 'node:fs'
@@ -188,12 +197,33 @@ export function registerAdmin(s: Shared): void {
     .command('dashboard')
     .description(t(s.locale(), 'cli.cmd.dashboard'))
     .addOption(new Option('--port <port>').default('4321'))
-    .action(async (o: { port: string }) => {
+    .addOption(new Option('--host <host>').default('127.0.0.1'))
+    .option('--allow-remote')
+    .option('--data-path <dir>')
+    .action(async (o: { port: string; host: string; allowRemote?: boolean; dataPath?: string }) => {
       if (s.cli.startDashboard === undefined) return
-      const ctx = s.context()
-      const dataDir = ctx.dataDir
-      ctx.close()
-      const server = await s.cli.startDashboard({ dataDir, port: Number(o.port), env: s.cli.env })
+      // Refus tôt (exit 3) : hôtes autorisés invalides, ou écoute hors boucle locale non confirmée (CDC §19.2).
+      parseAllowedHosts(s.cli.env.VARIA_ALLOWED_HOSTS)
+      if (!isLoopbackHost(o.host) && o.allowRemote !== true)
+        throw new VariaError(
+          'CONFIG_FAILURE',
+          'écoute hors boucle locale refusée sans --allow-remote',
+          [`${o.host} : ajoutez --allow-remote pour écouter hors de cette machine`],
+        )
+      let dataDir: string
+      if (o.dataPath !== undefined) {
+        dataDir = resolveDataPath(o.dataPath)
+      } else {
+        const ctx = s.context()
+        dataDir = ctx.dataDir
+        ctx.close()
+      }
+      const server = await s.cli.startDashboard({
+        dataDir,
+        port: Number(o.port),
+        host: o.host,
+        env: s.cli.env,
+      })
       s.p().say('cli.dashboard.listening', { url: server.url })
       await new Promise<void>((done) =>
         process.once('SIGINT', () => void server.close().then(done)),

@@ -708,5 +708,26 @@
     "find": "version: x.version ?? null",
     "replace": "version: null",
     "tests": ["packages/api/test/plugins.test.ts", "packages/dashboard/test/plugins.test.tsx"]
+  },
+  {
+    "name": "Orqea : hôte autorisé accepté sans contrôle (VARIA_ALLOWED_HOSTS)",
+    "file": "packages/engine/src/hosts.ts",
+    "find": "allowed.some((e) => e.name === n && portOk(e.port))",
+    "replace": "allowed.some(() => true)",
+    "tests": ["packages/engine/test/hosts.test.ts", "packages/api/test/allowed-hosts.test.ts"]
+  },
+  {
+    "name": "Orqea : écoute hors boucle locale sans --allow-remote",
+    "file": "packages/cli/src/commands/admin.ts",
+    "find": "if (!isLoopbackHost(o.host) && o.allowRemote !== true)",
+    "replace": "if (false)",
+    "tests": ["packages/cli/test/admin-results.test.ts"]
+  },
+  {
+    "name": "Orqea : --data-path devine un projet parmi plusieurs",
+    "file": "packages/engine/src/dashboardData.ts",
+    "find": "if (found.length === 1)",
+    "replace": "if (found.length >= 1)",
+    "tests": ["packages/engine/test/dashboard-data.test.ts"]
   }
 ]

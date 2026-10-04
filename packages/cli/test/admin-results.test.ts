@@ -135,6 +135,104 @@ describe('dashboard', () => {
   })
 })
 
+describe('dashboard : adresse d’écoute et hôtes autorisés', () => {
+  const closer = { url: 'http://127.0.0.1:4321', close: async () => undefined }
+  const sigint = () => setTimeout(() => process.emit('SIGINT'), 10)
+
+  it('par défaut : boucle locale 127.0.0.1, transmise au serveur', async () => {
+    const d = project()
+    const started: { host: string }[] = []
+    const r = await run(['dashboard'], d, {
+      cli: {
+        startDashboard: async (o) => {
+          started.push(o)
+          sigint()
+          return closer
+        },
+      },
+    })
+    expect(r.code).toBe(0)
+    expect(started[0]?.host).toBe('127.0.0.1')
+  })
+  it('--host hors boucle locale sans --allow-remote ⇒ exit 3, serveur jamais démarré', async () => {
+    const d = project()
+    let called = false
+    const r = await run(['dashboard', '--host', '0.0.0.0'], d, {
+      cli: {
+        startDashboard: async () => {
+          called = true
+          return closer
+        },
+      },
+    })
+    expect(r.code).toBe(3)
+    expect(r.err).toContain('0.0.0.0 : ajoutez --allow-remote')
+    expect(called).toBe(false)
+  })
+  it('--host 0.0.0.0 --allow-remote : l’hôte demandé est transmis', async () => {
+    const d = project()
+    const started: { host: string; port: number }[] = []
+    const r = await run(['dashboard', '--host', '0.0.0.0', '--allow-remote', '--port', '4400'], d, {
+      cli: {
+        startDashboard: async (o) => {
+          started.push(o)
+          sigint()
+          return closer
+        },
+      },
+    })
+    expect(r.code).toBe(0)
+    expect(started[0]).toMatchObject({ host: '0.0.0.0', port: 4400 })
+  })
+  it('VARIA_ALLOWED_HOSTS invalide ⇒ exit 3 avant de démarrer ; valide ⇒ transmis à l’environnement', async () => {
+    const d = project()
+    let called = 0
+    const startDashboard = async () => {
+      called += 1
+      sigint()
+      return closer
+    }
+    const bad = await run(['dashboard'], d, {
+      cli: { env: { LANG: 'fr_FR.UTF-8', VARIA_ALLOWED_HOSTS: 'pas valide' }, startDashboard },
+    })
+    expect(bad.code).toBe(3)
+    expect(bad.err).toContain('« pas valide » n’est pas un hôte')
+    expect(called).toBe(0)
+    const good = await run(['dashboard'], d, {
+      cli: { env: { LANG: 'fr_FR.UTF-8', VARIA_ALLOWED_HOSTS: 'localhost:4322' }, startDashboard },
+    })
+    expect(good.code).toBe(0)
+    expect(called).toBe(1)
+  })
+})
+
+describe('dashboard --data-path', () => {
+  it('lit un dossier de données sans projet à côté ; dossier sans base ⇒ exit 3', async () => {
+    const d = project()
+    const data = join(d, 'ext')
+    mkdirSync(join(data, 'projects', 'p-1'), { recursive: true })
+    writeFileSync(join(data, 'projects', 'p-1', 'varia.db'), '')
+    const started: { dataDir: string }[] = []
+    const closer = { url: 'http://127.0.0.1:4321', close: async () => undefined }
+    const ok = await run(['dashboard', '--data-path', data], d, {
+      cli: {
+        startDashboard: async (o) => {
+          started.push(o)
+          setTimeout(() => process.emit('SIGINT'), 10)
+          return closer
+        },
+      },
+    })
+    expect(ok.code).toBe(0)
+    expect(started[0]?.dataDir).toBe(join(data, 'projects', 'p-1'))
+    const none = await run(['dashboard', '--data-path', join(d, 'vide')], d, {
+      cli: { startDashboard: async () => closer },
+    })
+    expect(none.code).toBe(3)
+    expect(none.err).toContain('aucun varia.db')
+  })
+})
+
 describe('report, accept, compare', () => {
   it('report --markdown : fichiers écrits, rien sur la sortie JSON', async () => {
     const d = project()

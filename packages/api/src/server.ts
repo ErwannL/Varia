@@ -1,7 +1,7 @@
 import fastifyStatic from '@fastify/static'
 import { openReader, openWriter, Reader, Writer, type Opened } from '@varia/database'
 import { orqeaUrl } from '@varia/i18n'
-import { VARIA_VERSION } from '@varia/engine'
+import { hostHeaderAllowed, parseAllowedHosts, VARIA_VERSION } from '@varia/engine'
 import Fastify, { type FastifyInstance } from 'fastify'
 import { randomBytes } from 'node:crypto'
 import { existsSync } from 'node:fs'
@@ -63,20 +63,22 @@ export function buildServer(o: ServerOptions): {
   })
   app.addHook('onClose', async () => db?.close())
 
-  // Anti « DNS rebinding » : seul un en-tête Host de boucle locale (et, en écoute, le port lié) passe ;
-  // l'en-tête Origin, s'il est présent, doit désigner la même boucle locale en http.
-  const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]'])
+  // Anti « DNS rebinding » : seul un en-tête Host de boucle locale (ou listé dans VARIA_ALLOWED_HOSTS,
+  // pour un port publié par un conteneur) et, en écoute, le bon port passent ; l'en-tête Origin, s'il
+  // est présent, doit désigner un hôte autorisé en http.
+  const allowedHosts = parseAllowedHosts(o.env.VARIA_ALLOWED_HOSTS)
   app.addHook('onRequest', async (req, reply) => {
     const address = app.server.address()
     const bound = typeof address === 'object' && address !== null ? address.port : null
-    const local = (name: string, port: string | undefined) =>
-      LOCAL_HOSTS.has(name.toLowerCase()) && (bound === null || Number(port) === bound)
     const m = /^(\[[^\]]*\]|[^:]*)(?::(\d+))?$/.exec(req.headers.host ?? '')
-    let ok = m !== null && local(String(m[1]), m[2])
+    let ok = m !== null && hostHeaderAllowed(String(m[1]), m[2], bound, allowedHosts)
     const origin = req.headers.origin
     if (ok && origin !== undefined) {
       const u = URL.canParse(origin) ? new URL(origin) : null
-      ok = u !== null && u.protocol === 'http:' && local(u.hostname, u.port)
+      ok =
+        u !== null &&
+        u.protocol === 'http:' &&
+        hostHeaderAllowed(u.hostname, u.port, bound, allowedHosts)
     }
     if (!ok) return reply.code(403).send({ error: 'FORBIDDEN_HOST' })
   })
@@ -117,7 +119,7 @@ export function buildServer(o: ServerOptions): {
   return { app, db, aggregates, routes }
 }
 
-/** Démarre le serveur sur la boucle locale (127.0.0.1 par défaut). */
+/** Démarre le serveur (boucle locale 127.0.0.1 par défaut ; toute autre adresse est décidée par l'appelant). */
 export async function startServer(
   o: ServerOptions,
 ): Promise<{ url: string; close(): Promise<void> }> {

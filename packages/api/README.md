@@ -13,3 +13,5 @@ API locale **en lecture seule** (CDC §25) servie par Fastify sur `127.0.0.1` (p
 exposée est `VARIA_VERSION` de `@varia/engine` (source unique). Les écritures d'acceptations (POST/DELETE) arrivent en J2.
 
 - `src/` — serveur. `test/` — tests (requêtes injectées, sans réseau).
+
+Hôtes : en plus de la boucle locale, `VARIA_ALLOWED_HOSTS` (liste `nom` / `nom:port`) autorise d'autres en-têtes `Host`/`Origin` (conteneur à port publié) ; entrée invalide ⇒ erreur de configuration. Voir `docs/INTEGRATION.md`.

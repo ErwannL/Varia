@@ -1,0 +1,15 @@
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+.git
+coverage
+reports
+examples
+docs
+brand/previews
+tests
+scripts
+.github
+.varia
+*.md
+!README.md

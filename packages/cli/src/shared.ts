@@ -100,6 +100,7 @@ export interface CliEnv {
   startDashboard?: (o: {
     dataDir: string
     port: number
+    host: string
     env: NodeJS.ProcessEnv
   }) => Promise<{ url: string; close(): Promise<void> }>
 }

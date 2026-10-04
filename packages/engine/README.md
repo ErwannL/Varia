@@ -11,3 +11,5 @@ CLI : le moteur ne connaît aucun runner) à travers les phases :
 - `context.ts` — configuration, stockage utilisateur, base, journal pino. `errors.ts` — codes de sortie.
 
 Sous-dossiers : `src/`, `test/`.
+
+`hosts.ts` : `isLoopbackHost`, `parseAllowedHosts`, `hostHeaderAllowed` (anti DNS rebinding du dashboard). `dashboardData.ts` : `resolveDataPath` (`varia dashboard --data-path`).

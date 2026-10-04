@@ -2,7 +2,12 @@
 import { processIo } from './io.js'
 import { runCli } from './program.js'
 
-const startDashboard = async (o: { dataDir: string; port: number; env: NodeJS.ProcessEnv }) => {
+const startDashboard = async (o: {
+  dataDir: string
+  port: number
+  host: string
+  env: NodeJS.ProcessEnv
+}) => {
   const { startServer } = await import('@varia/api')
   return startServer(o)
 }
