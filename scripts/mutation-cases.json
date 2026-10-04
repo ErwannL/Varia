@@ -16,7 +16,7 @@
   {
     "name": "redaction désactivée",
     "file": "packages/probe-runtime/runtime/serialize.cjs",
-    "find": "opts.redactFields?.has(key.toLowerCase()) ||",
+    "find": "opts.redactFields?.has(key.toLowerCase()) === true ||",
     "replace": "false ||",
     "tests": ["packages/probe-runtime/test/serialize.test.ts"]
   },
@@ -541,8 +541,8 @@
   {
     "name": "A-12 : redaction de la sonde coupée (secret brut dans les journaux conservés)",
     "file": "packages/probe-runtime/runtime/serialize.cjs",
-    "find": "        opts.redactFields?.has(key.toLowerCase()) ||\n        opts.redactPaths?.has(childPath) ||\n        opts.redactPatterns?.some((re) => re.test(key))\n",
-    "replace": "        false\n",
+    "find": "    opts.redactFields?.has(key.toLowerCase()) === true ||\n    opts.redactPaths?.has(childPath) === true ||\n    opts.redactPatterns?.some((re) => re.test(key)) === true\n",
+    "replace": "    false\n",
     "tests": ["tests/j3/secrets.test.ts"]
   },
   {
@@ -569,7 +569,7 @@
   {
     "name": "conformité : sélection sans nom de test",
     "file": "packages/adapter-conformance/src/suite.ts",
-    "find": "testName: TESTS.observe,",
+    "find": "        testName: named(TESTS.observe),\n",
     "replace": "",
     "tests": ["packages/adapter-conformance/test/conformance.test.ts"]
   },

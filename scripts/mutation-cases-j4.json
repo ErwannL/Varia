@@ -292,8 +292,8 @@
   {
     "name": "X-03 : extensions absentes du rapport",
     "file": "packages/reporters/src/build.ts",
-    "find": "plugins: (info['plugins'] ?? { loaded: [], failures: [] }) as Report['plugins'],",
-    "replace": "plugins: { loaded: [], failures: [] },",
+    "find": "    plugins: pluginsOf(info['plugins']),",
+    "replace": "    plugins: pluginsOf(undefined),",
     "tests": ["tests/j4/plugins-e2e.test.ts"]
   },
   {
