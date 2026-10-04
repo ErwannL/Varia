@@ -1,14 +1,14 @@
 # STATE
 
-- Dernier jalon accepté : **J3 — produit fiable** (`reports/j3.md`) ; J2 (`reports/j2.md`) ; J1 ; J0 GO
+- Dernier jalon accepté : **J4 — extensibilité par contrat** (`reports/j4.md`) ; J3 (`reports/j3.md`) ; J2 ; J1 ; J0 GO
 - Étape faite : J3 complet (audit F/A/B/C/D/E/G, couverture 100 %, CI verte multi-OS)
-- Étape en cours : **J4 FAIT** (`reports/j4.md`) — attente de la CI verte du dernier commit pour déclarer la porte J4 ; prochaine étape : J5 (à définir)
+- Étape en cours : **J4 FAIT** — porte franchie (CI 10/10, run 37165670453, `1fd3974`) ; prochaine étape : J5 (à définir)
 - Vérification : `npm ci && npm run examples:install && npm run check` (outils : Python 3.11 + venv, PHP 8.3 + pcov + composer, Java 21 + Maven)
 - Externe : `npm run external:fetch && npm run build && npm run acceptance:external`
 - Preuve d'échec possible : `npm run mutation-check`
 - Hook local : `.git/hooks/pre-commit` lance `npm run check:fast` (à recréer après un clone)
 - Push : `origin/main` à jour
-- CI GitHub Actions verte sur ubuntu / macos / windows × Node 20 / 22 + external (run 37159966128, `77504f0`, J4 adaptateurs inclus)
+- CI GitHub Actions verte : ubuntu / macos / windows × Node 20 / 22 + external + adapter pytest / phpunit / junit (run 37165670453, `1fd3974`)
 - Logo refait (D-023)
 
 ## J3 — ACCEPTÉ (`reports/j3.md`)
