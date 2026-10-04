@@ -172,6 +172,7 @@ describe('accepté = implémenté (A-06)', () => {
   }
   it.each([
     [{ mutations: { combine: true } }, 'mutations.combine : UNSUPPORTED_COMBINE'],
+    [{ test: { framework: 'mocha', paths: ['tests/a'] } }, 'test.paths : UNSUPPORTED_TEST_PATHS'],
     [{ execution: { parallelism: 2 } }, 'execution.parallelism : UNSUPPORTED_PARALLELISM'],
     [{ execution: { isolation: 'batch' } }, 'execution.isolation : UNSUPPORTED_ISOLATION'],
     [
@@ -262,5 +263,20 @@ describe('clés inconnues : avertissement, pas erreur (B-05, CDC §5.3)', () => 
     expect(() =>
       resolveConfig({ version: 1, extra: 1, execution: { timeout_ms: 1 } }, '/p', null),
     ).toThrow(ConfigError)
+  })
+})
+
+describe('test.paths : périmètre des tests', () => {
+  const parsed = (raw: object) =>
+    resolveConfig({ version: 1, ...raw }, '/p', null).parsed.test.paths
+  it('vide par défaut ; accepté avec jest, vitest ou un lanceur détecté ; motif vide refusé', () => {
+    expect(parsed({})).toEqual([])
+    expect(parsed({ test: { framework: 'jest', paths: ['src/utils'] } })).toEqual(['src/utils'])
+    expect(parsed({ test: { framework: 'vitest', paths: ['tests/a', 'tests/b'] } })).toEqual([
+      'tests/a',
+      'tests/b',
+    ])
+    expect(parsed({ test: { paths: ['src/utils'] } })).toEqual(['src/utils'])
+    expect(() => parsed({ test: { paths: [''] } })).toThrow(ConfigError)
   })
 })

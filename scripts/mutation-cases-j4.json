@@ -736,5 +736,26 @@
     "find": "if (!String((error as { code?: unknown }).code).startsWith('SQLITE_CANTOPEN')) throw error",
     "replace": "throw error",
     "tests": ["packages/database/test/reader-snapshot.test.ts"]
+  },
+  {
+    "name": "Orqea : test.paths ignoré par l'adaptateur Jest (toute la suite est lancée)",
+    "file": "packages/adapters/jest/src/adapter.ts",
+    "find": "else args.push(...testPaths(ctx))",
+    "replace": "else args.push()",
+    "tests": ["tests/j1/test-paths.test.ts"]
+  },
+  {
+    "name": "Orqea : test.paths accepté par un lanceur qui ne sait pas l'honorer",
+    "file": "packages/engine/src/baseline.ts",
+    "find": "!PATHS_RUNNERS.has(ctx.adapter.id)",
+    "replace": "false",
+    "tests": ["packages/engine/test/test-paths.test.ts"]
+  },
+  {
+    "name": "Orqea : test.paths ignoré par l'adaptateur Vitest (tous les tests sont lancés)",
+    "file": "packages/adapters/vitest/src/adapter.ts",
+    "find": ": testPaths(ctx),",
+    "replace": ": [],",
+    "tests": ["tests/j1/test-paths.test.ts"]
   }
 ]

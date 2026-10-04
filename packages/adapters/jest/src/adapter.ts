@@ -13,6 +13,7 @@ import {
   runSupervised,
   statusFileIn,
   testNodeOptions,
+  testPaths,
 } from '@varia/core'
 import { parseProbeLog, PROBE_ENV, type ProbeEvent } from '@varia/probe-protocol'
 import { PROBE_PATH, testIdOf } from '@varia/probe-runtime'
@@ -182,6 +183,7 @@ export class JestAdapter implements TestAdapter {
       '--watchman=false',
     ]
     if (o.testFile !== undefined) args.push('--runTestsByPath', join(ctx.root, o.testFile))
+    else args.push(...testPaths(ctx))
     const coverageDir = join(o.runDir, 'coverage')
     if (o.coverage === true)
       args.push(

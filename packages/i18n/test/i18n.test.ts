@@ -99,6 +99,8 @@ describe('détails d’erreur de configuration (A-06)', () => {
       /^mutations\.combine : non supporté : les combinaisons/,
     )
     expect(configIssue('en', 'mutations.combine : UNSUPPORTED_COMBINE')).toMatch(/not supported/)
+    expect(configIssue('fr', 'test.paths : UNSUPPORTED_TEST_PATHS')).toMatch(/non supporté/)
+    expect(configIssue('en', 'test.paths : UNSUPPORTED_TEST_PATHS')).toMatch(/not supported/)
     expect(configIssue('fr', 'version : Invalid input')).toBe('version : Invalid input')
     expect(configIssue('fr', 'x : UNKNOWN_CODE')).toBe('x : UNKNOWN_CODE')
     expect(configIssue('fr', 'texte libre')).toBe('texte libre')

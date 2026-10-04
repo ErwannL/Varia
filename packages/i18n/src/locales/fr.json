@@ -287,6 +287,7 @@
   "dash.caps.title": "Capacités déclarées de l'adapter {adapter}",
   "dash.caps.yes": "oui",
   "dash.caps.no": "non",
+  "config.issue.UNSUPPORTED_TEST_PATHS": "non supporté : test.paths (périmètre des tests) ne fonctionne qu’avec les lanceurs jest et vitest",
   "config.issue.UNSUPPORTED_COMBINE": "non supporté : les combinaisons de mutations (mutations.combine) ne sont pas implémentées ; une mutation porte sur un seul chemin",
   "config.issue.UNSUPPORTED_PARALLELISM": "non supporté : exécution séquentielle seulement (parallelism: 1) ; aucun adapter n'est vérifié parallelSafe",
   "config.issue.UNSUPPORTED_ISOLATION": "non supporté : seule l'isolation par processus (isolation: process) existe",

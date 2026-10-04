@@ -8,6 +8,9 @@
 - **`--data-path`** : le dossier de données dérive du chemin ABSOLU du projet (`<nom>-<hash>`), donc un conteneur
   qui monte le projet ailleurs ne retrouve pas les runs de l'hôte. `resolveDataPath` sert un dossier de données sans
   projet : un `varia.db` direct, ou une racine avec un seul projet ; plusieurs ⇒ erreur qui les liste, on ne devine pas.
+- **`test.paths`** (périmètre des tests) : `test.command` n'est jamais exécutée (Varia lance le runner lui-même pour
+  injecter la sonde) ; sans `test.paths`, la baseline d'un gros projet lance TOUTE sa suite. Découvert en branchant Varia
+  sur le frontend d'Orqea (746 fichiers de test, 73 voulus).
 - Le serveur ouvre la base au démarrage : un conteneur lancé avant le premier `varia test` ne l'a pas (redémarrer).
 - Image vérifiée à la main : build, `docker run` avec un port publié différent, `/health` 200, `Host` forgé 403,
   état `healthy`. Pas de test d'image en CI.

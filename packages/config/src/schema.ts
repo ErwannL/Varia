@@ -47,6 +47,9 @@ const pair = z.tuple([z.number(), z.number()])
  */
 const unsupported = (code: string) => ({ error: code })
 
+/** Lanceurs qui prennent en charge `test.paths` (périmètre des tests passé au lanceur). */
+export const PATHS_RUNNERS: ReadonlySet<string> = new Set(['jest', 'vitest'])
+
 const handledRule = z
   .object({
     name: z.string().optional(),
@@ -106,6 +109,11 @@ export const configSchema = z
         env: z.record(z.string(), z.string()).default({}),
         node_options: z.string().optional(),
         /**
+         * Périmètre des tests (gros projets) : motifs de chemin passés au lanceur (regex de chemin pour Jest,
+         * filtres pour Vitest) ; vide = tous les tests. Seuls Jest et Vitest le prennent en charge.
+         */
+        paths: z.array(z.string().min(1)).default([]),
+        /**
          * Lanceur externe (`framework: custom`, J4 X-01, docs/writing-an-adapter.md) : commandes en
          * argv (sans shell), capacités DÉCLARÉES (fausses par défaut) que `varia doctor` vérifie.
          */
@@ -130,7 +138,14 @@ export const configSchema = z
         error: 'CUSTOM_COMMAND_REQUIRED',
         path: ['custom'],
       })
-      .default({ cwd: '.', env: {} }),
+      .refine(
+        (t) => t.paths.length === 0 || t.framework === undefined || PATHS_RUNNERS.has(t.framework),
+        {
+          error: 'UNSUPPORTED_TEST_PATHS',
+          path: ['paths'],
+        },
+      )
+      .default({ cwd: '.', env: {}, paths: [] }),
     baseline: z
       .object({ stability_runs: z.number().int().min(1).max(10).optional() })
       .strict()

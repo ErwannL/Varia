@@ -13,7 +13,7 @@
       "additionalProperties": false
     },
     "test": {
-      "default": { "cwd": ".", "env": {} },
+      "default": { "cwd": ".", "env": {}, "paths": [] },
       "type": "object",
       "properties": {
         "command": { "type": "string" },
@@ -37,6 +37,11 @@
           "additionalProperties": { "type": "string" }
         },
         "node_options": { "type": "string" },
+        "paths": {
+          "default": [],
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
         "custom": {
           "type": "object",
           "properties": {

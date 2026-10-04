@@ -13,6 +13,7 @@ import {
   runSupervised,
   statusFileIn,
   testNodeOptions,
+  testPaths,
 } from '@varia/core'
 import { parseProbeLog, PROBE_ENV, type ProbeEvent } from '@varia/probe-protocol'
 import { PROBE_PATH, testIdOf } from '@varia/probe-runtime'
@@ -171,7 +172,7 @@ export class VitestAdapter implements TestAdapter {
     const params = {
       root: ctx.root,
       configFile: CONFIG_FILES.map((f) => join(ctx.root, f)).find((f) => existsSync(f)) ?? null,
-      files: o.testFile !== undefined ? [join(ctx.root, o.testFile)] : [],
+      files: o.testFile !== undefined ? [join(ctx.root, o.testFile)] : testPaths(ctx),
       testNamePattern: o.testName !== undefined ? `^${escapeRegExp(o.testName)}$` : null,
       include: ctx.include.map(globToRegExpSource),
       exclude: ctx.exclude.map(globToRegExpSource),

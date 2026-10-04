@@ -11,7 +11,7 @@ import {
 import { randomBytes } from 'node:crypto'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
-import { printableConfig } from '@varia/config'
+import { PATHS_RUNNERS, printableConfig } from '@varia/config'
 import { PROTOCOL_VERSION, unsupportedProbeVersion } from '@varia/probe-protocol'
 import type { EngineContext } from './context.js'
 import { lastDoctorVerification } from './doctor.js'
@@ -42,10 +42,16 @@ export const newRunId = () => 'r_' + randomBytes(6).toString('hex')
 
 export function prepareContext(ctx: EngineContext, runId: string, tmpDir: string) {
   const p = ctx.config.parsed
+  // Accepté = implémenté : un lanceur DÉTECTÉ (framework absent) qui ne sait pas restreindre ses tests refuse.
+  if (p.test.paths.length > 0 && !PATHS_RUNNERS.has(ctx.adapter.id))
+    throw new VariaError('CONFIG_FAILURE', 'test.paths : non pris en charge par ce lanceur', [
+      `${ctx.adapter.id} : UNSUPPORTED_TEST_PATHS (seuls ${[...PATHS_RUNNERS].join(' et ')} le prennent en charge)`,
+    ])
   return {
     root: ctx.root,
     cwd: ctx.testCwd,
     env: p.test.env,
+    paths: p.test.paths,
     tmpDir,
     runId,
     include: p.targets.include,

@@ -31,6 +31,8 @@ export interface PrepareContext {
   cwd?: string
   /** Variables d'environnement des processus de test (`test.env`). */
   env?: Record<string, string>
+  /** Périmètre des tests (`test.paths`) : motifs de chemin passés au lanceur ; vide = tous les tests. */
+  paths?: string[]
   tmpDir: string
   runId: string
   include: string[]
@@ -40,6 +42,9 @@ export interface PrepareContext {
   /** Limite de tas des processus de test (`mutations.limits.memory_mb`, CDC §16.3). */
   memoryMb?: number
 }
+
+/** Périmètre des tests demandé (`test.paths`) ; vide = tous les tests. */
+export const testPaths = (ctx: PrepareContext): string[] => ctx.paths ?? []
 
 /** `NODE_OPTIONS` des processus de test : options du projet, puis limite de mémoire (A-03). */
 export function testNodeOptions(

@@ -10,6 +10,11 @@ explicite** (`docs/notes/configuration.md`).
   le runner lui-même pour injecter la sonde, CDC §5) : elle sert à reconnaître le framework
   (`npx vitest run` ⇒ Vitest) quand `test.framework` est absent ; `test.env` : variables des processus
   de test ; `test.cwd` : leur répertoire de travail (dans le projet) ; `test.node_options`.
+- `test.paths` : **périmètre des tests** (gros projets). Motifs de chemin passés au lanceur (`src/utils` ⇒ regex de
+  chemin pour Jest, filtre pour Vitest) ; vide = tous les tests. Sans lui, la baseline lance TOUT le projet (746
+  fichiers pour le frontend d'Orqea). Seuls Jest et Vitest le prennent en charge : avec un autre lanceur (déclaré ou
+  détecté) la configuration est refusée (exit 3, `UNSUPPORTED_TEST_PATHS`). Les exécutions par mutation restent
+  limitées à UN fichier de test (`--runTestsByPath`).
 - `targets.include` (défaut `src/**`), `targets.mode` (`auto` | `declared` | `hybrid`), `targets.depth`
   (`direct` par défaut : les appels transitifs sont observés, pas mutés ; `all` : mutés aussi, issues
   marquées `TRANSITIVE`, hors `ci.fail_on` sauf `ci.include_transitive: true`).

@@ -287,6 +287,7 @@
   "dash.caps.title": "Declared capabilities of the {adapter} adapter",
   "dash.caps.yes": "yes",
   "dash.caps.no": "no",
+  "config.issue.UNSUPPORTED_TEST_PATHS": "not supported: test.paths (test scope) only works with the jest and vitest runners",
   "config.issue.UNSUPPORTED_COMBINE": "not supported: combined mutations (mutations.combine) are not implemented; a mutation changes a single path",
   "config.issue.UNSUPPORTED_PARALLELISM": "not supported: sequential execution only (parallelism: 1); no adapter is verified parallelSafe",
   "config.issue.UNSUPPORTED_ISOLATION": "not supported: only per-process isolation (isolation: process) exists",
