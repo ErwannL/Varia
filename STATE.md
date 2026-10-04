@@ -2,7 +2,7 @@
 
 - Dernier jalon accepté : **J3 — produit fiable** (`reports/j3.md`) ; J2 (`reports/j2.md`) ; J1 ; J0 GO
 - Étape faite : J3 complet (audit F/A/B/C/D/E/G, couverture 100 %, CI verte multi-OS)
-- Étape en cours : **J4 — Q-03 (exemples/CI) puis Z-01 (rapport)** ; faits : P-01…P-03, X-01…X-03, T-01, T-02, R-01…R-04, S-01, Q-01, Q-02 (DECISIONS D-037 … D-045)
+- Étape en cours : **J4 FAIT** (`reports/j4.md`) — attente de la CI verte du dernier commit pour déclarer la porte J4 ; prochaine étape : J5 (à définir)
 - Vérification : `npm ci && npm run examples:install && npm run check` (outils : Python 3.11 + venv, PHP 8.3 + pcov + composer, Java 21 + Maven)
 - Externe : `npm run external:fetch && npm run build && npm run acceptance:external`
 - Preuve d'échec possible : `npm run mutation-check`
