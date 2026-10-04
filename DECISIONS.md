@@ -447,3 +447,14 @@ image par image dans Chromium en `<img>` comme dans le README.
 - Gabarits = chaînes dans le code. Preuve : chaque type généré passe Prettier, `tsc` et ses tests
   (conformité incluse) avec `@varia/*` résolus vers les sources du dépôt ; un `npm install` hors
   dépôt (paquets non publiés) est UNVERIFIED.
+
+## D-045 — 2026-10-03 — Tableau de bord J4 (Q-02)
+
+- Rapport schéma v4 complété sans passer en v5 (v4 introduit en J4, jamais publié) :
+  `capabilities.adapterVersion` et `plugins.loaded[].version`, requis et nullables (`null` = non
+  détecté / non déclaré, jamais inventé).
+- Version d'une extension : champ optionnel `version` du contrat ; chaîne non vide ≤ 64
+  caractères, sinon refus au chargement (`INVALID_SHAPE`, `PLUGIN_FAILURE`).
+- API `GET /api/v1/runs/:id/plugins` (chargées, par phase, défaillances paginées) ; page Extensions ;
+  tuile « Défaillances d'extension » dans la vue d'ensemble. Les rapports HTML/Markdown n'ont pas
+  encore de section extensions (limite connue).

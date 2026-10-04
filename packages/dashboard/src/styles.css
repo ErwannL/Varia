@@ -26,6 +26,8 @@
   --skipped-fg: #3c4652;
   --infra-bg: #e8eefb;
   --infra-fg: #23407a;
+  --plugin-bg: #f1e8fb;
+  --plugin-fg: #5b2486;
   color-scheme: light;
 }
 [data-theme='dark'] {
@@ -54,6 +56,8 @@
   --skipped-fg: #c9d3de;
   --infra-bg: #172443;
   --infra-fg: #b3c8ff;
+  --plugin-bg: #2b1842;
+  --plugin-fg: #e2c6ff;
   color-scheme: dark;
 }
 
@@ -440,6 +444,10 @@ th {
 .badge-pending {
   background: var(--skipped-bg);
   color: var(--skipped-fg);
+}
+.badge-plugin_failure {
+  background: var(--plugin-bg);
+  color: var(--plugin-fg);
 }
 .sev-mark {
   font-weight: 800;

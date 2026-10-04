@@ -29,6 +29,7 @@ plugins:
 export default {
   apiVersion: 1, // version du contrat : vérifiée au chargement
   name: 'iban', // espace de noms : [a-z0-9][a-z0-9-]*
+  version: '1.0.0', // facultative : chaîne non vide ≤ 64 caractères, sinon INVALID_SHAPE ; affichée dans le rapport
   strategies: [{ id: 'invalid-iban', supports: (input) => …, generate: (input, ctx) => [{ value: … }] }],
   formatDetectors: [{ id: 'code-postal', detect: (v) => …, invalidValues: (v) => ['…'] }],
   oracleRules: [{ id: 'validation-code', evaluate: (input) => ({ status: 'HANDLED', reason: 'X' }) }],
@@ -103,7 +104,7 @@ rapport JSON la consigne (`plugins.failures`, champs `plugin`, `extension`, `pha
 | `NOT_FOUND`                | `load`                 | chemin ou paquet introuvable                             |
 | `LOAD_ERROR`               | `load`                 | le module lève à l'import (syntaxe, dépendance absente…) |
 | `API_VERSION_INCOMPATIBLE` | `load`                 | `apiVersion` ≠ 1                                         |
-| `INVALID_SHAPE`            | toutes                 | export, nom, identifiant ou valeur rendue non conforme   |
+| `INVALID_SHAPE`            | toutes                 | export, nom, version, identifiant ou valeur non conforme |
 | `DUPLICATE_ID`             | `load`                 | nom de plugin ou identifiant déjà pris                   |
 | `THROWN`                   | `plan` `fuzz` `report` | exception de l'extension                                 |
 | `TIMEOUT`                  | toutes                 | aucune réponse dans le délai (boucle, thread mort)       |
@@ -150,7 +151,7 @@ plugin** est désactivé (`TIMEOUT`).
 
 ```json
 "plugins": {
-  "loaded": [{ "name": "iban", "specifier": "./iban.mjs", "apiVersion": 1,
+  "loaded": [{ "name": "iban", "specifier": "./iban.mjs", "apiVersion": 1, "version": "1.0.0",
                "extensions": [{ "kind": "strategy", "id": "iban/invalid-iban", "disabled": false }] }],
   "failures": [{ "origin": "PLUGIN_FAILURE", "plugin": "boucle", "extension": "boucle/s",
                  "phase": "plan", "code": "TIMEOUT", "message": "aucune réponse en 5000 ms (…)" }]

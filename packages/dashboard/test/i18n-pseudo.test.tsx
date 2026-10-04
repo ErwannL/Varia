@@ -89,6 +89,10 @@ describe('E-08 : chaque page rendue en pseudo-langue', () => {
     `#/runs/${SEED_RUN}/coverage`,
     `#/runs/${SEED_RUN_2}/coverage`,
     `#/runs/${SEED_RUN}/capabilities`,
+    `#/runs/${SEED_RUN_2}/capabilities`,
+    `#/runs/${SEED_RUN}/plugins`,
+    `#/runs/${SEED_RUN}/plugins?phase=plan`,
+    `#/runs/${SEED_RUN_2}/plugins`,
     '#/history',
     `#/compare?a=${SEED_RUN}&b=${SEED_RUN_2}`,
     '#/acceptances',
@@ -105,6 +109,8 @@ describe('E-08 : chaque page rendue en pseudo-langue', () => {
     })
     // La pseudo-langue est bien active (sinon le test serait vide de sens).
     expect(document.body.textContent).toContain('⟦')
+    // La page contrôlée est bien celle demandée (sauf la route volontairement inconnue).
+    expect(document.getElementById('nf-title') === null).toBe(hash !== '#/nope')
     expect(strayWords()).toEqual([])
   })
   it('le contrôle détecte un libellé codé en dur', async () => {

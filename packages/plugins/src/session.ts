@@ -41,6 +41,13 @@ export interface PluginFailure {
   message: string
 }
 
+/** Longueur maximale de `VariaPlugin.version`. */
+export const PLUGIN_VERSION_MAX = 64
+
+/** Version déclarée valide : chaîne non vide (hors espaces) d'au plus 64 caractères. */
+export const validVersion = (v: unknown): v is string =>
+  typeof v === 'string' && v.trim() !== '' && v.length <= PLUGIN_VERSION_MAX
+
 export interface LoadedExtension {
   kind: ExtensionKind
   /** Identifiant complet `<plugin>/<id>`. */
@@ -55,6 +62,8 @@ export interface LoadedPlugin {
   name: string
   specifier: string
   apiVersion: number
+  /** Version déclarée par l'extension (`VariaPlugin.version`), absente si non déclarée. */
+  version?: string
   extensions: LoadedExtension[]
 }
 
@@ -235,7 +244,16 @@ export class PluginSession {
         'DUPLICATE_ID',
         `plugin « ${name} » déjà chargé (premier dans la configuration)`,
       )
-    const plugin: LoadedPlugin = { name, specifier: spec, apiVersion: 1, extensions: [] }
+    const version = d['version']
+    if (version !== undefined && !validVersion(version))
+      return refuse('INVALID_SHAPE', `version invalide : ${JSON.stringify(version)}`)
+    const plugin: LoadedPlugin = {
+      name,
+      specifier: spec,
+      apiVersion: 1,
+      ...(version === undefined ? {} : { version }),
+      extensions: [],
+    }
     for (const kind of KIND_ORDER) {
       for (const x of d[kind] as Record<string, unknown>[]) {
         const id = x['id']

@@ -4,6 +4,7 @@
 /** @type {VariaPlugin} */
 export default {
   apiVersion: 1,
+  version: '1.0.0',
   name: 'codes',
   oracleRules: [
     {

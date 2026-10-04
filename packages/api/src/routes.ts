@@ -140,6 +140,25 @@ const acceptance = obj(
   },
   [],
 )
+/** Phases d'une défaillance d'extension (rapport v4, `plugins.failures[].phase`). */
+const PLUGIN_PHASES = ['load', 'plan', 'fuzz', 'report']
+const pluginLoaded = obj({
+  name: str,
+  specifier: str,
+  apiVersion: int,
+  version: nullable(str),
+  extensions: arr(
+    obj({ kind: str, id: str, disabled: bool, fileExtension: str }, ['fileExtension']),
+  ),
+})
+const pluginFailure = obj({
+  origin: str,
+  plugin: str,
+  extension: nullable(str),
+  phase: str,
+  code: str,
+  message: str,
+})
 const health = obj({
   status: str,
   name: str,
@@ -332,6 +351,7 @@ export function defineRoutes(ctx: RouteContext): RouteDef[] {
           baseline: map(any),
           issues: int,
           critical: int,
+          pluginFailures: int,
           limitations: arr(str),
           reproducibility: map(any),
         }),
@@ -346,6 +366,7 @@ export function defineRoutes(ctx: RouteContext): RouteDef[] {
         baseline: rep.baseline,
         issues: rep.issues.length,
         critical: rep.issues.filter((i) => i.severity === 'CRITICAL').length,
+        pluginFailures: rep.plugins.failures.length,
         limitations: rep.limitations,
         reproducibility: rep.reproducibility,
       })),
@@ -357,6 +378,7 @@ export function defineRoutes(ctx: RouteContext): RouteDef[] {
       responses: ok(
         obj({
           adapter: str,
+          adapterVersion: nullable(str),
           declared: map(bool),
           verified: map(obj({ status: str, reason: nullable(str) })),
           verifiedAt: nullable(str),
@@ -365,11 +387,36 @@ export function defineRoutes(ctx: RouteContext): RouteDef[] {
       ),
       handler: forRun(({ report }) => ({
         adapter: report.capabilities.adapter,
+        adapterVersion: report.capabilities.adapterVersion,
         declared: report.capabilities.declared,
         verified: report.capabilities.verified,
         verifiedAt: report.capabilities.verifiedAt,
         limitations: report.limitations,
       })),
+    },
+    {
+      method: 'GET',
+      url: '/api/v1/runs/:id/plugins',
+      summary:
+        'Extensions chargées pendant le run et défaillances PLUGIN_FAILURE, filtrables par phase (paginées)',
+      query: { phase: { enum: PLUGIN_PHASES }, ...PAGING },
+      responses: ok(
+        obj({ loaded: arr(pluginLoaded), byPhase: map(int), failures: page(pluginFailure) }),
+      ),
+      handler: forRun(({ report }, req) => {
+        const phase = q(req)['phase']
+        const all = report.plugins.failures
+        return {
+          loaded: report.plugins.loaded,
+          byPhase: Object.fromEntries(
+            PLUGIN_PHASES.map((ph) => [ph, all.filter((f) => f.phase === ph).length]),
+          ),
+          failures: slice(
+            all.filter((f) => phase === undefined || f.phase === phase),
+            q(req),
+          ),
+        }
+      }),
     },
     {
       method: 'GET',

@@ -115,7 +115,11 @@ function createHost(importer) {
               )
             : [{ id: undefined }]
     }
-    return { apiVersion: p['apiVersion'], name: p['name'], ...lists }
+    // Version déclarée : chaîne transmise telle quelle, toute autre valeur présente ⇒ null (refusée
+    // par la session ; une fonction ou un objet ne traverse pas postMessage).
+    const v = p['version']
+    const version = v === undefined || typeof v === 'string' ? v : null
+    return { apiVersion: p['apiVersion'], name: p['name'], version, ...lists }
   }
 
   /**

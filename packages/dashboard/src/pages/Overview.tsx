@@ -74,6 +74,12 @@ function RunOverview({ runId }: { runId: string }) {
                   <dd>{c[k]}</dd>
                 </div>
               ))}
+              <div className="count count-plugin-failures">
+                <dt>
+                  <a href={href(['runs', runId, 'plugins'])}>{t('dash.count.pluginFailures')}</a>
+                </dt>
+                <dd>{s.pluginFailures}</dd>
+              </div>
             </dl>
             <p className="muted">
               {s.resilienceRate === null

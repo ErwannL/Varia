@@ -101,6 +101,44 @@ export const SEED_RESULTS: Record<string, Classification> = {
   m_skipped: { status: 'SKIPPED', reason: 'AMBIGUOUS_CALL_SITE', testStatus: 'passed' },
 }
 
+/**
+ * Extensions du premier run (rapport v4) : une versionnée (un rapporteur désactivé après une erreur),
+ * une sans version déclarée, une introuvable. Le second run n'en a aucune et pas de version de lanceur (états vides).
+ */
+export const SEED_PLUGINS = {
+  loaded: [
+    {
+      name: 'iban',
+      specifier: './plugins/iban.mjs',
+      apiVersion: 1,
+      version: '1.2.0',
+      extensions: [
+        { kind: 'strategy', id: 'iban/invalid-iban', disabled: false },
+        { kind: 'reporter', id: 'iban/csv', disabled: true, fileExtension: 'csv' },
+      ],
+    },
+    { name: 'codes', specifier: './plugins/codes.mjs', apiVersion: 1, extensions: [] },
+  ],
+  failures: [
+    {
+      origin: 'PLUGIN_FAILURE',
+      plugin: './plugins/absent.mjs',
+      extension: null,
+      phase: 'load',
+      code: 'NOT_FOUND',
+      message: 'introuvable : ./plugins/absent.mjs',
+    },
+    {
+      origin: 'PLUGIN_FAILURE',
+      plugin: 'iban',
+      extension: 'iban/csv',
+      phase: 'report',
+      code: 'THROWN',
+      message: 'Error: disque plein',
+    },
+  ],
+}
+
 /** Crée une base Varia réaliste (un run complet de l'exemple, redigé) dans un dossier temporaire. */
 export const SEED_RUN_2 = 'r_demo00000002'
 
@@ -146,6 +184,8 @@ export function seedDatabase(
       capabilities: caps,
       depth: 'direct',
       plan: { possible: 20, planned: 7, sampled: true, estimateMs: 4200 },
+      adapterVersion: '29.7.0',
+      plugins: SEED_PLUGINS,
     },
   })
   w.saveConfig(SEED_RUN, 'version: 1\n')

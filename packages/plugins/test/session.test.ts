@@ -107,6 +107,38 @@ describe('chargement des extensions', () => {
     expect(s.loaded.map((p) => p.name)).toEqual(['complet'])
   })
 
+  it('Q-02 : version déclarée transmise (borne 64 acceptée) ; non conforme ⇒ INVALID_SHAPE', () => {
+    const s = open([
+      './versionnee.mjs',
+      './version-borne.mjs',
+      './version-vide.mjs',
+      './version-espaces.mjs',
+      './version-longue.mjs',
+      './version-nombre.mjs',
+      './version-fonction.mjs',
+    ])
+    expect(s.loaded.map((p) => [p.name, p.version])).toEqual([
+      ['versionnee', '2.0.0-beta.1'],
+      ['version-borne', 'x'.repeat(64)],
+    ])
+    expect(codes(s)).toEqual([
+      'version-vide load INVALID_SHAPE',
+      'version-espaces load INVALID_SHAPE',
+      'version-longue load INVALID_SHAPE',
+      'version-nombre load INVALID_SHAPE',
+      'version-fonction load INVALID_SHAPE',
+    ])
+    expect(s.failures.map((f) => f.message)).toEqual([
+      'version invalide : ""',
+      'version invalide : "   "',
+      `version invalide : "${'x'.repeat(65)}"`,
+      'version invalide : null',
+      'version invalide : null',
+    ])
+    // Sans version déclarée : champ absent (jamais inventé).
+    expect('version' in (open(['./cjs.cjs']).loaded[0] ?? {})).toBe(false)
+  })
+
   it('extensions mal déclarées refusées une à une, les autres gardées', () => {
     const s = open(['./identifiants.mjs'])
     expect(codes(s)).toEqual([

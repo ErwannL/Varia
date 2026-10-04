@@ -52,6 +52,8 @@ export const reportSchema = z
     /** Capacités déclarées par l'adapter ET vérifiées par `varia doctor` (D-01, v3). */
     capabilities: z.object({
       adapter: z.string(),
+      /** Version du lanceur détectée par l'adapter (`info.adapterVersion`) ; `null` : inconnue. */
+      adapterVersion: z.string().nullable(),
       declared: z.record(z.string(), z.boolean()),
       /** Statut du test de fumée et raison (code) de tout ce qui n'est pas VERIFIED. */
       verified: z.record(
@@ -201,6 +203,8 @@ export const reportSchema = z
           name: z.string(),
           specifier: z.string(),
           apiVersion: z.number().int(),
+          /** Version déclarée par l'extension ; `null` : non déclarée. */
+          version: z.string().nullable(),
           extensions: z.array(
             z.object({
               kind: z.enum(['strategy', 'detector', 'rule', 'reporter']),

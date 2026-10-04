@@ -85,9 +85,14 @@ describe('E-09 : mesures dans Chromium', () => {
     [`#/runs/${SEED_RUN}/tests/t_1`, 390],
     [`#/mutations/m_crash1?run=${SEED_RUN}`, 1280],
     ['#/acceptances', 390],
+    [`#/runs/${SEED_RUN}/plugins`, 390],
+    [`#/runs/${SEED_RUN}/plugins`, 1280],
+    [`#/runs/${SEED_RUN}/capabilities`, 390],
   ])('%s (%i px) : chaque contrôle mesure au moins 44 × 44 px', async (hash, width) => {
     if (!measurable()) return
     const page = await open(hash, width)
+    // La vue mesurée est bien celle demandée (une route inconnue rendrait « page introuvable »).
+    expect(await page.$('#nf-title'), hash).toBeNull()
     const boxes = await page.$$eval(CONTROLS, (els) =>
       els
         .map((e) => {

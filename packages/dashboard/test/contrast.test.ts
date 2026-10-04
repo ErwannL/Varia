@@ -36,9 +36,17 @@ const TEXT_PAIRS: [string, string][] = [
   ['link', 'bg'],
   ['link', 'surface'],
   ['on-accent', 'accent'],
-  ...['crash', 'timeout', 'unexpected', 'suspicious', 'handled', 'passed', 'skipped', 'infra'].map(
-    (k) => [`${k}-fg`, `${k}-bg`] as [string, string],
-  ),
+  ...[
+    'crash',
+    'timeout',
+    'unexpected',
+    'suspicious',
+    'handled',
+    'passed',
+    'skipped',
+    'infra',
+    'plugin',
+  ].map((k) => [`${k}-fg`, `${k}-bg`] as [string, string]),
 ]
 
 describe('contrastes WCAG AA (prompt §4.4)', () => {

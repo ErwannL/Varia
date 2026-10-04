@@ -1,7 +1,7 @@
 # test/
 
 Tests du dashboard (jsdom) : signature, iframe, accessibilité, contrastes, mouvement réduit ; arbre de
-navigation et pagination dans l'URL (`e07.test.tsx`) ; pseudo-langue sur chaque page (`i18n-pseudo.test.tsx`).
+navigation et pagination dans l'URL (`e07.test.tsx`) ; pseudo-langue sur chaque page (`i18n-pseudo.test.tsx`) ; lanceur, extensions et `PLUGIN_FAILURE` (`plugins.test.tsx`).
 
 `navigateur.test.ts` (E-09) mesure les cibles tactiles (≥ 44 px) et le focus visible dans un VRAI
 Chromium sans interface, sur le dashboard construit depuis les sources (vite, dossier temporaire) et

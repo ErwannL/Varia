@@ -32,6 +32,7 @@ export function variants(s, random, maxLength) {
 export default {
   apiVersion: 1,
   name: '${n.name}',
+  version: '0.1.0',
   strategies: [
     {
       id: 'variants',
@@ -55,6 +56,7 @@ ${HEADER}
 export default {
   apiVersion: 1,
   name: '${n.name}',
+  version: '0.1.0',
   oracleRules: [
     {
       id: 'invalid-input-code',
@@ -95,6 +97,7 @@ export function summary(report) {
 export default {
   apiVersion: 1,
   name: '${n.name}',
+  version: '0.1.0',
   reporters: [{ id: 'summary', extension: 'txt', render: summary }],
 }
 `

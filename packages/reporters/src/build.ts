@@ -51,6 +51,7 @@ export function capabilitiesOf(
   adapter: string,
   declared: Partial<AdapterCapabilities>,
   stored: unknown,
+  adapterVersion: unknown = null,
 ): Report['capabilities'] {
   const v = stored as { at?: unknown; checks?: Verified } | undefined
   const checks = v?.checks ?? {}
@@ -61,9 +62,24 @@ export function capabilitiesOf(
       : { status: 'UNSUPPORTED', reason: 'NOT_DECLARED' }
   return {
     adapter,
+    adapterVersion: typeof adapterVersion === 'string' ? adapterVersion : null,
     declared: { ...declared } as Record<string, boolean>,
     verified,
     verifiedAt: typeof v?.at === 'string' ? v.at : null,
+  }
+}
+
+type StoredPlugins = {
+  loaded: (Omit<Report['plugins']['loaded'][number], 'version'> & { version?: string })[]
+  failures: Report['plugins']['failures']
+}
+
+/** Extensions du run (`info.plugins`) ; version non déclarée ⇒ `null`, jamais devinée. */
+export function pluginsOf(stored: unknown): Report['plugins'] {
+  const p = (stored ?? { loaded: [], failures: [] }) as StoredPlugins
+  return {
+    loaded: p.loaded.map((x) => ({ ...x, version: x.version ?? null })),
+    failures: p.failures,
   }
 }
 
@@ -142,7 +158,12 @@ export function buildReport(reader: Reader, runId: string): Report {
         .map((t) => ({ testId: t.testId, name: t.name, reasons: t.flakyReasons })),
       calls: callSites.size,
     },
-    capabilities: capabilitiesOf(o.adapter, o.capabilities, info['verified']),
+    capabilities: capabilitiesOf(
+      o.adapter,
+      o.capabilities,
+      info['verified'],
+      info['adapterVersion'],
+    ),
     plan: planInfo ?? null,
     counts,
     resilienceRate: resilienceRate(counts),
@@ -253,6 +274,6 @@ export function buildReport(reader: Reader, runId: string): Report {
       pendingMutations: counts.pending,
     },
     limitations: limitationsOf(o.depth, o.capabilities),
-    plugins: (info['plugins'] ?? { loaded: [], failures: [] }) as Report['plugins'],
+    plugins: pluginsOf(info['plugins']),
   }
 }

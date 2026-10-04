@@ -123,6 +123,9 @@
       "type": "object",
       "properties": {
         "adapter": { "type": "string" },
+        "adapterVersion": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }]
+        },
         "declared": {
           "type": "object",
           "propertyNames": { "type": "string" },
@@ -146,7 +149,13 @@
         },
         "verifiedAt": { "anyOf": [{ "type": "string" }, { "type": "null" }] }
       },
-      "required": ["adapter", "declared", "verified", "verifiedAt"],
+      "required": [
+        "adapter",
+        "adapterVersion",
+        "declared",
+        "verified",
+        "verifiedAt"
+      ],
       "additionalProperties": false
     },
     "plan": {
@@ -650,6 +659,9 @@
                 "minimum": -9007199254740991,
                 "maximum": 9007199254740991
               },
+              "version": {
+                "anyOf": [{ "type": "string" }, { "type": "null" }]
+              },
               "extensions": {
                 "type": "array",
                 "items": {
@@ -668,7 +680,13 @@
                 }
               }
             },
-            "required": ["name", "specifier", "apiVersion", "extensions"],
+            "required": [
+              "name",
+              "specifier",
+              "apiVersion",
+              "version",
+              "extensions"
+            ],
             "additionalProperties": false
           }
         },

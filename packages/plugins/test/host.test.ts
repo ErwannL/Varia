@@ -97,6 +97,21 @@ describe('hôte des extensions (runtime/host.cjs)', () => {
         reporter: [{ id: 'rep', extension: 'txt' }, { id: undefined }],
       },
     })
+    expect(r.ok && 'version' in (r.value as object)).toBe(true)
+    expect((r.value as { version: unknown }).version).toBeUndefined()
+    // Version : chaîne transmise, toute autre valeur présente ⇒ null (refusée par la session).
+    for (const [v, out] of [
+      ['1.0.0', '1.0.0'],
+      [3, null],
+      [() => '1', null],
+    ] as const) {
+      const h = H.createHost(() =>
+        Promise.resolve({ default: { apiVersion: 1, name: 'v', version: v } }),
+      )
+      expect(
+        ((await h.handle({ op: 'load', url: 'x' })).value as { version: unknown }).version,
+      ).toBe(out)
+    }
     const cjs = H.createHost(() => Promise.resolve({ apiVersion: 1, name: 'c', reporters: 'x' }))
     const d = await cjs.handle({ op: 'load', url: 'file:///c.cjs' })
     expect(d.value).toMatchObject({ name: 'c', strategy: [], reporter: [{ id: undefined }] })

@@ -659,5 +659,54 @@
     "find": "stdout: r.stdout ?? ''",
     "replace": "stdout: r.stdout",
     "tests": ["packages/adapters/junit/test/adapter.test.ts"]
+  },
+  {
+    "name": "Q-02 : filtre de phase des défaillances ignoré par l'API",
+    "file": "packages/api/src/routes.ts",
+    "find": "all.filter((f) => phase === undefined || f.phase === phase),",
+    "replace": "all.filter(() => phase === phase),",
+    "tests": ["packages/api/test/plugins.test.ts", "packages/dashboard/test/plugins.test.tsx"]
+  },
+  {
+    "name": "Q-02 : compteur PLUGIN_FAILURE du résumé limité au chargement",
+    "file": "packages/api/src/routes.ts",
+    "find": "pluginFailures: rep.plugins.failures.length,",
+    "replace": "pluginFailures: rep.plugins.failures.filter((f) => f.phase === 'load').length,",
+    "tests": ["packages/api/test/plugins.test.ts", "packages/dashboard/test/plugins.test.tsx"]
+  },
+  {
+    "name": "Q-02 : version du lanceur perdue dans le rapport",
+    "file": "packages/reporters/src/build.ts",
+    "find": "adapterVersion: typeof adapterVersion === 'string' ? adapterVersion : null,",
+    "replace": "adapterVersion: null,",
+    "tests": ["packages/reporters/test/sections.test.ts", "packages/api/test/plugins.test.ts"]
+  },
+  {
+    "name": "Q-02 : contribution désactivée affichée comme active",
+    "file": "packages/dashboard/src/pages/Plugins.tsx",
+    "find": "{e.disabled\n",
+    "replace": "{!e.disabled\n",
+    "tests": ["packages/dashboard/test/plugins.test.tsx"]
+  },
+  {
+    "name": "Q-02 : badge PLUGIN_FAILURE sous le contraste AA (thème clair)",
+    "file": "packages/dashboard/src/styles.css",
+    "find": "--plugin-fg: #5b2486;",
+    "replace": "--plugin-fg: #b49ad0;",
+    "tests": ["packages/dashboard/test/contrast.test.ts"]
+  },
+  {
+    "name": "Q-02 : version de 64 caractères refusée (borne décalée)",
+    "file": "packages/plugins/src/session.ts",
+    "find": "v.length <= PLUGIN_VERSION_MAX",
+    "replace": "v.length < PLUGIN_VERSION_MAX",
+    "tests": ["packages/plugins/test/session.test.ts"]
+  },
+  {
+    "name": "Q-02 : version déclarée perdue dans le rapport",
+    "file": "packages/reporters/src/build.ts",
+    "find": "version: x.version ?? null",
+    "replace": "version: null",
+    "tests": ["packages/api/test/plugins.test.ts", "packages/dashboard/test/plugins.test.tsx"]
   }
 ]

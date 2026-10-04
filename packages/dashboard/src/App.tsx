@@ -15,6 +15,7 @@ import { Compare } from './pages/Compare.js'
 import { Coverage } from './pages/Coverage.js'
 import { History } from './pages/History.js'
 import { Capabilities } from './pages/Capabilities.js'
+import { Plugins } from './pages/Plugins.js'
 import { Files, Folders, Tests } from './pages/Tests.js'
 import { CallSite, TestDetail } from './pages/Tree.js'
 import { href, useRoute, type Route } from './router.js'
@@ -39,6 +40,7 @@ function Nav({ route, latestRun }: { route: Route; latestRun: string | null }) {
           ['folders', t('dash.nav.folders'), ['runs', runId, 'folders']],
           ['tests', t('dash.nav.tests'), ['runs', runId, 'tests']],
           ['capabilities', t('dash.nav.capabilities'), ['runs', runId, 'capabilities']],
+          ['plugins', t('dash.nav.plugins'), ['runs', runId, 'plugins']],
           ['coverage', t('dash.nav.coverage'), ['runs', runId, 'coverage']],
         ] as [string, string, string[]][])),
   ]
@@ -79,6 +81,8 @@ function Page({ route }: { route: Route }) {
     return <CallSite runId={b} callSiteId={d} />
   if (a === 'runs' && b !== undefined && c === 'capabilities') return <Capabilities runId={b} />
   if (a === 'runs' && b !== undefined && c === 'coverage') return <Coverage runId={b} />
+  if (a === 'runs' && b !== undefined && c === 'plugins')
+    return <Plugins runId={b} phase={route.query.get('phase')} />
   if (a === 'history' && b === undefined) return <History />
   if (a === 'compare' && b === undefined)
     return <Compare a={route.query.get('a')} b={route.query.get('b')} />

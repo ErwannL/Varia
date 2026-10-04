@@ -7,6 +7,7 @@ const COLUMNS = ['id', 'target', 'path', 'strategy', 'status', 'reason', 'value'
 /** @type {VariaPlugin} */
 export default {
   apiVersion: 1,
+  version: '1.0.0',
   name: 'csv',
   reporters: [
     {

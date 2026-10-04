@@ -9,6 +9,7 @@ const known = (key: string): key is MessageKey => key in messages.fr
 
 interface Caps {
   adapter: string
+  adapterVersion: string | null
   declared: Record<string, boolean>
   verified: Record<string, { status: string; reason: string | null }> | null
   verifiedAt: string | null
@@ -29,6 +30,11 @@ export function Capabilities({ runId }: { runId: string }) {
         {(c) => (
           <>
             <p className="muted">{t('dash.capsPage.adapter', { adapter: c.adapter })}</p>
+            <p className="muted" data-testid="runner-version">
+              {c.adapterVersion === null
+                ? t('report.capabilities.runnerVersionUnknown')
+                : t('report.capabilities.runnerVersion', { version: c.adapterVersion })}
+            </p>
             <p className="muted">
               {c.verifiedAt === null
                 ? t('report.capabilities.neverVerified')

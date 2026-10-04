@@ -23,7 +23,11 @@ interface Report {
     reason: string | null
   }[]
   plugins: {
-    loaded: { name: string; extensions: { id: string; disabled: boolean }[] }[]
+    loaded: {
+      name: string
+      version: string | null
+      extensions: { id: string; disabled: boolean }[]
+    }[]
     failures: {
       origin: string
       plugin: string
@@ -87,6 +91,8 @@ describe('extensions d’exemple dans un vrai run (X-02)', () => {
     expect(r.run.code, r.run.err).toBe(1)
     expect(r.report.schemaVersion).toBe(4)
     expect(r.report.plugins.loaded.map((p) => p.name)).toEqual(['iban', 'codes', 'csv'])
+    // Q-02 : version déclarée par l'extension, recopiée de bout en bout jusqu'au rapport.
+    expect(r.report.plugins.loaded.map((p) => p.version)).toEqual(['1.0.0', '1.0.0', '1.0.0'])
     expect(r.report.plugins.failures).toEqual([])
   })
 

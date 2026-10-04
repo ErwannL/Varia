@@ -94,6 +94,8 @@ export interface VariaPlugin {
   apiVersion: number
   /** Espace de noms des identifiants : `<name>/<id>` (minuscules, chiffres, tirets). */
   name: string
+  /** Version de l'extension, affichée dans le rapport (chaîne non vide, ≤ 64 caractères). */
+  version?: string
   strategies?: MutationStrategy[]
   oracleRules?: OracleRule[]
   reporters?: Reporter[]

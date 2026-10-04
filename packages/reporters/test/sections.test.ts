@@ -191,10 +191,30 @@ describe('E-01 / E-05 : rapport HTML', () => {
     expect(doc.querySelector('#capabilities')?.textContent).toContain('2026-10-01T00:00:00Z')
     expect(capabilitiesOf('x', { coverage: true }, undefined)).toEqual({
       adapter: 'x',
+      adapterVersion: null,
       declared: { coverage: true },
       verified: { coverage: { status: 'NOT_VERIFIED', reason: 'DOCTOR_NOT_RUN' } },
       verifiedAt: null,
     })
+  })
+  it('Q-02 : version du lanceur (info.adapterVersion) en HTML et Markdown ; inconnue : dite', () => {
+    const r = report()
+    expect(r.capabilities.adapterVersion).toBe('29.7.0')
+    expect(capabilitiesOf('x', {}, undefined, 42).adapterVersion).toBeNull()
+    const doc = html2doc(toHtml(r, 'fr', 'https://o'))
+    expect(doc.querySelector('#capabilities #runner-version')?.textContent).toBe(
+      'Version du lanceur : 29.7.0',
+    )
+    expect(toMarkdown(r, 'en')).toContain('## Capabilities (jest)\n\nRunner version: 29.7.0\n')
+    const none = { ...r, capabilities: { ...r.capabilities, adapterVersion: null } }
+    expect(
+      html2doc(toHtml(none, 'en', 'https://o')).querySelector('#runner-version')?.textContent,
+    ).toBe('Runner version: not detected')
+    expect(toMarkdown(none, 'fr')).toContain('Version du lanceur : non détectée')
+    const hostile = { ...r, capabilities: { ...r.capabilities, adapterVersion: '<b>1</b>' } }
+    expect(toHtml(hostile, 'fr', 'https://o')).toContain(
+      'Version du lanceur : &lt;b&gt;1&lt;/b&gt;',
+    )
   })
   it('reproductibilité sans graine, commit ni branche ; limites ESM', () => {
     const doc = html2doc(

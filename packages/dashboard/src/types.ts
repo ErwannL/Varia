@@ -30,6 +30,7 @@ export interface Summary {
   }
   issues: number
   critical: number
+  pluginFailures: number
 }
 export interface Issue {
   id: string

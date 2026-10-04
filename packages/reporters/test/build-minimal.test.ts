@@ -108,7 +108,13 @@ describe('rapport sur une base minimale (champs absents)', () => {
   const r = minimalReport()
   it('valeurs par défaut du run : projet, adaptateur, profondeur, capacités', () => {
     expect(r.project).toEqual({ id: 'p1', name: 'p1', root: '' })
-    expect(r.capabilities).toEqual({ adapter: '', declared: {}, verified: {}, verifiedAt: null })
+    expect(r.capabilities).toEqual({
+      adapter: '',
+      adapterVersion: null,
+      declared: {},
+      verified: {},
+      verifiedAt: null,
+    })
     expect(r.limitations).toContain('TRANSITIVE_CALLS_NOT_MUTATED')
     expect(r.limitations).toContain('NATIVE_ESM_UNSUPPORTED')
   })

@@ -53,6 +53,15 @@ const pct = (locale: Locale, v: number | null): string =>
   v === null ? t(locale, 'report.unknown') : `${String(v)} %`
 
 /** Traduction échappée ; une clé absente (code inconnu) est rendue telle quelle, jamais devinée. */
+/** Version du lanceur (section capacités) : la donnée, ou « non détectée », jamais devinée. */
+const runnerVersion = (
+  tr: (k: MessageKey, p?: Record<string, string>) => string,
+  version: string | null,
+): string =>
+  version === null
+    ? tr('report.capabilities.runnerVersionUnknown')
+    : tr('report.capabilities.runnerVersion', { version })
+
 function translator(locale: Locale) {
   const tr = (k: MessageKey, p: Record<string, string | number> = {}) =>
     esc(t(locale, k, Object.fromEntries(Object.entries(p).map(([a, b]) => [a, String(b)]))))
@@ -139,6 +148,7 @@ footer{border-top:1px solid var(--bo);text-align:center;color:var(--mu);font-siz
 ${b.failing.length === 0 ? '' : list('report.baseline.failing', b.failing)}</section>
 ${coverage}
 <section id="capabilities"><h2>${tr('report.capabilities')} — <code>${esc(caps.adapter)}</code></h2>
+<p class="mu" id="runner-version">${runnerVersion(tr, caps.adapterVersion)}</p>
 <p class="mu">${caps.verifiedAt === null ? tr('report.capabilities.neverVerified') : tr('report.capabilities.verifiedAt', { date: caps.verifiedAt })}</p>
 <table><thead><tr><th>${tr('report.col.capability')}</th><th>${tr('report.col.declared')}</th><th>${tr('report.col.verified')}</th><th>${tr('report.col.reason')}</th></tr></thead><tbody>${capRows}</tbody></table></section>
 <section id="issues"><h2>${tr('report.issues')}</h2>${issues}</section>
@@ -274,6 +284,8 @@ export function toMarkdown(r: Report, locale: Locale): string {
     ...rows,
     '',
     `## ${tr('report.capabilities')} (${r.capabilities.adapter})`,
+    '',
+    runnerVersion(tr, r.capabilities.adapterVersion),
     '',
     r.capabilities.verifiedAt === null
       ? tr('report.capabilities.neverVerified')

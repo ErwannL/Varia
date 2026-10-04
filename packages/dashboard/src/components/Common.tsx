@@ -44,6 +44,7 @@ const STATUS_ICON: Record<string, string> = {
   SKIPPED: 'M5 5l7 7-7 7M13 5l7 7-7 7',
   SUSPICIOUS_ACCEPT: 'M12 3l10 18H2zM12 10v4M12 17h.01',
   PENDING: 'M12 2a10 10 0 100 20 10 10 0 000-20z',
+  PLUGIN_FAILURE: 'M4 9h4V5h6v4h4v6h-4v4H8v-4H4zM9 12h6',
 }
 
 /** État d'une mutation : icône ET libellé, jamais la couleur seule (prompt §4.4). */
