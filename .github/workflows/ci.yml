@@ -57,3 +57,59 @@ jobs:
       - run: npm run external:fetch
       - run: npm run acceptance:external -- immutability-helper
       - run: npm run acceptance:external -- destr
+  adapters:
+    # Q-03 : un job par lanceur d'un autre langage. Outil absent ⇒ job marqué « ignoré avec raison »
+    # (annotation ::warning:: + résumé), jamais vert en silence ; outil présent ⇒ tests de l'adaptateur.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - adapter: pytest
+            probe: python3 --version
+            tests: packages/adapters/pytest tests/j4/pytest.test.ts tests/j4/pytest-process.test.ts
+          - adapter: phpunit
+            probe: php --version && composer --version
+            tests: packages/adapters/phpunit tests/j4/phpunit.test.ts tests/j4/phpunit-process.test.ts
+          - adapter: junit
+            probe: java -version && mvn -v
+            tests: packages/adapters/junit tests/j4/junit.test.ts tests/j4/junit-process.test.ts
+    name: adapter ${{ matrix.adapter }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - if: matrix.adapter == 'pytest'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - if: matrix.adapter == 'phpunit'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pcov
+          coverage: pcov
+          tools: composer
+      - if: matrix.adapter == 'junit'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - id: tool
+        shell: bash
+        run: |
+          if ${{ matrix.probe }}; then echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::adapter ${{ matrix.adapter }} IGNORÉ avec raison : outil absent (${{ matrix.probe }})"
+            echo "### adapter ${{ matrix.adapter }} : IGNORÉ — outil absent" >> "$GITHUB_STEP_SUMMARY"
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.tool.outputs.present == 'true'
+        run: npm ci
+      - if: steps.tool.outputs.present == 'true'
+        run: npm run examples:install
+      - if: steps.tool.outputs.present == 'true'
+        run: npx vitest run ${{ matrix.tests }}
