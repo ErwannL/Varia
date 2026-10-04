@@ -329,7 +329,7 @@ export function writeOutputs(
     [o.json, () => JSON.stringify(report, null, 2) + '\n'],
     [o.junit, () => toJUnit(report, ctx.config.parsed.ci.fail_on)],
     [o.sarif, () => toSarif(report)],
-    [o.markdown, () => toMarkdown(report, p.locale)],
+    [o.markdown, () => toMarkdown(report, p.locale, orqeaUrl(s.cli.env))],
     [o.html, () => toHtml(report, p.locale, orqeaUrl(s.cli.env))],
   ]
   for (const [file, render] of outputs) {

@@ -771,5 +771,19 @@
     "find": "    d.configurable = true\n",
     "replace": "",
     "tests": ["packages/probe-runtime/test/probe.test.ts"]
+  },
+  {
+    "name": "Signature : les crédits quittent l'en-tête du tableau de bord",
+    "file": "packages/dashboard/src/components/Brand.tsx",
+    "find": "            <Credits orqeaUrl={orqeaUrl} />\n",
+    "replace": "",
+    "tests": ["packages/dashboard/test/brand.test.tsx"]
+  },
+  {
+    "name": "Signature : le rapport HTML perd les crédits de l'en-tête",
+    "file": "packages/reporters/src/formats.ts",
+    "find": "data-credit=\"owner\"",
+    "replace": "data-x=\"owner\"",
+    "tests": ["packages/reporters/test/sections.test.ts", "packages/reporters/test/formats.test.ts"]
   }
 ]

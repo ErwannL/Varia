@@ -110,6 +110,26 @@ describe('E-09 : mesures dans Chromium', () => {
     await page.close()
   })
 
+  it.each([1280, 390])(
+    '(%i px) crédits dans l’en-tête, SOUS le nom : liens d’au moins 24 × 24 px (WCAG 2.2 AA, 2.5.8)',
+    async (width) => {
+      if (!measurable()) return
+      const page = await open(`#/runs/${SEED_RUN}`, width)
+      const credits = await page.$$eval('header .credits a', (els) =>
+        els.map((e) => {
+          const r = e.getBoundingClientRect()
+          return { w: r.width, h: r.height, top: r.top, what: e.getAttribute('data-credit') ?? '' }
+        }),
+      )
+      expect(credits.map((c) => c.what)).toEqual(['owner', 'author'])
+      expect(credits.filter((c) => c.w < 24 || c.h < 24)).toEqual([])
+      const nameBottom = await page.$eval('.brand', (e) => e.getBoundingClientRect().bottom)
+      for (const c of credits) expect(c.top, c.what).toBeGreaterThanOrEqual(nameBottom - 8)
+      expect(await page.$('footer')).toBeNull()
+      await page.close()
+    },
+  )
+
   it('focus clavier visible : contour ≥ 2 px et pixels changés sur chaque contrôle atteint', async () => {
     if (!measurable()) return
     const page = await open(`#/runs/${SEED_RUN}`)

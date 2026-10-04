@@ -1,4 +1,12 @@
-import { AUTHOR_URL, issueTitle, messages, t, type Locale, type MessageKey } from '@varia/i18n'
+import {
+  AUTHOR_URL,
+  DEFAULT_ORQEA_URL,
+  issueTitle,
+  messages,
+  t,
+  type Locale,
+  type MessageKey,
+} from '@varia/i18n'
 import type { Report } from './schema.js'
 
 /** Caractères interdits en XML 1.0 (contrôles, substituts isolés, U+FFFE/U+FFFF) : retirés. */
@@ -128,14 +136,13 @@ export function toHtml(r: Report, locale: Locale, orqeaUrl: string): string {
 :root{--bg:#fff;--fg:#17152e;--mu:#4f4b6b;--ac:#4b32d6;--su:#f5f4fb;--bo:#c9c5e0;color-scheme:light dark}
 @media (prefers-color-scheme:dark){:root{--bg:#0e0c1d;--fg:#eeedf7;--mu:#b7b3d1;--ac:#b9adff;--su:#191630;--bo:#4a4570}}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
-header,footer,main{max-width:68rem;margin:0 auto;padding:1rem 1.25rem}header{display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--bo)}header svg{width:40px;height:40px;flex:none}
-.name{font-size:1.5rem;font-weight:750}.by{color:var(--mu);font-size:.85rem}a{color:var(--ac)}.mu{color:var(--mu)}
+header,main{max-width:68rem;margin:0 auto;padding:1rem 1.25rem}header{display:flex;align-items:center;gap:.75rem;border-bottom:1px solid var(--bo)}header svg{width:40px;height:40px;flex:none}
+.name{font-size:1.5rem;font-weight:750}.by{color:var(--mu);font-size:.85rem}a{color:var(--ac)}.mu{color:var(--mu)}.bt{display:flex;flex-direction:column}.credits{color:var(--mu);font-size:.8rem}.credits a{color:var(--mu)}
 .badge{display:inline-block;font-size:.8rem;font-weight:700;padding:.1rem .5rem;border-radius:99px;border:1px solid var(--ac);color:var(--ac);vertical-align:middle}
 .cs{display:grid;grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr));gap:.5rem}.c{background:var(--su);border:1px solid var(--bo);border-radius:8px;padding:.4rem .7rem}.c span{display:block;color:var(--mu);font-size:.85rem}.c b{font-size:1.4rem}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:.4rem;border-bottom:1px solid var(--bo);vertical-align:top}.st-VERIFIED{font-weight:700}
-footer{border-top:1px solid var(--bo);text-align:center;color:var(--mu);font-size:.9rem}
 </style></head><body>
-<header>${LOGO_SVG}<span class="name">Varia</span><span class="by">${tr('byline')}</span></header>
+<header>${LOGO_SVG}<div class="bt"><div><span class="name">Varia</span> <span class="by">${tr('byline')}</span></div><div class="credits"><a href="${esc(orqeaUrl)}" target="_top" data-credit="owner">${tr('poweredBy')}</a> · <a href="${esc(AUTHOR_URL)}" target="_blank" rel="noreferrer noopener" data-credit="author">${tr('author')}</a></div></div></header>
 <main>
 <h1>${tr('report.title', { project: r.project.name })}${partial}</h1>
 <p class="mu">${tr('report.run', { id: r.run.id, seed: r.run.seed ?? '—', state: r.run.state, date: r.run.updatedAt })}</p>
@@ -167,7 +174,6 @@ ${list('dash.notCovered.neverCalled', nc.neverCalled)}${list('dash.notCovered.tr
 <section id="limitations"><h2>${tr('report.limitations')}</h2><ul>${r.limitations.map((l) => `<li>${trOr(`dash.limitation.${l}`, l)}</li>`).join('')}</ul></section>
 <section id="reproducibility"><h2>${tr('report.repro')}</h2><p class="mu"><code>seed=${esc(rp.seed ?? '')} config=${esc(rp.configHash)} env=${esc(rp.envHash)} commit=${esc(rp.gitCommit ?? '—')} branch=${esc(rp.gitBranch ?? '—')} varia=${esc(rp.variaVersion)}</code></p></section>
 </main>
-<footer><span class="by">Varia ${tr('byline')}</span> · <a href="${esc(orqeaUrl)}" target="_top">${tr('poweredBy')}</a> · <a href="${esc(AUTHOR_URL)}" target="_blank" rel="noreferrer noopener">${tr('author')}</a></footer>
 </body></html>
 `
 }
@@ -250,7 +256,11 @@ export function toSarif(r: Report): string {
 }
 
 /** Résumé Markdown (commentaire de PR, résumé de job) : partiel, capacités, non couvert, limites. */
-export function toMarkdown(r: Report, locale: Locale): string {
+export function toMarkdown(
+  r: Report,
+  locale: Locale,
+  orqeaUrl: string = DEFAULT_ORQEA_URL,
+): string {
   const c = r.counts
   const tr = (k: MessageKey, p: Record<string, string | number> = {}) =>
     t(locale, k, Object.fromEntries(Object.entries(p).map(([a, b]) => [a, String(b)])))
@@ -269,6 +279,8 @@ export function toMarkdown(r: Report, locale: Locale): string {
     `- ${tr(k)} (${String(xs.length)})${xs.length === 0 ? '' : ` : ${xs.map((x) => `\`${x}\``).join(', ')}`}`
   return [
     `# ${tr('report.title', { project: r.project.name })}${r.run.partial ? ` — **${tr('report.partialLabel')}**` : ''}`,
+    '',
+    `[${tr('poweredBy')}](${orqeaUrl}) · [${tr('author')}](${AUTHOR_URL})`,
     '',
     tr('cli.summary.executed', {
       planned: c.mutations,
@@ -332,8 +344,6 @@ export function toMarkdown(r: Report, locale: Locale): string {
     `## ${tr('report.limitations')}`,
     '',
     ...r.limitations.map((l) => `- ${trOr(`dash.limitation.${l}`, l)}`),
-    '',
-    `${tr('poweredBy')} · ${tr('author')}`,
     '',
   ].join('\n')
 }

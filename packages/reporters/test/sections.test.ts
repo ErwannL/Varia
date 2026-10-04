@@ -108,20 +108,33 @@ describe('E-01 / E-05 : rapport HTML', () => {
     expect(html).toContain(LOGO_SVG)
     expect(html).not.toContain('M15 19 L30 47')
   })
-  it('signature : byline en en-tête et en pied, poweredBy vers Orqea, auteur', () => {
+  it('signature DANS l’en-tête, sous le nom : poweredBy vers Orqea, auteur ; aucun pied de page', () => {
     const doc = html2doc(html)
     expect(doc.querySelector('header .by')?.textContent).toBe('par Orqea')
-    expect(doc.querySelector('footer .by')?.textContent).toBe('Varia par Orqea')
-    const links = [...doc.querySelectorAll('footer a')].map((a) => [
+    expect(doc.querySelector('footer')).toBeNull()
+    const links = [...doc.querySelectorAll('header .credits a')].map((a) => [
       a.textContent,
       a.getAttribute('href'),
+      a.getAttribute('target'),
     ])
     expect(links).toEqual([
-      ['Propulsé par Orqea', 'https://orqea.example'],
-      ['Développé par Erwann Laplante', 'https://github.com/ErwannL'],
+      ['Propulsé par Orqea', 'https://orqea.example', '_top'],
+      ['Développé par Erwann Laplante', 'https://github.com/ErwannL', '_blank'],
     ])
     const en = html2doc(toHtml(r, 'en', 'https://o'))
-    expect(en.querySelector('footer')?.textContent).toContain('Developed by Erwann Laplante')
+    expect(en.querySelector('header .credits')?.textContent).toContain(
+      'Developed by Erwann Laplante',
+    )
+  })
+  it('Markdown : la signature (liens) suit le titre ; l’URL d’Orqea est paramétrable ; rien en pied', () => {
+    const md = toMarkdown(r, 'en')
+    const credits =
+      '[Powered by Orqea](https://orqea.dev) · [Developed by Erwann Laplante](https://github.com/ErwannL)'
+    expect(md.split('\n')[2]).toBe(credits)
+    expect(md.trimEnd().endsWith(credits)).toBe(false)
+    expect(toMarkdown(r, 'fr', 'http://localhost:3002')).toContain(
+      '[Propulsé par Orqea](http://localhost:3002)',
+    )
   })
   it('chaque section présente', () => {
     const doc = html2doc(html)

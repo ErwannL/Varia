@@ -137,7 +137,8 @@ describe('en-tête', () => {
   it('logo animé au survol et au focus, fixe sinon', async () => {
     render(<App locale="fr" />)
     const logo = await screen.findByTestId('brand-logo')
-    const link = logo.closest('a') as HTMLElement
+    // Le survol / focus de TOUT le bloc de marque (logo, nom, crédits) anime le logo.
+    const link = screen.getByTestId('powered-by')
     fireEvent.mouseEnter(link)
     expect(logo.getAttribute('src')).toBe('/varia-animated.svg')
     fireEvent.mouseLeave(link)

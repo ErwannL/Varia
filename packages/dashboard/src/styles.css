@@ -154,19 +154,28 @@ button,
 .brand-wrap {
   display: inline-flex;
   align-items: center;
+  gap: 0.75rem;
+}
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.brand-line {
+  display: flex;
+  align-items: baseline;
   gap: 0.5rem;
 }
 .brand {
   display: inline-flex;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
   text-decoration: none;
   color: var(--text);
   min-height: 44px;
-  align-items: center;
 }
 .brand-logo {
   display: block;
+  flex: none;
 }
 .brand-name {
   font-size: 1.5rem;
@@ -177,6 +186,26 @@ button,
   font-size: 0.85rem;
   color: var(--muted);
   font-weight: 400;
+}
+/* Crédits sous le nom. Liens de texte : cible d'au moins 24 px (WCAG 2.2 AA, 2.5.8) ; les contrôles
+   (boutons, navigation) gardent 44 px. */
+.credits {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: -0.35rem;
+}
+.credits a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  color: var(--muted);
+}
+.credits a:first-child {
+  font-weight: 600;
 }
 .header-tools {
   display: flex;
@@ -246,23 +275,6 @@ button,
 button:disabled {
   cursor: not-allowed;
   color: var(--muted);
-}
-
-.footer {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1.5rem 1rem;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 0.9rem;
-}
-.footer a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
 }
 
 .loader {

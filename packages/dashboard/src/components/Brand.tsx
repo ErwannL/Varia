@@ -1,8 +1,37 @@
 import { useState } from 'react'
+import { AUTHOR_URL } from '@varia/i18n'
 import { useI18n } from '../i18n.js'
 import { href, inIframe } from '../router.js'
 
-/** En-tête de marque : « Varia » en avant, « par Orqea » secondaire sur la même ligne (prompt §4.1). */
+/**
+ * Crédits : « Propulsé par Orqea » (même fenêtre, `_top`) et « Développé par Erwann Laplante » (nouvel
+ * onglet), placés DANS l'en-tête, sous le nom, comme chez les autres applications compagnes d'Orqea.
+ */
+export function Credits({ orqeaUrl }: { orqeaUrl: string }) {
+  const { t } = useI18n()
+  return (
+    <div className="credits" data-testid="credits">
+      <a href={orqeaUrl} target="_top" data-credit="owner" data-testid="powered-by">
+        {t('poweredBy')}
+      </a>
+      <span aria-hidden="true">·</span>
+      <a
+        href={AUTHOR_URL}
+        target="_blank"
+        rel="noreferrer noopener"
+        data-credit="author"
+        data-testid="author"
+      >
+        {t('author')}
+      </a>
+    </div>
+  )
+}
+
+/**
+ * En-tête de marque : le logo (animé au survol et au focus de TOUT le bloc), « Varia » en avant avec
+ * « par Orqea » en secondaire sur la même ligne, puis dessous les crédits.
+ */
 export function Header({ orqeaUrl, nav }: { orqeaUrl: string; nav: React.ReactNode }) {
   const { t, locale, setLocale } = useI18n()
   const [hover, setHover] = useState(false)
@@ -10,29 +39,33 @@ export function Header({ orqeaUrl, nav }: { orqeaUrl: string; nav: React.ReactNo
   return (
     <header className="header">
       <div className="header-row">
-        <div className="brand-wrap">
-          <a
-            className="brand"
-            href={href([])}
-            onMouseEnter={() => setHover(true)}
-            onMouseLeave={() => setHover(false)}
-            onFocus={() => setHover(true)}
-            onBlur={() => setHover(false)}
-          >
-            <img
-              className="brand-logo"
-              src={hover ? '/varia-animated.svg' : '/varia.svg'}
-              width={36}
-              height={36}
-              alt=""
-              data-testid="brand-logo"
-            />
-            <span className="brand-name">Varia</span>
-          </a>
-          {/* La byline est du texte hors du lien (E-04). */}
-          <span className="brand-byline" data-testid="byline">
-            {t('byline')}
-          </span>
+        <div
+          className="brand-wrap"
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+          onFocus={() => setHover(true)}
+          onBlur={() => setHover(false)}
+        >
+          <img
+            className="brand-logo"
+            src={hover ? '/varia-animated.svg' : '/varia.svg'}
+            width={40}
+            height={40}
+            alt=""
+            data-testid="brand-logo"
+          />
+          <div className="brand-text">
+            <div className="brand-line">
+              <a className="brand" href={href([])}>
+                <span className="brand-name">Varia</span>
+              </a>
+              {/* La byline est du texte hors du lien (E-04). */}
+              <span className="brand-byline" data-testid="byline">
+                {t('byline')}
+              </span>
+            </div>
+            <Credits orqeaUrl={orqeaUrl} />
+          </div>
         </div>
         <div className="header-tools">
           {framed ? null : (
@@ -54,26 +87,6 @@ export function Header({ orqeaUrl, nav }: { orqeaUrl: string; nav: React.ReactNo
       </div>
       {nav}
     </header>
-  )
-}
-
-export function Footer({ orqeaUrl }: { orqeaUrl: string }) {
-  const { t } = useI18n()
-  return (
-    <footer className="footer">
-      <a href={orqeaUrl} target="_top" data-testid="powered-by">
-        {t('poweredBy')}
-      </a>
-      <span aria-hidden="true">·</span>
-      <a
-        href="https://github.com/ErwannL"
-        target="_blank"
-        rel="noreferrer noopener"
-        data-testid="author"
-      >
-        {t('author')}
-      </a>
-    </footer>
   )
 }
 

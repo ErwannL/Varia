@@ -162,12 +162,32 @@ describe('sources du dashboard', () => {
   })
 })
 
+describe('signature DANS l’en-tête, sous le nom (comme les autres applications compagnes)', () => {
+  it('« Propulsé par Orqea » et « Développé par Erwann Laplante » sont dans <header>, sous « Varia par Orqea »', async () => {
+    await renderApp('fr')
+    const header = document.querySelector('header') as HTMLElement
+    const credits = screen.getByTestId('credits')
+    expect(header.contains(credits)).toBe(true)
+    const line = screen.getByTestId('byline').parentElement as HTMLElement
+    // Les crédits suivent la ligne « Varia par Orqea » dans le même bloc de texte.
+    expect(line.nextElementSibling).toBe(credits)
+    expect(credits.querySelectorAll('a')).toHaveLength(2)
+    expect(screen.getByTestId('powered-by').dataset['credit']).toBe('owner')
+    expect(screen.getByTestId('author').dataset['credit']).toBe('author')
+  })
+  it('plus aucun pied de page', async () => {
+    await renderApp('fr')
+    expect(document.querySelector('footer')).toBeNull()
+    expect(screen.getAllByTestId('powered-by')).toHaveLength(1)
+  })
+})
+
 describe('E-04 / E-05 : byline hors lien, logo animé', () => {
-  it('« par Orqea » : aucun ancêtre <a> ; logo et « Varia » restent dans le lien d’accueil', async () => {
+  it('« par Orqea » : aucun ancêtre <a> ; « Varia » est le lien d’accueil', async () => {
     await renderApp('fr')
     const byline = screen.getByTestId('byline')
     expect(byline.closest('a')).toBeNull()
-    const home = screen.getByTestId('brand-logo').closest('a') as HTMLAnchorElement
+    const home = screen.getByRole('link', { name: 'Varia' })
     expect(home.getAttribute('href')).toBe('#/')
     expect(home.textContent).toBe('Varia')
   })
@@ -192,7 +212,7 @@ describe('E-04 / E-05 : byline hors lien, logo animé', () => {
   it('en-tête : logo animé au survol et au focus, fixe sinon', async () => {
     await renderApp('fr')
     const logo = screen.getByTestId('brand-logo')
-    const link = logo.closest('a') as HTMLAnchorElement
+    const link = screen.getByRole('link', { name: 'Varia' })
     expect(logo.getAttribute('src')).toBe('/varia.svg')
     fireEvent.mouseEnter(link)
     expect(logo.getAttribute('src')).toBe('/varia-animated.svg')

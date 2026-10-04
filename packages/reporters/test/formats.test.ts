@@ -22,12 +22,15 @@ function report(): Report {
 
 describe('HTML autonome (CDC §31, prompt §4.2)', () => {
   const html = toHtml(report(), 'fr', 'https://orqea.example')
-  it('signature en en-tête et en pied', () => {
-    expect(html).toContain('<span class="name">Varia</span><span class="by">par Orqea</span>')
-    expect(html).toContain('<a href="https://orqea.example" target="_top">Propulsé par Orqea</a>')
+  it('signature dans l’en-tête, sous le nom ; aucun pied de page', () => {
+    expect(html).toContain('<span class="name">Varia</span> <span class="by">par Orqea</span>')
     expect(html).toContain(
-      '<a href="https://github.com/ErwannL" target="_blank" rel="noreferrer noopener">Développé par Erwann Laplante</a>',
+      '<a href="https://orqea.example" target="_top" data-credit="owner">Propulsé par Orqea</a>',
     )
+    expect(html).toContain(
+      '<a href="https://github.com/ErwannL" target="_blank" rel="noreferrer noopener" data-credit="author">Développé par Erwann Laplante</a>',
+    )
+    expect(html).not.toContain('<footer')
     expect(html.toLowerCase()).not.toContain('nouvel onglet')
   })
   it('autonome : aucune ressource externe chargée, logo inline accessible', () => {
@@ -79,7 +82,9 @@ describe('JUnit, SARIF, Markdown', () => {
     expect(md).toContain(
       '| Critical | new | src/values.js#repeat: timeout | 1 | `varia replay m_timeout` |',
     )
-    expect(md).toContain('Powered by Orqea · Developed by Erwann Laplante')
+    expect(md).toContain(
+      '[Powered by Orqea](https://orqea.dev) · [Developed by Erwann Laplante](https://github.com/ErwannL)',
+    )
   })
 })
 

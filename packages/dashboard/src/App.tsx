@@ -1,7 +1,7 @@
 import type { Locale } from '@varia/i18n'
 import { useEffect } from 'react'
 import { useApi, type Health } from './api.js'
-import { Footer, Header } from './components/Brand.js'
+import { Header } from './components/Brand.js'
 import { Loader } from './components/Common.js'
 import { I18nProvider, useI18n } from './i18n.js'
 import { IssueDetail, Issues } from './pages/Issues.js'
@@ -113,7 +113,6 @@ function Shell() {
       <main id="main" tabIndex={-1}>
         <Page route={route} />
       </main>
-      <Footer orqeaUrl={orqeaUrl} />
     </>
   )
 }
