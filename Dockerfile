@@ -7,7 +7,7 @@
 # Le conteneur ne lance PAS de tests : il ne sert que les résultats d'un `varia test` fait sur la machine
 # (ou ailleurs), lus dans /data (dossier de données ou racine ne contenant qu'un projet).
 
-FROM node:20-bookworm-slim AS build
+FROM node:22.23.4-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.base.json tsconfig.json ./
 COPY packages ./packages
@@ -16,7 +16,7 @@ RUN npm ci --no-audit --no-fund \
  && npm run build \
  && npm prune --omit=dev --no-audit --no-fund
 
-FROM node:20-bookworm-slim
+FROM node:22.23.4-bookworm-slim
 ENV NODE_ENV=production \
     VARIA_ORQEA_URL=https://orqea.dev
 WORKDIR /app
